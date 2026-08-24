@@ -239,7 +239,7 @@
 			}
 		  ?>
 		 <li class="nav-item">
-                    <a href="http://localhost:8000" class="nav-link">
+                    <a href="https://89club-production.up.railway.app" class="nav-link">
                         <i class="nav-icon fa fa-sign-out" aria-hidden="true"></i>
                         <p>Go To Website</p>
                     </a>

@@ -33,10 +33,10 @@
 				$data['isSplitLocalEWallet'] = true;
 				$data['jackportMaxReswadAmount'] = 500;
 				$data['projectName'] = '91 𝐂𝐋𝐔𝐁';
-				$data['projectLogo'] = 'http://localhost:8000/logo.png';
+				$data['projectLogo'] = 'https://89club-production.up.railway.app/logo.png';
 				$data['languages'] = 'en|hd';
-				$data['webIco'] = 'http://localhost:8000/logo.png';
-				$data['headLogo'] = 'http://localhost:8000/logo.png';
+				$data['webIco'] = 'https://89club-production.up.railway.app/logo.png';
+				$data['headLogo'] = 'https://89club-production.up.railway.app/logo.png';
 				$data['dollarSign'] = '₹';
 				$data['upperOrLower'] = '0';
 				$data['defaultCurrentLanguage'] = 'en';
@@ -60,7 +60,7 @@
 				$data['isOpenTurntable'] = true;
 				$data['isPartnerReward'] = true;
 				$data['isSelfCustomerService'] = true;
-				$data['webSiteUrl'] = 'http://localhost:8000';
+				$data['webSiteUrl'] = 'https://89club-production.up.railway.app';
 				$data['isOpenFacebookEvent'] = true;
 				$data['isOpenRegisterPhoneFirstZeroSwitch'] = false;
 				$data['eventRegionConfigList'] = null;

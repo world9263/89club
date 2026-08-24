@@ -129,7 +129,7 @@ function isMaintenanceMode($conn) {
 $maintenanceMessage = isMaintenanceMode($conn);
 
 if ($maintenanceMessage) {
-    header('Location: http://localhost:8000/maintenance.html');
+    header('Location: https://89club-production.up.railway.app/maintenance.html');
     exit();
 }
 

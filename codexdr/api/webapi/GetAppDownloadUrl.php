@@ -27,7 +27,7 @@
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){				
-				$data['androidUrl'] = 'http://localhost:8000/89club.apk';
+				$data['androidUrl'] = 'https://89club-production.up.railway.app/89club.apk';
 				$data['iosUrl'] = '';
 				$data['isAppForceUpdate'] = 0;	
 				$data['latestAndroidShellVersion'] = 0;

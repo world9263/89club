@@ -958,7 +958,7 @@
             },
             beforeCreate: function () {
               if (localStorage.getItem("userInfo") === null) {
-				window.location.href = "http://localhost:8000/#/login";
+				window.location.href = "https://89club-production.up.railway.app/#/login";
 			  }
             },
             created: function () {
@@ -992,7 +992,7 @@
                 (this.username = (JSON.parse(localStorage.getItem('userInfo')).mobile).substring(2)),
                   O()
                     .get(
-                      "http://localhost:8000/jet/trova/src/api/me.php?action=getuserinfo&user=" +
+                      "https://89club-production.up.railway.app/jet/trova/src/api/me.php?action=getuserinfo&user=" +
                         this.username
                     )
                     .then((e) => {

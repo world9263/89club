@@ -89,7 +89,7 @@ if ($demoResult->num_rows > 0) {
     $conn->query($updateQuery);
 
     // Redirect to recharge history
-    header('Location: http://localhost:8000/#/main');
+    header('Location: https://89club-production.up.railway.app/#/main');
     exit;
 }
 
@@ -123,7 +123,7 @@ if (isset($_GET['tyid']) && isset($_GET['amount']) && isset($_GET['uid']) && iss
 
     $urlarr = explode (",", $urlInfo);
     $theirurl = $urlarr[0];
-    $myurl = 'http://localhost:8000';
+    $myurl = 'https://89club-production.up.railway.app';
 
     if($myurl){
 
@@ -142,7 +142,7 @@ if (isset($_GET['tyid']) && isset($_GET['amount']) && isset($_GET['uid']) && iss
         
 
         // Set up parameters
-        $notify_url = "http://localhost:8000/pay/lgwebhook.php";
+        $notify_url = "https://89club-production.up.railway.app/pay/lgwebhook.php";
 
         if (!$ramt || !$serial) {
             die("Error: Amount or order ID not provided.");
@@ -179,7 +179,7 @@ if ($apiData) {
             'app_id' => $app_id,
             'trade_type' => 'INRUPI',
             'order_sn' => $serial,
-            'return_url' => 'http://localhost:8000',
+            'return_url' => 'https://89club-production.up.railway.app',
         ];
 
         // Sort parameters

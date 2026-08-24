@@ -3,7 +3,7 @@
         "id": 45,
         "vendorId": 23,
         "vendorCode": "TB_Chess",
-        "iconUrl": "http://localhost:8000/Banners/3.png",
+        "iconUrl": "https://89club-production.up.railway.app/Banners/3.png",
         "categoryType": 0,
         "sumBonus": 103880.00,
         "maxBonus": 15800.00,

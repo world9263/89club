@@ -2,51 +2,51 @@
     "data": [
         {
             "url": "/#/wallet/Recharge",
-            "bannerUrl": "http://localhost:8000/Banners/1.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/1.png"
         },
         {
             "url": "",
-            "bannerUrl": "http://localhost:8000/Banners/2.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/2.png"
         },
         {
             "url": "/#/promotion/TeamPartner",
-            "bannerUrl": "http://localhost:8000/Banners/3.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/3.png"
         },
         {
             "url": "/#/activity/Turntable",
-            "bannerUrl": "http://localhost:8000/Banners/4.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/4.png"
         },
         {
             "url": "",
-            "bannerUrl": "http://localhost:8000/Banners/5.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/5.png"
         },
         {
             "url": "/#/main/SuperJackpot",
-            "bannerUrl": "http://localhost:8000/Banners/6.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/6.png"
         },
         {
             "url": "/#/main/Laundry",
-            "bannerUrl": "http://localhost:8000/Banners/7.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/7.png"
         },
         {
-            "url": "http://localhost:8000/support",
-            "bannerUrl": "http://localhost:8000/Banners/8.png"
+            "url": "https://89club-production.up.railway.app/support",
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/8.png"
         },
         {
             "url": "https://t.me/channel_91clubofficial",
-            "bannerUrl": "http://localhost:8000/Banners/8.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/8.png"
         },
         {
             "url": "/#/activity/ActivityDetail?id=28",
-            "bannerUrl": "http://localhost:8000/Banners/9.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/9.png"
         },
         {
             "url": "",
-            "bannerUrl": "http://localhost:8000/Banners/10.png"
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/10.png"
         },
         {
-            "url": "http://localhost:8000/",
-            "bannerUrl": "http://localhost:8000/Banners/1.png"
+            "url": "https://89club-production.up.railway.app/",
+            "bannerUrl": "https://89club-production.up.railway.app/Banners/1.png"
         }
     ],
     "code": 0,

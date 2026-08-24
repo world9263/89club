@@ -1,4 +1,4 @@
 <?php
-header("Location: http://localhost:8000/support");
+header("Location: https://89club-production.up.railway.app/support");
 exit();
 ?>

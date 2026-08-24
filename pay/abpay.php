@@ -66,7 +66,7 @@ $urlInfo = htmlspecialchars(mysqli_real_escape_string($conn, $_GET['urlInfo']));
 		
 		$urlarr = explode (",", $urlInfo);
 		$theirurl = $urlarr[0];
-		$myurl = 'http://localhost:8000/#/wallet/RechargeHistory';
+		$myurl = 'https://89club-production.up.railway.app/#/wallet/RechargeHistory';
 		
 		if($myurl){
 ?>
