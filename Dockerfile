@@ -1,18 +1,22 @@
 FROM php:8.3-apache
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Install system dependencies for PHP extensions
+RUN apt-get update && apt-get install -y \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install curl extension
+# Install PHP extensions
 RUN docker-php-ext-install curl
 
-# Set document root
-ENV APACHE_DOCUMENT_ROOT /var/www/html
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+# Enable Apache mod_rewrite for .htaccess
+RUN a2enmod rewrite
 
 # Allow .htaccess overrides
-RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+RUN sed -i '/<Directory \/var\/www\/html>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf
+
+# Railway uses PORT env var — update Apache to listen on it
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
 
 # Copy project files
 COPY . /var/www/html/
@@ -20,9 +24,6 @@ COPY . /var/www/html/
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
 
-# Railway uses PORT env variable
-RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
-
-EXPOSE ${PORT}
+EXPOSE 8080
 
 CMD ["apache2-foreground"]
