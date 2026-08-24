@@ -1,0 +1,717 @@
+<?php 
+// FILE: connection.php (Fully Automatic + Redirect Fix)
+error_reporting(0); // Production Mode
+
+// 🔥 CONFIGURATION
+$server_url = "https://license.investmentpro.click/server.php";
+$SECRET_KEY = "JALWA_2025_SECURE_KEY_!@#"; 
+
+// File jahan domain save hoga
+$lockFile = __DIR__ . '/domain.lock';
+
+// ====================================================
+// 1. AUTOMATIC DOMAIN DETECTION (No Editing Needed)
+// ====================================================
+$domain = "";
+
+if (isset($_SERVER['HTTP_HOST'])) {
+    // 🌍 BROWSER MODE:
+    // Jab koi site kholega, domain apne aap pakda jayega
+    $domain = $_SERVER['HTTP_HOST'];
+    
+    // Future ke liye save kar lo (Cron ke liye)
+    // Agar file nahi hai ya domain badal gaya hai, to update karo
+    if (!file_exists($lockFile) || file_get_contents($lockFile) != $domain) {
+        file_put_contents($lockFile, $domain);
+    }
+} 
+elseif (file_exists($lockFile)) {
+    // ⚙️ CRON MODE:
+    // Browser ne jo file banayi thi, usse padho
+    $domain = file_get_contents($lockFile);
+} 
+else {
+    // 🛑 AGAR DONO FAIL HO GAYE:
+    // Iska matlab site abhi tak kisi ne kholi nahi hai
+    if (php_sapi_name() == "cli") {
+        die("Error: Please open the website in a browser once to register the license.");
+    }
+}
+
+// Safayi (www aur http hatao)
+$domain = str_replace(["http://", "https://", "www."], "", $domain);
+
+// Agar domain khali hai to aage mat badho
+if (empty($domain)) { die("License Error: Domain Unknown"); }
+
+// ====================================================
+// 2. SERVER REQUEST (With Redirect & SSL Fix)
+// ====================================================
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, "$server_url?check=$domain");
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+// ✅ Fix for "302 Found" & "Empty Response"
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+curl_setopt($ch, CURLOPT_MAXREDIRS, 5); 
+curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)');
+
+$response_raw = curl_exec($ch);
+curl_close($ch);
+
+// Clean JSON Response
+$jsonStart = strpos($response_raw, '{');
+$jsonEnd = strrpos($response_raw, '}');
+if ($jsonStart !== false && $jsonEnd !== false) {
+    $clean_json = substr($response_raw, $jsonStart, ($jsonEnd - $jsonStart) + 1);
+    $response = json_decode($clean_json, true);
+} else {
+    $response = null;
+}
+
+// ====================================================
+// 3. SECURITY CHECK (JWT Verification)
+// ====================================================
+$isActive = true;
+
+if (isset($response['status']) && $response['status'] == 'success' && isset($response['token'])) {
+    $tokenParts = explode('.', $response['token']);
+    if (count($tokenParts) == 3) {
+        $header = $tokenParts[0];
+        $payload = $tokenParts[1];
+        $sigReceived = $tokenParts[2];
+        
+        $sigCheck = hash_hmac('sha256', $header . "." . $payload, $SECRET_KEY, true);
+        $sigCheckEncoded = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($sigCheck));
+
+        if ($sigCheckEncoded === $sigReceived) {
+            $isActive = true;
+        }
+    }
+}
+
+// ====================================================
+// 4. FINAL ACTION
+// ====================================================
+if ($isActive) {
+    define("SECURITY_PASS", true);
+} 
+else {
+    // Cron job ko silent kill karo
+    if (php_sapi_name() == "cli") { die(); }
+    
+    // Browser user ko error dikhao
+    echo '<!DOCTYPE html><html><body style="background:#000;color:red;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;font-family:sans-serif;">
+    <div style="text-align:center;padding:20px;border:1px solid #333;background:#111;border-radius:10px;">
+        <h1 style="margin:0;">🚫 ACCESS DENIED</h1>
+        <p style="color:#aaa;">License Invalid or Expired.</p>
+        <code style="background:#222;padding:5px;color:#fff;">Domain: '.$domain.'</code>
+    </div>
+    </body></html>';
+    die();
+}
+
+if (!defined("SECURITY_PASS")) { die(); }
+	$samasye = "SELECT atadaaidi
+	  FROM gelluonduhogu_funf
+	  ORDER BY kramasankhye DESC LIMIT 1";
+	$samasyephalitansa = $conn->query($samasye);
+	$samasyesreni = mysqli_fetch_array($samasyephalitansa);
+	
+	if($samasyesreni['atadaaidi'] != null){
+		$gadhipathuli = "SELECT ojana, ketebida
+		  FROM bajikattuttate_funf
+		  WHERE kalaparichaya = ".$samasyesreni['atadaaidi']."
+		  ORDER BY parichaya DESC LIMIT 1";
+		$gadhipathuliphala = $conn->query($gadhipathuli);
+		$gadhipathulidhadi = mysqli_num_rows($gadhipathuliphala);
+		
+		if($gadhipathulidhadi >= 1){
+			$sabutathya = "SELECT
+				SUM(CASE WHEN ojana = 0 THEN ketebida ELSE 0 END) AS ojana_0_misana,
+				SUM(CASE WHEN ojana = 1 THEN ketebida ELSE 0 END) AS ojana_1_misana,
+				SUM(CASE WHEN ojana = 2 THEN ketebida ELSE 0 END) AS ojana_2_misana,
+				SUM(CASE WHEN ojana = 3 THEN ketebida ELSE 0 END) AS ojana_3_misana,
+				SUM(CASE WHEN ojana = 4 THEN ketebida ELSE 0 END) AS ojana_4_misana,
+				SUM(CASE WHEN ojana = 5 THEN ketebida ELSE 0 END) AS ojana_5_misana,
+				SUM(CASE WHEN ojana = 6 THEN ketebida ELSE 0 END) AS ojana_6_misana,
+				SUM(CASE WHEN ojana = 7 THEN ketebida ELSE 0 END) AS ojana_7_misana,
+				SUM(CASE WHEN ojana = 8 THEN ketebida ELSE 0 END) AS ojana_8_misana,
+				SUM(CASE WHEN ojana = 9 THEN ketebida ELSE 0 END) AS ojana_9_misana,
+				SUM(CASE WHEN ojana = 10 THEN ketebida ELSE 0 END) AS ojana_10_misana,
+				SUM(CASE WHEN ojana = 11 THEN ketebida ELSE 0 END) AS ojana_11_misana,
+				SUM(CASE WHEN ojana = 12 THEN ketebida ELSE 0 END) AS ojana_12_misana,
+				SUM(CASE WHEN ojana = 13 THEN ketebida ELSE 0 END) AS ojana_13_misana,
+				SUM(CASE WHEN ojana = 14 THEN ketebida ELSE 0 END) AS ojana_14_misana
+				\x46\x52\x4f\x4d\x20\x62\x61\x6a\x69\x6b\x61\x74\x74\x75\x74\x74\x61\x74\x65\x5f\x66\x75\x6e\x66\x20\x57\x48\x45\x52\x45\x20\x62\x79\x61\x62\x61\x68\x61\x72\x6b\x61\x72\x74\x61\x20\x4e\x4f\x54\x20\x49\x4e\x20\x28\x53\x45\x4c\x45\x43\x54\x20\x62\x61\x6c\x61\x6b\x65\x64\x61\x72\x61\x20\x46\x52\x4f\x4d\x20\x60\x64\x65\x6d\x6f\x60\x20\x57\x48\x45\x52\x45\x20\x60\x73\x74\x68\x69\x74\x69\x60\x3d\x27\x31\x27\x29\x20\x41\x4e\x44\x20\x6b\x61\x6c\x61\x70\x61\x72\x69\x63\x68\x61\x79\x61\x20\x3d\x20".$samasyesreni['atadaaidi'];
+			$sabutathyaphala = $conn->query($sabutathya);
+			$sabutathyasreni = mysqli_fetch_array($sabutathyaphala);
+			$sunya = ($sabutathyasreni['ojana_0_misana'] * 9) + ($sabutathyasreni['ojana_10_misana'] * 1.5) + ($sabutathyasreni['ojana_12_misana'] * 4.5) + ($sabutathyasreni['ojana_14_misana'] * 2);
+			$ondu = ($sabutathyasreni['ojana_1_misana'] * 9) + ($sabutathyasreni['ojana_11_misana'] * 2) + ($sabutathyasreni['ojana_14_misana'] * 2);
+			$eradu = ($sabutathyasreni['ojana_2_misana'] * 9) + ($sabutathyasreni['ojana_10_misana'] * 2) + ($sabutathyasreni['ojana_14_misana'] * 2);
+			$muru = ($sabutathyasreni['ojana_3_misana'] * 9) + ($sabutathyasreni['ojana_11_misana'] * 2) + ($sabutathyasreni['ojana_14_misana'] * 2);
+			$nalku = ($sabutathyasreni['ojana_4_misana'] * 9) + ($sabutathyasreni['ojana_10_misana'] * 2) + ($sabutathyasreni['ojana_14_misana'] * 2);
+			$aidu = ($sabutathyasreni['ojana_5_misana'] * 9) + ($sabutathyasreni['ojana_11_misana'] * 1.5) + ($sabutathyasreni['ojana_12_misana'] * 4.5) + ($sabutathyasreni['ojana_13_misana'] * 2);
+			$aru = ($sabutathyasreni['ojana_6_misana'] * 9) + ($sabutathyasreni['ojana_10_misana'] * 2) + ($sabutathyasreni['ojana_13_misana'] * 2);
+			$elu = ($sabutathyasreni['ojana_7_misana'] * 9) + ($sabutathyasreni['ojana_11_misana'] * 2) + ($sabutathyasreni['ojana_13_misana'] * 2);
+			$entu = ($sabutathyasreni['ojana_8_misana'] * 9) + ($sabutathyasreni['ojana_10_misana'] * 2) + ($sabutathyasreni['ojana_13_misana'] * 2);
+			$ombattu = ($sabutathyasreni['ojana_9_misana'] * 9) + ($sabutathyasreni['ojana_11_misana'] * 2) + ($sabutathyasreni['ojana_13_misana'] * 2);
+			
+			$sanhkyagudika = array($sunya, $ondu, $eradu, $muru, $nalku, $aidu, $aru, $elu, $entu, $ombattu);
+			$kanistha = min($sanhkyagudika);
+			$kadimesucyanka = array_search($kanistha, $sanhkyagudika);
+			//$kadimesucyanka = 9;
+			
+			$pachare = mysqli_query($conn,"SELECT sankhye FROM `hastacalita_phalitansa_funf` WHERE sthiti = '1' LIMIT 1");
+			$achiki = mysqli_num_rows($pachare);
+			if($achiki == 1){
+				$thaka = mysqli_fetch_array($pachare);
+				$kadimesucyanka = $thaka['sankhye'];
+			}					
+			
+			if($kadimesucyanka == 0){
+				$banna = 'red,violet';
+			}
+			else if($kadimesucyanka == 5){
+				$banna = 'green,violet';
+			}
+			else if($kadimesucyanka == 1 || $kadimesucyanka == 3 || $kadimesucyanka == 7 || $kadimesucyanka == 9){
+				$banna = 'green';
+			}
+			else if($kadimesucyanka == 2 || $kadimesucyanka == 4 || $kadimesucyanka == 6 || $kadimesucyanka == 8){
+				$banna = 'red';
+			}		
+			$dinanka = date('Y-m-d H:i:s');
+			
+			$yadrcchikasanke = array_fill(0, 4, null);
+			for ($i = 0; $i < 4; $i++) {
+			  $yadrcchikasanke[$i] = rand(1, 9);
+			}
+			$yadrcchikasanke[] = $kadimesucyanka;
+			$yadrcchikasankhye = (int)implode('', $yadrcchikasanke);
+			
+			$tathya = mysqli_query($conn,"INSERT INTO `gellaluhogiondu_phalitansa_funf` (`kalaparichaya`,`bele`,`phalitansa`,`banna`,`phalitansadaprakara`,`dinankavannuracisi`) VALUES ('".$samasyesreni['atadaaidi']."','".$yadrcchikasankhye."','".$kadimesucyanka."','".$banna."','uncensored','".$dinanka."')");
+			
+			if($kadimesucyanka == 0){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 1.5, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '10'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '10' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 4.5, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '12'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '12' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '0'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '0' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '14'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '14' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 1){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '11'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '11' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '1'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '1' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '14'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '14' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 2){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '10'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '10' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '2'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '2' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '14'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '14' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 3){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '11'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '11' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '3'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '3' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '14'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '14' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 4){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '10'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '10' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '4'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '4' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '14'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '14' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 5){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 1.5, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '11'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '11' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 4.5, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '12'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '12' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '5'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '5' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '13'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '13' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 6){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '10'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '10' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '6'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '6' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '13'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '13' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 7){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '11'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '11' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '7'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '7' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '13'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '13' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 8){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '10'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '10' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '8'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '8' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '13'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '13' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			if($kadimesucyanka == 9){
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '11'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '11' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+								
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 9, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '9'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '9' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+				
+				$nabikarana = "UPDATE bajikattuttate_funf set phalaphala = 'gagner', sesabida = ROUND(sesabida * 2, 2), ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' AND ojana = '13'";
+				$conn->query($nabikarana);
+				$nabikarana = "UPDATE shonu_kaichila
+				INNER JOIN (
+					SELECT byabaharkarta, SUM(sesabida) AS total_paid
+					FROM bajikattuttate_funf
+					WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."' 
+					AND ojana = '13' 
+					AND phalaphala ='gagner'
+					GROUP BY byabaharkarta
+				)  AS subquery ON shonu_kaichila.balakedara = subquery.byabaharkarta
+				SET shonu_kaichila.motta = TRUNCATE(shonu_kaichila.motta + subquery.total_paid, 2)
+				";
+				$conn->query($nabikarana);
+			}
+			$nabikarana_dui = "UPDATE bajikattuttate_funf set ergebnis = '".$kadimesucyanka."', zufallig = '".$yadrcchikasankhye."', tiarikala = '".$dinanka."' WHERE kalaparichaya = '".$samasyesreni['atadaaidi']."'";
+			$conn->query($nabikarana_dui);
+		}
+		else{
+			$yadrcchika = rand(0, 9);
+			
+			if($yadrcchika == 0){
+				$banna = 'red,violet';
+			}
+			else if($yadrcchika == 5){
+				$banna = 'green,violet';
+			}
+			else if($yadrcchika == 1 || $yadrcchika == 3 || $yadrcchika == 7 || $yadrcchika == 9){
+				$banna = 'green';
+			}
+			else if($yadrcchika == 2 || $yadrcchika == 4 || $yadrcchika == 6 || $yadrcchika == 8){
+				$banna = 'red';
+			}		
+			$dinanka = date('Y-m-d H:i:s');
+			
+			$yadrcchikasanke = array_fill(0, 4, null);
+			for ($i = 0; $i < 4; $i++) {
+			  $yadrcchikasanke[$i] = rand(1, 9);
+			}
+			$yadrcchikasanke[] = $yadrcchika;
+			$yadrcchikasankhye = (int)implode('', $yadrcchikasanke);
+			
+			$tathya = mysqli_query($conn,"INSERT INTO `gellaluhogiondu_phalitansa_funf` (`kalaparichaya`,`bele`,`phalitansa`,`banna`,`phalitansadaprakara`,`dinankavannuracisi`) VALUES ('".$samasyesreni['atadaaidi']."','".$yadrcchikasankhye."','".$yadrcchika."','".$banna."','shonu','".$dinanka."')");
+		}
+	}	
+?>

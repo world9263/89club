@@ -1,0 +1,303 @@
+{
+        "gameCustomTypeLists": [],
+        "gameLists": [
+            {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "chicken-road",
+        "gameNameEn": "chickenroad",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_chicken-road.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "chicken-road-two",
+        "gameNameEn": "chickenroadtwo",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_chicken-road-two.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+            {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "lucky-mines",
+        "gameNameEn": "luckymines",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_lucky-mines.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    }, 
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "squid-game",
+        "gameNameEn": "squidgame",
+        "img": "https://wuttsghdijsbbsh.yrehdjsfiafkjgkjgfsasc.yachts/images/squid-game.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "ballonix",
+        "gameNameEn": "ballonix",
+        "img": "https://wuttsghdijsbbsh.yrehdjsfiafkjgkjgfsasc.yachts/images/ballonix.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "new-hilo",
+        "gameNameEn": "newhilo",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_new-hilo.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "bubbles",
+        "gameNameEn": "bubbles",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_bubbles.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "plinko-aztec",
+        "gameNameEn": "plinkoaztec",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_plinko-aztec.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "platform-mines",
+        "gameNameEn": "platformmines",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_platform-mines.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "roulette",
+        "gameNameEn": "roulette",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_roulette.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "chicken-road-two",
+        "gameNameEn": "chickenroadtwo",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_chicken-road-two.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "keno",
+        "gameNameEn": "keno",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_keno.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "penalty-unlimited",
+        "gameNameEn": "penaltyunlimited",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_penalty-unlimited.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "triple",
+        "gameNameEn": "triple",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_triple.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "crash",
+        "gameNameEn": "crash",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_crash.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "cryptos",
+        "gameNameEn": "cryptos",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_cryptos.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "diver",
+        "gameNameEn": "diver",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_diver.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "new-double",
+        "gameNameEn": "newdouble",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_new-double.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "sugar-daddy",
+        "gameNameEn": "sugardaddy",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_sugar-daddy.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "robo-dice",
+        "gameNameEn": "robodice",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_robo-dice.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "coinflip",
+        "gameNameEn": "coinflip",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_coinflip.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "stairs",
+        "gameNameEn": "stairs",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_stairs.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "hamster-run",
+        "gameNameEn": "hamsterrun",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_hamster-run.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "forest-fortune-v1",
+        "gameNameEn": "forestfortunev1",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_forest-arrow.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "goblin-tower",
+        "gameNameEn": "goblintower",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_goblin-tower.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "joker-poker",
+        "gameNameEn": "jokerpoker",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_joker-poker.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "aviafly",
+        "gameNameEn": "aviafly",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_aviafly.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "tower",
+        "gameNameEn": "tower",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_tower.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "wheel",
+        "gameNameEn": "wheel",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_wheel.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "limbo",
+        "gameNameEn": "limbo",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_limbo.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "jogo-do-bicho",
+        "gameNameEn": "jogodobicho",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_jogo-do-bicho.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "hot-mines",
+        "gameNameEn": "hotmines",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_hot-mines.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "vendorId": "18",
+        "vendorCode": "INOUT",
+        "gameID": "plinko",
+        "gameNameEn": "plinko",
+        "img": "https:\/\/icons.inout.games\/408_544\/io_plinko.png",
+        "imgUrl2": null,
+        "customGameType": 0
+    }
+        ]
+    }

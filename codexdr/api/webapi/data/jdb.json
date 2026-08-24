@@ -1,0 +1,240 @@
+{
+        "gameCustomTypeLists": [],
+        "gameLists": [
+    {
+        "gameID": "50026",
+        "gameNameEn": "Money Tiger",
+        "img": "/assets/jdb/50026_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50025",
+        "gameNameEn": "Bright Night",
+        "img": "/assets/jdb/50025_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50024",
+        "gameNameEn": "Peak Racing",
+        "img": "/assets/jdb/50024_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50023",
+        "gameNameEn": "Viking Legend",
+        "img": "/assets/jdb/50023_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50022",
+        "gameNameEn": "Snow Park",
+        "img": "/assets/jdb/50022_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50021",
+        "gameNameEn": "Sea of Conquest",
+        "img": "/assets/jdb/50021_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50020",
+        "gameNameEn": "Leprechaun Treasure",
+        "img": "/assets/jdb/50020_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50019",
+        "gameNameEn": "Roma Glory",
+        "img": "/assets/jdb/50019_200X300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50018",
+        "gameNameEn": "Golf Star",
+        "img": "/assets/jdb/50018_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50017",
+        "gameNameEn": "Double Delight",
+        "img": "/assets/jdb/50017_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50016",
+        "gameNameEn": "Gold Rush",
+        "img": "/assets/jdb/50016_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50015",
+        "gameNameEn": "Ace Bartender",
+        "img": "/assets/jdb/50015_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50014",
+        "gameNameEn": "Jingu Bang",
+        "img": "/assets/jdb/50014_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50013",
+        "gameNameEn": "Dragon'S Jewel",
+        "img": "/assets/jdb/50013_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50012",
+        "gameNameEn": "Gold Pirate",
+        "img": "/assets/jdb/50012_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50011",
+        "gameNameEn": "Fortune Qilin",
+        "img": "/assets/jdb/50011_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50010",
+        "gameNameEn": "Dinosaur Paradise",
+        "img": "/assets/jdb/50010_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50009",
+        "gameNameEn": "Hyakki Yagyo",
+        "img": "/assets/jdb/50009_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50008",
+        "gameNameEn": "Dead Fiesta Party",
+        "img": "/assets/jdb/50008_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50007",
+        "gameNameEn": "Lucky Ganesha",
+        "img": "/assets/jdb/50007_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50006",
+        "gameNameEn": "Golden Lucky Cat",
+        "img": "/assets/jdb/50006_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50005",
+        "gameNameEn": "Maya adventure",
+        "img": "/assets/jdb/50005_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50004",
+        "gameNameEn": "Fortune bull",
+        "img": "/assets/jdb/50004_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50003",
+        "gameNameEn": "Mahjong Ways Deluxe",
+        "img": "/assets/jdb/50003_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50002",
+        "gameNameEn": "Thirteen orphans",
+        "img": "/assets/jdb/50002_300X500_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    },
+    {
+        "gameID": "50001",
+        "gameNameEn": "Roma",
+        "img": "/assets/jdb/50001_200x300_en.png",
+        "vendorId": 23,
+        "vendorCode": "JDB",
+        "imgUrl2": null,
+        "customGameType": 0
+    }
+]
+
+    }

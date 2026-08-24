@@ -1,0 +1,15 @@
+# Sensitive credentials - NEVER push to GitHub
+config.php
+
+# System files
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# Domain lock file
+main/domain.lock
+domain.lock

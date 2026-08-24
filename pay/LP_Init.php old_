@@ -1,0 +1,124 @@
+<?php
+header('Content-Type: text/plain; charset=utf-8');
+include "../serive/samparka.php";
+$config = require __DIR__ . '/LP_Config.php';
+$DEBUG_MODE = true;
+function logDebug($msg) {
+    global $DEBUG_MODE;
+    if ($DEBUG_MODE) {
+        file_put_contents('LP_Init.debug.log', date('[Y-m-d H:i:s] ') . $msg . "\n", FILE_APPEND);
+    }
+}
+$res = ['code' => 405, 'message' => 'Illegal access!'];
+$uid    = isset($_GET['uid'])    ? intval($_GET['uid']) : null;
+$ramt   = isset($_GET['amount'])
+            ? mysqli_real_escape_string($conn, $_GET['amount'])
+            : '0';
+$ramt = htmlspecialchars($ramt);
+if (strpos($ramt, '.') === false) {
+    $ramt .= '.00';
+} else {
+    list($int, $dec) = explode('.', $ramt, 2);
+    $dec = str_pad(substr($dec, 0, 2), 2, '0');
+    $ramt = "$int.$dec";
+}
+
+$payName   = 'LemonPay';
+$date      = date('Ymd');
+$time_sec  = time();
+$serial    = $date . $time_sec . rand(100000, 999900);
+$createdate = date('Y-m-d H:i:s');
+$emailQ     = mysqli_query($conn, "SELECT mobile FROM shonu_subjects WHERE id = '$uid'");
+$emailA     = mysqli_fetch_array($emailQ, MYSQLI_ASSOC);
+$userm      = $emailA['mobile'];
+$demoQ = "SELECT 1 FROM demo WHERE balakedara = '$uid'";
+if ($conn->query($demoQ)->num_rows > 0) {
+    $ins = "
+      INSERT INTO thevani
+        (payid, balakedara, motta, dharavahi, mula, ullekha, duravani,
+         ekikrtapavati, dinankavannuracisi, madari, pavatiaidi, sthiti)
+      VALUES
+        ('2', '$uid', '$ramt', '$serial', '$payName', 'N/A', '$userm',
+         'N/A', '$createdate', '1005', '2', '1')
+    ";
+    $conn->query($ins);
+    $conn->query("UPDATE shonu_kaichila
+                  SET motta = ROUND(motta + $ramt, 2)
+                  WHERE balakedara = '$uid'");
+
+    header('Location: https://91clubgo.site/#/main');
+    exit;
+}
+
+if (isset($_GET['tyid'], $_GET['amount'], $_GET['uid'], $_GET['sign'], $_GET['urlInfo'])) {
+    $payload = [
+        'merchantId'  => $config['merchantId'],
+        'secretKey'   => $config['secretKey'],
+        'orderId'     => $serial,
+        'amount'      => $ramt,
+        'callbackUrl' => 'https://91clubgo.site/pay/LP_Webhook.php',
+        'name'        => "89 Club",
+        'phone'       => "+911234567890",
+        'email'       => "admin@91clubgo.site"
+    ];
+
+    // Signature per LemonPay spec (filter, sort, http_build_query, append &secret, MD5→UPPER)
+    // PHP 8+:
+    // $tmp = array_filter($payload, fn($v) => $v !== null && $v !== '');
+    // PHP 7+:
+    $tmp = array_filter($payload, function($v) {
+        return $v !== null && $v !== '';
+    });
+    unset($tmp['sign']);
+    ksort($tmp);
+    $qs = http_build_query($tmp) . '&secret=' . $config['secretKey'];
+    $payload['sign'] = strtoupper(md5($qs));
+
+    logDebug("LemonPay deposit payload: " . json_encode($payload));
+
+    $ch = curl_init(rtrim($config['api_url'], '/') . '/cashier/deposit');
+    if (defined('CURLOPT_IPRESOLVE') && defined('CURL_IPRESOLVE_V4')) {
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+    }
+    curl_setopt_array($ch, [
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => ['Content-Type: application/json;charset=UTF-8'],
+    ]);
+    $resp = curl_exec($ch);
+    if (curl_errno($ch)) {
+        logDebug("Curl error: " . curl_error($ch));
+        echo "Error: payment gateway unreachable";
+        exit;
+    }
+    curl_close($ch);
+
+    $data = json_decode($resp, true);
+    if (isset($data['data']['pay_url'])) {
+        $pay_url    = $data['data']['pay_url'];
+
+        $ins2 = "
+          INSERT INTO thevani
+            (payid, balakedara, motta, dharavahi, mula, ullekha,
+             duravani, ekikrtapavati, dinankavannuracisi, madari,
+             pavatiaidi, sthiti)
+          VALUES
+            ('2', '$uid', '$ramt', '$serial', '$payName',
+             '{$data['data']['order_id']}', '$userm', 'N/A', 
+             '$createdate', '1005', '2', '0')
+        ";
+        $conn->query($ins2);
+
+        header('Location: ' . $pay_url);
+        exit;
+    }
+
+    logDebug("LemonPay error response: " . $resp);
+    echo "Error: unable to process payment: " . var_dump($resp);
+    exit;
+}
+
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode($res);
+exit;

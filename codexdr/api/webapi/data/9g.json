@@ -1,0 +1,85 @@
+{
+        "gameCustomTypeLists": [],
+        "gameLists": [
+            {
+                "gameID": "22001",
+                "gameNameEn": "",
+                "img": "https://ossimg.91admin123admin.com/91club/gamelogo/SPRIBE/aviator_20250210120506414.png",
+                "vendorId": 18,
+                "vendorCode": "SPRIBE",
+                "imgUrl2": null,
+                "customGameType": 0
+            },{
+    "gameID": "22002",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/102_20250210111705541.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22003",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/105_20250210113618898.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22004",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/103_20250210111953841.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22005",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/100.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22006",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/101_20250210111652965.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22007",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/106.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22009",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/107.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  },
+  {
+    "gameID": "22008",
+    "gameNameEn": "",
+    "img": "https://ossimg.91admin123admin.com/91club/gamelogo/TB_Chess/104_20250210111939890.png",
+    "vendorId": 23,
+    "vendorCode": "SPRIBE",
+    "imgUrl2": "",
+    "customGameType": 0
+  }
+        ]
+    }
