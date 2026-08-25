@@ -131,8 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         body {
             margin: 0;
             padding: 0;
-            background-color: #0c0a09;
-            color: #e7e5e4;
+            background-color: #f4f6fa;
+            color: #374151;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
@@ -142,12 +142,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .container {
             width: 100%;
             max-width: 450px;
-            background-color: #1c1917;
-            border: 1px solid #2e2a24;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
             border-radius: 16px;
             padding: 24px;
             box-sizing: border-box;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             margin: 16px;
         }
         .header {
@@ -157,16 +157,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .header h2 {
             margin: 0;
             font-size: 22px;
-            color: #f59e0b; /* Gold accent */
-            letter-spacing: 1px;
+            color: #ff3c40; /* Matching the orange-red theme */
+            letter-spacing: 0.5px;
+            font-weight: bold;
         }
         .header p {
             margin: 6px 0 0;
             font-size: 13px;
-            color: #a8a29e;
+            color: #6b7280;
         }
         .amount-box {
-            background-color: #292524;
+            background-color: #fff5f5;
+            border: 1px solid #fee2e2;
             border-radius: 12px;
             padding: 16px;
             text-align: center;
@@ -174,34 +176,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .amount-box span {
             font-size: 12px;
-            color: #a8a29e;
+            color: #dc2626;
             display: block;
             text-transform: uppercase;
+            font-weight: 600;
         }
         .amount-box .value {
             font-size: 28px;
-            font-weight: bold;
+            font-weight: 800;
             color: #ef4444; /* Red accent */
             margin-top: 4px;
         }
         .payment-details {
-            background-color: #292524;
+            background-color: #f9fafb;
             border-radius: 12px;
             padding: 16px;
             text-align: center;
             margin-bottom: 20px;
+            border: 1px solid #f3f4f6;
         }
         .payment-details img {
             max-width: 180px;
             border-radius: 8px;
             margin-bottom: 12px;
-            border: 2px solid #2e2a24;
+            border: 1px solid #e5e7eb;
+            background-color: #ffffff;
+            padding: 4px;
         }
         .address-row {
             display: flex;
             align-items: center;
-            background-color: #1c1917;
-            border: 1px solid #3f3f46;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             border-radius: 8px;
             padding: 8px 12px;
             margin-top: 8px;
@@ -214,12 +220,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-overflow: ellipsis;
             white-space: nowrap;
             font-family: monospace;
+            color: #1f2937;
         }
         .copy-btn {
-            background-color: #f59e0b;
-            color: #0c0a09;
+            background-color: #ff3c40;
+            color: #ffffff;
             border: none;
-            padding: 6px 12px;
+            padding: 6px 14px;
             font-size: 12px;
             font-weight: bold;
             border-radius: 6px;
@@ -235,26 +242,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .form-group label {
             display: block;
             font-size: 13px;
-            color: #a8a29e;
+            color: #4b5563;
             margin-bottom: 6px;
+            font-weight: 600;
         }
         .form-group input[type="text"] {
             width: 100%;
             box-sizing: border-box;
-            background-color: #292524;
-            border: 1px solid #3f3f46;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
             border-radius: 8px;
             padding: 12px;
-            color: #e7e5e4;
+            color: #1f2937;
             font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-group input[type="text"]:focus {
+            border-color: #ff3c40;
         }
         .form-group input[type="file"] {
             font-size: 13px;
-            color: #a8a29e;
+            color: #4b5563;
+            background-color: #f9fafb;
+            border: 1px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
         }
         .btn-submit {
             width: 100%;
-            background-color: #ef4444;
+            background: linear-gradient(to right, #ff7b6c, #ff3c40);
             color: #ffffff;
             border: none;
             padding: 14px;
@@ -262,11 +282,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: opacity 0.2s;
             margin-top: 10px;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
         }
         .btn-submit:hover {
-            background-color: #dc2626;
+            opacity: 0.95;
         }
         .alert {
             border-radius: 8px;
@@ -276,35 +297,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             line-height: 1.5;
         }
         .alert-success {
-            background-color: rgba(34, 197, 94, 0.1);
-            border: 1px solid #22c55e;
-            color: #22c55e;
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
             text-align: center;
         }
         .alert-danger {
-            background-color: rgba(239, 68, 68, 0.1);
-            border: 1px solid #ef4444;
-            color: #ef4444;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
         }
         .instructions {
             margin-top: 24px;
             font-size: 12px;
-            color: #a8a29e;
+            color: #6b7280;
             line-height: 1.6;
+            background-color: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #f3f4f6;
         }
         .instructions ol {
             padding-left: 20px;
             margin: 8px 0 0;
+            color: #4b5563;
         }
         .back-link {
             text-align: center;
             margin-top: 20px;
         }
         .back-link a {
-            color: #f59e0b;
+            color: #ff3c40;
             text-decoration: none;
             font-size: 13px;
             font-weight: bold;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
