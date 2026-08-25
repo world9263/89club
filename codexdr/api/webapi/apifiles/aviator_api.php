@@ -31,10 +31,10 @@ if ($user == null) {
 
 // Deterministic round generation
 date_default_timezone_set("Asia/Kolkata");
-$now = time();
+$now = microtime(true);
 $roundLength = 30; // 30 seconds per round
-$roundId = floor($now / $roundLength);
-$elapsed = $now % $roundLength;
+$roundId = (int)floor($now / $roundLength);
+$elapsed = fmod($now, $roundLength);
 
 // Generate multiplier distribution
 function generateRandomMultiplier() {
@@ -142,7 +142,7 @@ switch ($action) {
         
         // Calculate server multiplier at this exact moment
         $flightElapsed = $elapsed - 8;
-        $serverMultiplier = round(1.0 + Math.pow($flightElapsed, 1.8) * 0.06, 2);
+        $serverMultiplier = round(1.0 + pow($flightElapsed, 1.8) * 0.06, 2);
 
         // Check if plane has already crashed
         if ($serverMultiplier >= $crashMultiplier) {

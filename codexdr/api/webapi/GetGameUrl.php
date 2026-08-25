@@ -22,11 +22,9 @@ $res = [
 ];
 
 function generateUrl(string $fileName): string {
-    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS']!=='off') || ($_SERVER['SERVER_PORT'] ?? '') == 443;
-    $scheme   = $isHttps ? 'https://' : 'http://';
+    $scheme   = 'https://';
     $host     = $_SERVER['HTTP_HOST'];
-    $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\');
-    return $scheme . $host . ($basePath !== '/' ? $basePath : '') . '/' . ltrim($fileName, '/');
+    return $scheme . $host . '/' . ltrim($fileName, '/');
 }
 
 $shonubody = file_get_contents("php://input");
@@ -65,10 +63,10 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                     
                     // No wallet consolidation or zeroing out is needed because B2B wallet systems are self-hosted now.
                     // Keep players balance inside the central motta key so home screen and game screen balance are identical.
-                    if ($vendorCode == 'SPRIBE' || $vendorCode == 23 || strpos(strtolower($gameCode), 'aviator') !== false) {
-                        $game = generateUrl("apifiles/mock_aviator.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
+                    if ($vendorCode == 'SPRIBE' || $vendorCode == 23 || $gameCode == 22001 || $gameCode == '22001' || strpos(strtolower($gameCode), 'aviator') !== false) {
+                        $game = generateUrl("mock_aviator.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
                     } else {
-                        $game = generateUrl("apifiles/mock_slots.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
+                        $game = generateUrl("mock_slots.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
                     }
 
                     $res['data'] = ["url"=>$game, "returnType"=>1];
