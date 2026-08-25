@@ -45,11 +45,11 @@
 						if(isset($shonurow['status']) && $shonurow['status'] == 1){
 							$data['expiresIn'] = time() + 86400;
 							$shnutkn_head = array('alg'=>'HS256','typ'=>'JWT');
-							$shnutkn_load = array('id'=>$shonurow['id'],'mobile'=>$username, 'status'=>$shonurow['status'], 'expire'=>$data['expiresIn'], 'ishonup'=>$shonurow['ishonup'], 'codechorkamukala'=>$shonurow['codechorkamukala']);
+							$shnutkn_load = array('id'=>$username,'mobile'=>$username, 'status'=>$shonurow['status'], 'expire'=>$data['expiresIn'], 'ishonup'=>(isset($shonurow['ishonup']) ? $shonurow['ishonup'] : ''), 'codechorkamukala'=>(isset($shonurow['codechorkamukala']) ? $shonurow['codechorkamukala'] : ''));
 							$data['tokenHeader'] = 'Bearer ';
 							$data['token'] = generate_jwt($shnutkn_head, $shnutkn_load);							
 							$shnutkn_head_rfsh = array('alg'=>'HS256','typ'=>'JWT');
-							$shnutkn_load_rfsh = array('id'=>$shonurow['id'],'mobile'=>$username, 'status'=>$shonurow['status'], 'expire'=>$data['expiresIn']);
+							$shnutkn_load_rfsh = array('id'=>$username,'mobile'=>$username, 'status'=>$shonurow['status'], 'expire'=>$data['expiresIn']);
 							$data['refreshToken'] = generate_jwt($shnutkn_head_rfsh, $shnutkn_load_rfsh);
 							$data['passwordErrorNum'] = 0;
 							$data['passwordErrorMaxNum'] = 30;

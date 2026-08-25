@@ -102,11 +102,11 @@ ini_set('display_errors', 1);
 						'code' => $invitecode,
 						'owncode' => $owncode,
 						'status' => 1,
-						'points' => 0,
+						'motta' => 0,
 						'createdate' => $shnunc,
 						'ishonup' => $ipaddress,
 						'shonullgnt' => $shnunc,
-						'token' => '',
+						'akshinak' => '',
 						'codechorkamukala' => $codechorkamukala
 					];
 					
@@ -120,7 +120,7 @@ ini_set('display_errors', 1);
 					$akshinak = generate_jwt($shnutkn_head, $shnutkn_load);
 					
 					// Update token in Firebase
-					$firebase->update('users/' . $username, ['token' => $akshinak]);
+					$firebase->update('users/' . $username, ['akshinak' => $akshinak]);
 					
 					$res['data']['tokenHeader'] = 'Bearer ';
 					$res['data']['token'] = $akshinak;
