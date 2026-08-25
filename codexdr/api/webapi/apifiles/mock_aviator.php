@@ -22,7 +22,7 @@ ini_set('display_errors', 1);
             max-width: 480px;
             margin: 0 auto;
             background-color: #0c0d14;
-            min-h-screen: 100vh;
+            min-height: 100vh;
             border-left: 1px solid #1a1c24;
             border-right: 1px solid #1a1c24;
         }
@@ -235,7 +235,6 @@ ini_set('display_errors', 1);
 
     <!-- MAIN GAME SIMULATOR LOOP -->
     <script>
-        const symbols = ['🍒', '🍋', '🍇', '🔔', '💎'];
         let urlParams = new URLSearchParams(window.location.search);
         let userId = urlParams.get('userid') || '';
         
@@ -246,6 +245,7 @@ ini_set('display_errors', 1);
         let currentMultiplier = 1.0;
         
         let localState = 'idle'; // 'betting', 'flying', 'crashed'
+        let lastSyncTime = Date.now();
         
         let panelState = {
             1: { status: 'idle', betAmount: 100 },
@@ -277,13 +277,11 @@ ini_set('display_errors', 1);
         async function clickBetBtn(panelNum) {
             let state = panelState[panelNum];
             if (state.status === 'idle') {
-                // Check local balance
                 if (currentBalance < state.betAmount) {
                     alert("Insufficient Wallet Balance!");
                     return;
                 }
 
-                // Place bet in backend api
                 try {
                     let res = await fetch(`aviator_api.php?action=place_bet&userId=${userId}`, {
                         method: 'POST',
@@ -296,7 +294,6 @@ ini_set('display_errors', 1);
                         currentBalance = parseFloat(data.balance);
                         document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
                         
-                        // Change UI to cancel state
                         let btn = document.getElementById(`btn-bet-${panelNum}`);
                         btn.className = 'col-span-5 h-16 rounded-xl btn-cancel text-white flex flex-col items-center justify-center tracking-wide transition-all';
                         document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Cancel';
@@ -307,9 +304,6 @@ ini_set('display_errors', 1);
                     console.error(e);
                 }
             } else if (state.status === 'wagered' && localState === 'betting') {
-                // Cancel Bet (not started yet)
-                // For simplicity, refund in backend api is done via clear action or custom refund path
-                // We'll let them withdraw the balance or treat cancel as refund:
                 try {
                     let res = await fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
                         method: 'POST',
@@ -330,7 +324,6 @@ ini_set('display_errors', 1);
                     console.error(e);
                 }
             } else if (state.status === 'wagered' && localState === 'flying') {
-                // CASHOUT
                 try {
                     let res = await fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
                         method: 'POST',
@@ -348,6 +341,7 @@ ini_set('display_errors', 1);
                         let btn = document.getElementById(`btn-bet-${panelNum}`);
                         btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
                         document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Bet';
+                        document.getElementById(`btn-wager-label-${panelNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
                     } else {
                         alert(data.error || "Cashout failed");
                     }
@@ -357,7 +351,7 @@ ini_set('display_errors', 1);
             }
         }
 
-        // Fetch round loop state and bets from Firebase via API
+        // Fetch state every 800ms to slow down API request rate and history updates
         async function updateState() {
             try {
                 let res = await fetch(`aviator_api.php?action=get_state&userId=${userId}`);
@@ -367,16 +361,14 @@ ini_set('display_errors', 1);
                 roundElapsed = data.elapsed;
                 crashMultiplier = parseFloat(data.crashMultiplier);
                 currentBalance = parseFloat(data.balance);
+                lastSyncTime = Date.now();
 
                 document.getElementById('label-round-id').innerText = activeRoundId;
                 document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
 
-                // Update Multipliers History
                 updateRibbon(data.history);
 
-                // Handle Game Phases
                 if (roundElapsed < 8) {
-                    // Betting Phase
                     localState = 'betting';
                     let remaining = (8 - roundElapsed).toFixed(1);
                     document.getElementById('loading-overlay').classList.remove('opacity-0');
@@ -388,31 +380,28 @@ ini_set('display_errors', 1);
                     document.getElementById('multiplier-label').innerText = '1.00x';
                     document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
 
-                    // Update panels bet wager labels if idle
                     for (let pNum = 1; pNum <= 2; pNum++) {
                         let state = panelState[pNum];
                         if (state.status === 'idle') {
                             let btn = document.getElementById(`btn-bet-${pNum}`);
                             btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
                             document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
+                            document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
                         }
                     }
                 } else {
-                    // Flying Phase
                     document.getElementById('loading-overlay').classList.add('opacity-0');
                     document.getElementById('loading-overlay').classList.add('pointer-events-none');
                     
                     let flightTime = roundElapsed - 8;
-                    currentMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
+                    let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
 
-                    if (currentMultiplier >= crashMultiplier) {
-                        // Crashed!
+                    if (nextMultiplier >= crashMultiplier) {
                         localState = 'crashed';
                         document.getElementById('flew-away-overlay').classList.remove('hidden');
                         document.getElementById('multiplier-label').innerText = crashMultiplier.toFixed(2) + 'x';
                         document.getElementById('multiplier-label').className = 'text-5xl font-black text-rose-600 italic tracking-tight animate-bounce';
                         
-                        // Force clean betting state panels
                         for (let pNum = 1; pNum <= 2; pNum++) {
                             let state = panelState[pNum];
                             if (state.status === 'wagered') {
@@ -420,33 +409,15 @@ ini_set('display_errors', 1);
                                 let btn = document.getElementById(`btn-bet-${pNum}`);
                                 btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
                                 document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
+                                document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
                             }
                         }
                     } else {
-                        // Flying
                         localState = 'flying';
                         document.getElementById('flew-away-overlay').classList.add('hidden');
-                        document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
-                        document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
-
-                        // Enable cashout on active bets
-                        for (let pNum = 1; pNum <= 2; pNum++) {
-                            let state = panelState[pNum];
-                            if (state.status === 'wagered') {
-                                let btn = document.getElementById(`btn-bet-${pNum}`);
-                                btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
-                                document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
-                                let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
-                                document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
-                            }
-                        }
                     }
                 }
 
-                // Render Canvas flight line graph
-                drawFlightCanvas();
-
-                // Update active tab lists
                 updateActiveTabList(data.bets);
 
             } catch (err) {
@@ -473,48 +444,109 @@ ini_set('display_errors', 1);
             });
         }
 
+        // Draw curved flight path and plane icon with rotating propeller rotor
         function drawFlightCanvas() {
             ctx.clearRect(0, 0, width, height);
-            if (localState !== 'flying') return;
 
             let flightTime = roundElapsed - 8;
-            let ratio = Math.min(1.0, flightTime / 18); // limit scale
+            if (localState !== 'flying' || flightTime < 0) return;
 
-            // Curve coordinate calculations
-            let startX = 20;
-            let startY = height - 20;
-            let endX = startX + ratio * (width - 60);
-            let endY = startY - ratio * (height - 60);
+            let ratio = Math.min(1.0, flightTime / 18);
 
-            // Draw line curve
+            let startX = 40;
+            let startY = height - 40;
+            let endX = startX + ratio * (width - 100);
+            let endY = startY - ratio * (height - 100);
+
+            // 1. Draw Grid Lines
+            ctx.strokeStyle = '#161822';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, height);
+                ctx.stroke();
+            }
+            for (let j = 0; j < height; j += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, j);
+                ctx.lineTo(width, j);
+                ctx.stroke();
+            }
+
+            // 2. Draw Flying Curve Path
             ctx.beginPath();
             ctx.strokeStyle = '#e11d48';
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 4;
             ctx.moveTo(startX, startY);
-            ctx.quadraticCurveTo(width / 2, height - 10, endX, endY);
+            ctx.quadraticCurveTo(width / 2.5, height - 20, endX, endY);
             ctx.stroke();
 
-            // Gradient shading fill underneath the flight path
+            // 3. Gradient Shading Fill
             let fillGrad = ctx.createLinearGradient(0, height, endX, endY);
             fillGrad.addColorStop(0, 'rgba(225, 29, 72, 0.0)');
             fillGrad.addColorStop(1, 'rgba(225, 29, 72, 0.25)');
             ctx.fillStyle = fillGrad;
             ctx.beginPath();
             ctx.moveTo(startX, startY);
-            ctx.quadraticCurveTo(width / 2, height - 10, endX, endY);
+            ctx.quadraticCurveTo(width / 2.5, height - 20, endX, endY);
             ctx.lineTo(endX, height);
             ctx.lineTo(startX, height);
             ctx.closePath();
             ctx.fill();
 
-            // Draw plane circle indicator
-            ctx.shadowBlur = 10;
+            // 4. Draw Airplane Icon Flying (Detailed Propeller Plane)
+            ctx.save();
+            ctx.translate(endX, endY);
+            ctx.rotate(-Math.PI / 8); 
+
+            // Glow effect
+            ctx.shadowBlur = 15;
             ctx.shadowColor = '#e11d48';
+
+            // Plane Body
+            ctx.fillStyle = '#e11d48';
+            ctx.beginPath();
+            ctx.moveTo(-15, -4);
+            ctx.lineTo(10, -4);
+            ctx.quadraticCurveTo(15, -4, 18, 0);
+            ctx.quadraticCurveTo(15, 4, 10, 4);
+            ctx.lineTo(-15, 4);
+            ctx.lineTo(-18, 8); 
+            ctx.lineTo(-20, 8);
+            ctx.lineTo(-18, -8);
+            ctx.lineTo(-20, -8);
+            ctx.closePath();
+            ctx.fill();
+
+            // Wings
             ctx.fillStyle = '#f43f5e';
             ctx.beginPath();
-            ctx.arc(endX, endY, 6, 0, 2 * Math.PI);
+            ctx.moveTo(-2, -4);
+            ctx.lineTo(2, -15);
+            ctx.lineTo(6, -15);
+            ctx.lineTo(2, -4);
+            ctx.closePath();
             ctx.fill();
-            ctx.shadowBlur = 0; // reset
+
+            ctx.beginPath();
+            ctx.moveTo(-2, 4);
+            ctx.lineTo(2, 15);
+            ctx.lineTo(6, 15);
+            ctx.lineTo(2, 4);
+            ctx.closePath();
+            ctx.fill();
+
+            // Propeller spinning visual
+            ctx.strokeStyle = '#fda4af';
+            ctx.lineWidth = 2;
+            let propSpin = (Date.now() / 40) % (2 * Math.PI);
+            ctx.beginPath();
+            ctx.moveTo(18, -6 * Math.sin(propSpin));
+            ctx.lineTo(18, 6 * Math.sin(propSpin));
+            ctx.stroke();
+
+            ctx.restore();
         }
 
         // Active logs tabs logic
@@ -537,7 +569,6 @@ ini_set('display_errors', 1);
             
             let betList = Object.values(bets);
 
-            // Populate mock bets if list is short to look extremely premium and busy!
             if (betList.length < 5) {
                 let names = ["AmanS", "RohitK", "Jack99", "PlayerX", "KunalR", "VIP_777", "RajuBhai"];
                 for (let i = 0; i < 8; i++) {
@@ -566,17 +597,14 @@ ini_set('display_errors', 1);
                 let row = document.createElement('div');
                 row.className = 'flex items-center justify-between px-3 py-1.5 rounded-lg bg-card text-xs border border-slate-900';
                 
-                // Left User name details
                 let nameBox = document.createElement('span');
                 nameBox.className = 'font-bold text-slate-300';
                 nameBox.innerText = b.userId;
 
-                // Center wager size
                 let amtBox = document.createElement('span');
                 amtBox.className = 'font-black text-slate-500';
                 amtBox.innerText = '₹' + parseFloat(b.amount).toFixed(2);
 
-                // Right Cashout outcome details
                 let actionBox = document.createElement('div');
                 actionBox.className = 'flex items-center gap-2';
 
@@ -610,8 +638,41 @@ ini_set('display_errors', 1);
             });
         }
 
-        // Loop execution every 200ms
-        setInterval(updateState, 200);
+        // 60fps Client-Side Animation and Multiplier Climbing
+        function animate() {
+            if (localState === 'flying') {
+                let elapsedMs = Date.now() - lastSyncTime;
+                let localElapsed = roundElapsed + (elapsedMs / 1000);
+                if (localElapsed >= 8) {
+                    let flightTime = localElapsed - 8;
+                    let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
+                    
+                    if (nextMultiplier < crashMultiplier) {
+                        currentMultiplier = nextMultiplier;
+                        document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
+                        
+                        // Update cashout labels dynamically at 60fps
+                        for (let pNum = 1; pNum <= 2; pNum++) {
+                            let state = panelState[pNum];
+                            if (state.status === 'wagered') {
+                                let btn = document.getElementById(`btn-bet-${pNum}`);
+                                btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
+                                document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
+                                let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
+                                document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
+                            }
+                        }
+                    }
+                }
+            }
+            drawFlightCanvas();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize state loops
+        updateState();
+        setInterval(updateState, 800);
+        requestAnimationFrame(animate);
     </script>
 </body>
 </html>
