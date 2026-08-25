@@ -1,164 +1,78 @@
-<?php 
-	include "../../conn.php";
-	include "../../functions2.php";
-	global $firebase;
-	
-	header('Content-Type: application/json; charset=utf-8');
-	header('Strict-Transport-Security: max-age=31536000');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
-	header('Access-Control-Allow-Credentials: true');
-	$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-	header('Access-Control-Allow-Origin: ' . $origin);
-	header('vary: Origin');
-	
-	date_default_timezone_set("Asia/Kolkata");
-	$shnunc = date("Y-m-d H:i:s");
-	$res = [
-		'code' => 11,
-		'msg' => 'Method not allowed',
-		'msgCode' => 12,
-		'serviceNowTime' => $shnunc,
-	];
-	$shonubody = file_get_contents("php://input");
-	$shonupost = json_decode($shonubody, true);
-	
-	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-		if (isset($shonupost['issueNumber']) && isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$issueNumber = isset($shonupost['issueNumber'][0]) ? mysqli_real_escape_string($conn, $shonupost['issueNumber'][0]) : '';
-			$language = $shonupost['language'];
-			$random = $shonupost['random'];
-			$signature = $shonupost['signature'];
-			$shonustr = '{"issueNumber":["'.$issueNumber.'"],"language":'.$language.',"random":"'.$random.'"}';
-			$shonusign = strtoupper(md5($shonustr));
-			if(true){
-				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
-				$is_jwt_valid = is_jwt_valid($author);
-				$data_auth = json_decode($is_jwt_valid, 1);
-				if($data_auth['status'] === 'Success') {
-					$mobile = $data_auth['payload']['mobile'];
-					$user = $firebase->get('users/' . $mobile);
-					if($user != null){
-						$typeId = $issueNumber[12];
-						$shonuid = $data_auth['payload']['id'];
-						
-						if($typeId == 1){
-							$jayshriram = 'bajikattuttate';
-						}
-						else if($typeId == 2){
-							$jayshriram = 'bajikattuttate_drei';
-						}
-						else if($typeId == 3){
-							$jayshriram = 'bajikattuttate_funf';
-						}
-						else if($typeId == 5){
-							$jayshriram = 'bajikattuttate_zehn';
-						}
-						
-						$samasye = "SELECT phalaphala, sesabida, ergebnis
-						  FROM ".$jayshriram." WHERE kalaparichaya = $issueNumber AND byabaharkarta = $shonuid
-						  ORDER BY parichaya DESC LIMIT 1";
-						$samasyephalitansa = $conn->query($samasye);
-						$samasyephalitansa_sreni = mysqli_fetch_array($samasyephalitansa);
-						
-						$data[0]['issueNumber'] = $issueNumber;
-						$data[0]['number'] = $samasyephalitansa_sreni['ergebnis'];
-						if($samasyephalitansa_sreni['ergebnis'] == 0){
-							$color = 'red,violet';
-						}
-						else if($samasyephalitansa_sreni['ergebnis'] == 5){
-							$color = 'green,violet';
-						}
-						else if(
-							$samasyephalitansa_sreni['ergebnis'] == 1 ||
-							$samasyephalitansa_sreni['ergebnis'] == 3 ||
-							$samasyephalitansa_sreni['ergebnis'] == 7 ||
-							$samasyephalitansa_sreni['ergebnis'] == 9
-							){
-							$color = 'green';
-						}
-						else if (
-                            $samasyephalitansa_sreni['ergebnis'] == 2 ||
-                            $samasyephalitansa_sreni['ergebnis'] == 4 ||
-                            $samasyephalitansa_sreni['ergebnis'] == 6 ||
-                            $samasyephalitansa_sreni['ergebnis'] == 8
-                        ) {
-                            $color = 'red';
-                        } else {
-                            $color = 'green';
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Authorization, Content-Type");
+header("Content-Type: application/json");
+
+include "../../conn.php";
+include "../../functions2.php";
+include "../../wingo_helper.php";
+
+global $firebase;
+
+$shonupost = json_decode(file_get_contents('php://input'), true);
+
+$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+if (empty($authHeader)) {
+    echo json_encode(['code' => -1, 'msg' => 'Unauthorized']);
+    exit;
+}
+$bearer = explode(' ', $authHeader);
+$author = isset($bearer[1]) ? $bearer[1] : '';
+$is_jwt_valid = is_jwt_valid($author);
+$data_auth = json_decode($is_jwt_valid, 1);
+if($data_auth['status'] === 'Success') {
+    $mobile = $data_auth['payload']['mobile'];
+    $user = $firebase->get('users/' . $mobile);
+    if($user != null) {
+        $issueNumbers = isset($shonupost['issueNumber']) ? $shonupost['issueNumber'] : [];
+        if(!is_array($issueNumbers)) {
+            $issueNumbers = [$issueNumbers];
+        }
+        
+        $results = [];
+        foreach($issueNumbers as $issuenumber) {
+            if (strlen($issuenumber) < 13) continue;
+            // determine typeId from char at index 12 (assuming standard structure)
+            $typeId = substr($issuenumber, 12, 1);
+            
+            $result = $firebase->get('game_results/wingo_t' . $typeId . '/' . $issuenumber);
+            $bets = $firebase->get('game_bets/wingo_t' . $typeId . '/' . $issuenumber);
+            
+            $userWinAmount = 0;
+            $userState = 0;
+            
+            if($bets) {
+                foreach($bets as $betId => $bet) {
+                    if($bet['userId'] == $mobile) {
+                        if($bet['status'] == 'win') {
+                            $userWinAmount += $bet['winAmount'];
+                            $userState = 1;
                         }
-                        
-                        $data[0]['colour'] = $color;
-                        $data[0]['winAmount'] = $samasyephalitansa_sreni['sesabida'];
-                        
-                        // Assign typeName directly based on typeId
-                        switch ($typeId) {
-                            case 1:
-                                $data[0]['typeName'] = '1Min';
-                                break;
-                            case 2:
-                                $data[0]['typeName'] = '3Min';
-                                break;
-                            case 3:
-                                $data[0]['typeName'] = '5Min';
-                                break;
-                            case 5:
-                                $data[0]['typeName'] = '30S';
-                                break;
-                            default:
-                                $data[0]['typeName'] = 'Unknown'; // Fallback case
-                        }
-                        
-                        if ($samasyephalitansa_sreni['phalaphala'] == 'perte') {
-                            $state = 0;
-                        } elseif ($samasyephalitansa_sreni['phalaphala'] == 'gagner') {
-                            $state = 1;
-                        } else {
-                            $state = -1; // Handle unexpected values
-                        }
-                        
-                        $data[0]['state'] = $state;
-											
-						$res['data'] = $data;
-						$res['code'] = 0;
-						$res['msg'] = 'Succeed';
-						$res['msgCode'] = 0;
-						http_response_code(200);
-						echo json_encode($res);	
-					}
-					else{
-						$res['code'] = 4;
-						$res['msg'] = 'No operation permission';
-						$res['msgCode'] = 2;
-						http_response_code(401);
-						echo json_encode($res);
-					}					
-				}
-				else{					
-					$res['code'] = 4;
-					$res['msg'] = 'No operation permission';
-					$res['msgCode'] = 2;
-					http_response_code(401);
-					echo json_encode($res);					
-				}
-			}
-			else{
-				$res['code'] = 5;
-				$res['msg'] = 'Wrong signature';
-				$res['msgCode'] = 3;
-				http_response_code(200);
-				echo json_encode($res);				
-			}
-		}
-		else{
-			$res['code'] = 7;
-			$res['msg'] = 'Param is Invalid';
-			$res['msgCode'] = 6;
-			http_response_code(200);
-			echo json_encode($res);			
-		}		
-	} else {		
-		http_response_code(405);
-		echo json_encode($res);
-	}
+                    }
+                }
+            }
+            
+            if($result) {
+                $results[] = [
+                    'issueNumber' => $issuenumber,
+                    'number' => $result['number'],
+                    'colour' => $result['colour'],
+                    'winAmount' => $userWinAmount,
+                    'typeName' => "Win Go " . ($typeId == 1 ? "1 Min" : ($typeId == 2 ? "3 Min" : ($typeId == 3 ? "5 Min" : "10 Min"))),
+                    'state' => $userState
+                ];
+            }
+        }
+        
+        echo json_encode([
+            'code' => 0,
+            'msg' => 'Succeed',
+            'msgCode' => 0,
+            'serviceNowTime' => time(),
+            'data' => $results
+        ]);
+        exit;
+    }
+}
+echo json_encode(['code' => -1, 'msg' => 'Invalid token']);
 ?>
