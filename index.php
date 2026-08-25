@@ -139,6 +139,25 @@ echo '
 <!DOCTYPE html>
 <html lang="en"  translate="no">
 	<head>
+		<script>
+			(function() {
+				const originalLog = console.log;
+				console.log = function() {};
+				console.warn = function() {};
+				console.error = function() {};
+				console.info = function() {};
+				console.debug = function() {};
+				
+				window.addEventListener("load", function() {
+					setTimeout(function() {
+						try {
+							console.clear();
+						} catch(e) {}
+						originalLog("%c  site is runing smoothly by @BERLIN_00_11  ", "color: #22c55e; font-size: 16px; font-weight: bold; background: #0c0a09; padding: 8px 12px; border: 1px solid #16a34a; border-radius: 6px; font-family: monospace;");
+					}, 1500);
+				});
+			})();
+		</script>
 		<script src="/app.config.js?v=1736792980338"></script>
 
 		<meta charset="UTF-8" />
