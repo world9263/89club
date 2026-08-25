@@ -26,7 +26,6 @@ if($data_auth['status'] === 'Success') {
     if($user != null) {
         $typeId = isset($shonupost['typeId']) ? $shonupost['typeId'] : 1;
         $period = wingo_get_current_period($typeId);
-        wingo_ensure_recent_results($firebase, $typeId, 5);
         $data['issueNumber'] = (string)$period['periodId'];
         $data['startTime'] = $period['startTime'];
         $data['endTime'] = $period['endTime'];
