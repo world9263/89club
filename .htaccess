@@ -1,13 +1,17 @@
 RewriteEngine On
 
-# If the request is for an existing file or directory, serve it directly
+# Pass Authorization header to PHP (Apache strips it by default)
+RewriteCond %{HTTP:Authorization} ^(.+)$
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Serve existing files directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# If appending .php makes it a valid file, rewrite to it
+# Auto-append .php
 RewriteCond %{REQUEST_FILENAME}.php -f
 RewriteRule ^(.*)$ $1.php [L]
 
-# Fallback to index.php for Vue SPA routes
+# Fallback to index.php
 RewriteRule ^ index.php [L]
