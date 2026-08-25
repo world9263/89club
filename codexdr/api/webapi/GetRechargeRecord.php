@@ -25,185 +25,97 @@
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['endDate']) && isset($shonupost['language']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['payId']) && isset($shonupost['payTypeId']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['startDate']) && isset($shonupost['state']) && isset($shonupost['timestamp'])) {
 			$endDate = $shonupost['endDate'];
-			$language = $shonupost['language'];
-			$pageNo = $shonupost['pageNo'];
-			$pageSize = $shonupost['pageSize'];
-			$payId = $shonupost['payId'];
-			$payTypeId = $shonupost['payTypeId'];			
-			$random = $shonupost['random'];
-			$signature = $shonupost['signature'];
+			$pageNo = (int)$shonupost['pageNo'];
+			$pageSize = (int)$shonupost['pageSize'];
 			$startDate = $shonupost['startDate'];
-			$state = $shonupost['state'];
-			if($endDate == '' && $startDate == ''){
-				$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"payId":'.$payId.',"payTypeId":'.$payTypeId.',"random":"'.$random.'","state":'.$state.'}';	
-			}
-			else{
-				$shonustr = '{"endDate":"'.$endDate.'","language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"payId":'.$payId.',"payTypeId":'.$payTypeId.',"random":"'.$random.'","startDate":"'.$startDate.'","state":'.$state.'}';	
-			}						
-			$shonusign = strtoupper(md5($shonustr));
-			if(true){
-				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
-				$is_jwt_valid = is_jwt_valid($author);
-				$data_auth = json_decode($is_jwt_valid, 1);
-				if($data_auth['status'] === 'Success') {
-					$mobile = $data_auth['payload']['mobile'];
-					$user = $firebase->get('users/' . $mobile);
-					if($user != null){
-						$samatolana = ($pageNo - 1) * 10;
-						$shonuid = $data_auth['payload']['id'];
-						
-						if($endDate == '' && $startDate == ''){
-							if($state == -1){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
+			$state = (int)$shonupost['state']; // -1 = all, 1 = success, 0 = failed, 2 = pending
+			
+			$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
+			$author = isset($bearer[1]) ? $bearer[1] : '';
+			$is_jwt_valid = is_jwt_valid($author);
+			$data_auth = json_decode($is_jwt_valid, 1);
+			
+			if($data_auth['status'] === 'Success') {
+				$mobile = $data_auth['payload']['mobile'];
+				$user = $firebase->get('users/' . $mobile);
+				if($user != null){
+					
+					// Fetch all deposits from Firebase
+					$allDeposits = $firebase->get('deposits');
+					$userDeposits = [];
+					
+					if (is_array($allDeposits)) {
+						foreach ($allDeposits as $dep) {
+							if (!isset($dep['userId']) || $dep['userId'] !== $mobile) continue;
+							
+							// Map status to integer codes: success=1, pending=2, failed=0
+							$mappedState = 2; // Default pending
+							if (isset($dep['status'])) {
+								if ($dep['status'] === 'success') $mappedState = 1;
+								elseif ($dep['status'] === 'failed') $mappedState = 0;
+								elseif ($dep['status'] === 'pending') $mappedState = 2;
 							}
-							else if($state == 0){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
+							
+							// State filtering
+							if ($state !== -1 && $mappedState !== $state) continue;
+							
+							// Date filtering
+							if (!empty($startDate) && !empty($endDate)) {
+								$depDate = date('Y-m-d', strtotime($dep['createdAt']));
+								if ($depDate < $startDate || $depDate > $endDate) continue;
 							}
-							else if($state == 1){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
-							else if($state == 2){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
+							
+							$userDeposits[] = [
+								'rechargeNumber' => $dep['id'],
+								'addTime' => $dep['createdAt'],
+								'type' => ($dep['method'] === 'USDT') ? 2123 : 1023,
+								'price' => (string)$dep['amount'],
+								'state' => $mappedState,
+								'uRate' => null,
+								'uGold' => 0,
+								'payID' => ($dep['method'] === 'USDT') ? 11 : 2,
+								'payName' => ($dep['method'] === 'USDT') ? 'Manual USDT' : 'Manual UPI'
+							];
 						}
-						else{
-							if($state == -1){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
-							else if($state == 0){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
-							else if($state == 1){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
-							else if($state == 2){
-								$samasye = "SELECT dharavahi, dinankavannuracisi, madari, motta, sthiti, pavatiaidi, mula
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')
-								  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-								$samasyephalitansa = $conn->query($samasye);
-								
-								$samasye_ondu = "SELECT shonu
-								  FROM thevani WHERE balakedara = $shonuid AND sthiti = $state AND date(dinankavannuracisi) >= date('".$startDate."') AND date(dinankavannuracisi) <= date('".$endDate."')";
-								$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-								$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-							}
-						}						
-						
-						if ($samasyephalitansa->num_rows > 0) {
-							$i = 0;
-							while ($row = $samasyephalitansa->fetch_assoc()) {
-								$data['list'][$i]['rechargeNumber'] = $row['dharavahi'];
-								$data['list'][$i]['addTime'] = $row['dinankavannuracisi'];
-								$data['list'][$i]['type'] = (int)$row['madari'];
-								$data['list'][$i]['price'] = $row['motta'];
-								$data['list'][$i]['state'] = (int)$row['sthiti'];
-								$data['list'][$i]['uRate'] = null;
-								$data['list'][$i]['uGold'] = 0;
-								$data['list'][$i]['payID'] = (int)$row['pavatiaidi'];
-								$data['list'][$i]['payName'] = $row['mula'];
-								$i++;
-							}
-							$data['pageNo'] = (int)$pageNo;
-							$data['totalPage'] = ceil($samasyephalitansa_sankhye/10);
-							$data['totalCount'] = $samasyephalitansa_sankhye;							
-						}
-						else{
-							$data['list'] = [];
-							$data['pageNo'] = (int)$pageNo;
-							$data['totalPage'] = 0;
-							$data['totalCount'] = 0;
-						}
-																		
-												
-						$res['data'] = $data;
-						$res['code'] = 0;
-						$res['msg'] = 'Succeed';
-						$res['msgCode'] = 0;
-						http_response_code(200);
-						echo json_encode($res);					
 					}
-					else{
-						$res['code'] = 4;
-						$res['msg'] = 'No operation permission';
-						$res['msgCode'] = 2;
-						http_response_code(401);
-						echo json_encode($res);
-					}					
-				}
-				else{					
+					
+					// Sort by addTime DESC
+					usort($userDeposits, function($a, $b) {
+						return strcmp($b['addTime'], $a['addTime']);
+					});
+					
+					$totalCount = count($userDeposits);
+					$offset = ($pageNo - 1) * $pageSize;
+					$paginatedDeposits = array_slice($userDeposits, $offset, $pageSize);
+					
+					$data = [
+						'list' => $paginatedDeposits,
+						'pageNo' => $pageNo,
+						'totalPage' => ceil($totalCount / $pageSize),
+						'totalCount' => $totalCount
+					];
+					
+					$res['data'] = $data;
+					$res['code'] = 0;
+					$res['msg'] = 'Succeed';
+					$res['msgCode'] = 0;
+					http_response_code(200);
+					echo json_encode($res);					
+				} else {
 					$res['code'] = 4;
 					$res['msg'] = 'No operation permission';
 					$res['msgCode'] = 2;
 					http_response_code(401);
-					echo json_encode($res);					
-				}
+					echo json_encode($res);
+				}					
+			} else {					
+				$res['code'] = 4;
+				$res['msg'] = 'No operation permission';
+				$res['msgCode'] = 2;
+				http_response_code(401);
+				echo json_encode($res);					
 			}
-			else{
-				$res['code'] = 5;
-				$res['msg'] = 'Wrong signature';
-				$res['msgCode'] = 3;
-				http_response_code(200);
-				echo json_encode($res);				
-			}
-		}
-		else{
+		} else {
 			$res['code'] = 7;
 			$res['msg'] = 'Param is Invalid';
 			$res['msgCode'] = 6;
