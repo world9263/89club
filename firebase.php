@@ -6,6 +6,31 @@
 // NEVER hardcode the Firebase URL in any file!
 // =====================================================
 
+// =====================================================
+// FIX: Apache strips Authorization header from PHP
+// This runs BEFORE any API code since firebase.php is
+// included by all conn.php files
+// =====================================================
+if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $_SERVER['HTTP_AUTHORIZATION'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        if (isset($headers['Authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['Authorization'];
+        } elseif (isset($headers['authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['authorization'];
+        }
+    } elseif (function_exists('getallheaders')) {
+        $headers = getallheaders();
+        if (isset($headers['Authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['Authorization'];
+        } elseif (isset($headers['authorization'])) {
+            $_SERVER['HTTP_AUTHORIZATION'] = $headers['authorization'];
+        }
+    }
+}
+
 class FirebaseClient {
     private $dbUrl;
 
