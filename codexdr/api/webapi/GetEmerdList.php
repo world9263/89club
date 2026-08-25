@@ -25,7 +25,8 @@ if($data_auth['status'] === 'Success') {
     $user = $firebase->get('users/' . $mobile);
     if($user != null) {
         $typeId = isset($shonupost['typeId']) ? $shonupost['typeId'] : 1;
-        $results = $firebase->get('game_results/wingo_t' . $typeId);
+        $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+        $results = $firebase->get('game_results/wingo_t' . $typeIdMapped);
         $list = [];
         if($results) {
             foreach($results as $periodId => $res) {
@@ -34,7 +35,7 @@ if($data_auth['status'] === 'Success') {
             }
         }
         usort($list, function($a, $b) {
-            return (int)$b['issueNumber'] - (int)$a['issueNumber'];
+            return strcmp($b['issueNumber'], $a['issueNumber']);
         });
         
         $recent100 = array_slice($list, 0, 100);
@@ -55,7 +56,7 @@ if($data_auth['status'] === 'Success') {
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
+            'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => $stats
         ]);
         exit;

@@ -68,7 +68,7 @@ if($data_auth['status'] === 'Success') {
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
+            'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => $results
         ]);
         exit;

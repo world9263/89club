@@ -26,7 +26,8 @@ if($data_auth['status'] === 'Success') {
     if($user != null) {
         $typeId = isset($shonupost['typeId']) ? $shonupost['typeId'] : 1;
         wingo_ensure_recent_results($firebase, $typeId, 5);
-        $results = $firebase->get('game_results/wingo_t' . $typeId);
+        $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+        $results = $firebase->get('game_results/wingo_t' . $typeIdMapped);
         
         $list = [];
         if($results) {
@@ -36,7 +37,7 @@ if($data_auth['status'] === 'Success') {
             }
         }
         usort($list, function($a, $b) {
-            return (int)$b['issueNumber'] - (int)$a['issueNumber'];
+            return strcmp($b['issueNumber'], $a['issueNumber']);
         });
         
         $last5 = array_slice($list, 0, 5);
@@ -47,8 +48,10 @@ if($data_auth['status'] === 'Success') {
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
-            'data' => $resStr
+            'serviceNowTime' => date('Y-m-d H:i:s'),
+            'data' => [
+                'number' => $resStr
+            ]
         ]);
         exit;
     }

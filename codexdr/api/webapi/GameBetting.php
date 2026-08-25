@@ -63,13 +63,14 @@ if($data_auth['status'] === 'Success') {
         ];
         
         $push_id = uniqid();
-        $firebase->set('game_bets/wingo_t' . $typeId . '/' . $issuenumber . '/' . $push_id, $betData);
+        $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+        $firebase->set('game_bets/wingo_t' . $typeIdMapped . '/' . $issuenumber . '/' . $push_id, $betData);
         
         echo json_encode([
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
+            'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => []
         ]);
         exit;

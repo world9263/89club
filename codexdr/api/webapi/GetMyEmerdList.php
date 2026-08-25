@@ -28,7 +28,8 @@ if($data_auth['status'] === 'Success') {
         $pageNo = isset($shonupost['pageNo']) ? (int)$shonupost['pageNo'] : 1;
         $pageSize = isset($shonupost['pageSize']) ? (int)$shonupost['pageSize'] : 10;
         
-        $allPeriods = $firebase->get('game_bets/wingo_t' . $typeId);
+        $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+        $allPeriods = $firebase->get('game_bets/wingo_t' . $typeIdMapped);
         $myBets = [];
         if($allPeriods) {
             foreach($allPeriods as $periodId => $bets) {
@@ -86,7 +87,7 @@ if($data_auth['status'] === 'Success') {
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
+            'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => [
                 'pageNo' => $pageNo,
                 'pageSize' => $pageSize,

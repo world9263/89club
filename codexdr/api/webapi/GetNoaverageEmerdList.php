@@ -29,7 +29,8 @@ if($data_auth['status'] === 'Success') {
         $pageSize = isset($shonupost['pageSize']) ? (int)$shonupost['pageSize'] : 10;
         
         wingo_ensure_recent_results($firebase, $typeId, 50);
-        $results = $firebase->get('game_results/wingo_t' . $typeId);
+        $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+        $results = $firebase->get('game_results/wingo_t' . $typeIdMapped);
         $list = [];
         if($results) {
             foreach($results as $periodId => $res) {
@@ -38,7 +39,7 @@ if($data_auth['status'] === 'Success') {
             }
         }
         usort($list, function($a, $b) {
-            return (int)$b['issueNumber'] - (int)$a['issueNumber'];
+            return strcmp($b['issueNumber'], $a['issueNumber']);
         });
         
         $totalCount = count($list);
@@ -60,7 +61,7 @@ if($data_auth['status'] === 'Success') {
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
-            'serviceNowTime' => time(),
+            'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => [
                 'pageNo' => $pageNo,
                 'pageSize' => $pageSize,

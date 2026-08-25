@@ -20,18 +20,18 @@ function wingo_get_current_period($typeId) {
     $totalSeconds = $hours * 3600 + $minutes * 60 + $seconds;
     
     switch ($typeId) {
-        case 1: $intervalSec = 60; break;    // 1 min
-        case 2: $intervalSec = 180; break;   // 3 min
-        case 3: $intervalSec = 300; break;   // 5 min
-        case 4: $intervalSec = 30; break;    // 30 sec
-        default: $intervalSec = 60;
+        case 1: $intervalSec = 60; $typeChar = '1'; break;    // 1 min
+        case 2: $intervalSec = 180; $typeChar = '2'; break;   // 3 min
+        case 3: $intervalSec = 300; $typeChar = '3'; break;   // 5 min
+        case 4: $intervalSec = 30; $typeChar = '5'; break;    // 30 sec -> uses 5
+        default: $intervalSec = 60; $typeChar = '1';
     }
     
     $sequence = (int)floor($totalSeconds / $intervalSec) + 1;
     $elapsedInPeriod = $totalSeconds % $intervalSec;
     
     $dateStr = date('Ymd', $now);
-    $periodId = $dateStr . "1000" . $typeId . sprintf("%04d", $sequence);
+    $periodId = $dateStr . "1000" . $typeChar . sprintf("%04d", $sequence);
     
     $dayStart = strtotime(date('Y-m-d 00:00:00', $now));
     $periodStart = $dayStart + ($sequence - 1) * $intervalSec;
@@ -81,6 +81,7 @@ function wingo_generate_premium($winningDigit) {
  * Uses house-optimal algorithm when bets exist.
  */
 function wingo_generate_result($firebase, $typeId, $periodId) {
+    $typeId = ($typeId == 4) ? 5 : $typeId;
     $fbTypeKey = 'wingo_t' . $typeId;
     
     // Check if result already exists
@@ -185,6 +186,7 @@ function wingo_calculate_house_optimal($bets) {
  * Settle all bets for a completed period
  */
 function wingo_settle_bets($firebase, $typeId, $periodId, $winningDigit, $premium, $bets) {
+    $typeId = ($typeId == 4) ? 5 : $typeId;
     $fbTypeKey = 'wingo_t' . $typeId;
     $color = wingo_get_color($winningDigit);
     $isBig = $winningDigit >= 5;
@@ -274,13 +276,15 @@ function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
     $current = wingo_get_current_period($typeId);
     $currentSeq = $current['sequence'];
     $dateStr = date('Ymd');
-    $fbTypeKey = 'wingo_t' . $typeId;
+    $typeChar = ($typeId == 4) ? '5' : (string)$typeId;
+    $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
+    $fbTypeKey = 'wingo_t' . $typeIdMapped;
     
     $results = [];
     for ($i = 1; $i <= $count && ($currentSeq - $i) >= 1; $i++) {
         $seq = $currentSeq - $i;
-        $pastPeriodId = $dateStr . "1000" . $typeId . sprintf("%04d", $seq);
-        $result = wingo_generate_result($firebase, $typeId, $pastPeriodId);
+        $pastPeriodId = $dateStr . "1000" . $typeChar . sprintf("%04d", $seq);
+        $result = wingo_generate_result($firebase, $typeIdMapped, $pastPeriodId);
         $results[] = $result;
     }
     
