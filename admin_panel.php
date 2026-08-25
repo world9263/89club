@@ -82,23 +82,25 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <style>
     body {
-      background-color: #0f172a;
+      background-color: #060913;
       color: #e2e8f0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: radial-gradient(circle at top right, rgba(223, 173, 58, 0.05), transparent 400px),
+                        radial-gradient(circle at bottom left, rgba(30, 41, 59, 0.3), transparent 600px);
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: #1e293b;
+      background: #0a0e1a;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #475569;
+      background: #dfad3a;
       border-radius: 3px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
+      background: #c5962e;
     }
   </style>
 </head>
@@ -164,37 +166,44 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
   <!-- Main Content Layout -->
   <div class="flex-1 flex overflow-hidden">
     <!-- Sidebar Navigation -->
-    <aside class="w-64 bg-slate-950 border-r border-slate-900 flex flex-col p-4 shrink-0">
+    <aside class="w-64 bg-[#070a13] border-r border-[#151c2e] flex flex-col p-4 shrink-0">
       <div class="space-y-1 flex-1">
-        <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-yellow-500 bg-yellow-500 bg-opacity-5 border border-yellow-500 border-opacity-10 transition-all">
+        <button onclick="switchTab('tab-overview')" id="btn-tab-overview" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-amber-500 bg-amber-500 bg-opacity-5 border border-amber-500 border-opacity-10 transition-all">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-chart-line text-lg"></i> Overview
           </span>
           <i class="fa-solid fa-angle-right text-xs"></i>
         </button>
 
-        <button onclick="switchTab('tab-deposits')" id="btn-tab-deposits" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
+        <button onclick="switchTab('tab-deposits')" id="btn-tab-deposits" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-wallet text-lg"></i> Deposit Requests
           </span>
           <span id="badge-deposits-count" class="bg-red-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full hidden">0</span>
         </button>
 
-        <button onclick="switchTab('tab-withdrawals')" id="btn-tab-withdrawals" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
+        <button onclick="switchTab('tab-withdrawals')" id="btn-tab-withdrawals" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-money-bill-transfer text-lg"></i> Withdrawals
           </span>
           <span id="badge-withdrawals-count" class="bg-red-500 text-white font-black text-[10px] px-2 py-0.5 rounded-full hidden">0</span>
         </button>
 
-        <button onclick="switchTab('tab-users')" id="btn-tab-users" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
+        <button onclick="switchTab('tab-users')" id="btn-tab-users" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-users text-lg"></i> Users & Players
           </span>
           <i class="fa-solid fa-angle-right text-xs"></i>
         </button>
 
-        <button onclick="switchTab('tab-settings')" id="btn-tab-settings" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all">
+        <button onclick="switchTab('tab-games')" id="btn-tab-games" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
+          <span class="flex items-center gap-3">
+            <i class="fa-solid fa-gamepad text-lg"></i> Game Controller
+          </span>
+          <i class="fa-solid fa-angle-right text-xs"></i>
+        </button>
+
+        <button onclick="switchTab('tab-settings')" id="btn-tab-settings" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-sliders text-lg"></i> Site Settings
           </span>
@@ -432,6 +441,210 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         </div>
       </section>
 
+      <!-- TAB: Game Controller -->
+      <section id="tab-games" class="tab-panel space-y-6 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-gamepad text-amber-500"></i> Game Controller & Overrides
+            </h2>
+            <p class="text-xs text-slate-500">Control active betting periods, toggle auto-profit optimization, or manually force results globally.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Game Select Sidebar Card -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+            <h3 class="font-bold text-white text-md flex items-center gap-2 border-b border-slate-800 pb-2">
+              <i class="fa-solid fa-play text-amber-500"></i> Select Game
+            </h3>
+            
+            <div class="space-y-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar" id="game-controller-selector">
+              <!-- WinGo Games -->
+              <div class="text-xs uppercase font-bold text-slate-500 mt-2">WinGo Lotteries</div>
+              <button onclick="selectControllerGame('wingo', 1, 'WinGo 1 Min')" id="btn-gc-wingo-1" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-950 hover:bg-slate-800 border border-slate-800 transition-colors flex justify-between items-center">
+                <span>WinGo 1 Min</span>
+                <span class="text-[10px] text-slate-500 font-semibold" id="timer-gc-wingo-1">--s</span>
+              </button>
+              <button onclick="selectControllerGame('wingo', 2, 'WinGo 3 Min')" id="btn-gc-wingo-2" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>WinGo 3 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-wingo-2">--s</span>
+              </button>
+              <button onclick="selectControllerGame('wingo', 3, 'WinGo 5 Min')" id="btn-gc-wingo-3" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>WinGo 5 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-wingo-3">--s</span>
+              </button>
+              <button onclick="selectControllerGame('wingo', 5, 'WinGo 30 Sec')" id="btn-gc-wingo-5" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>WinGo 30 Sec</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-wingo-5">--s</span>
+              </button>
+
+              <!-- TRX Games -->
+              <div class="text-xs uppercase font-bold text-slate-500 mt-4">TRX Hash Lotteries</div>
+              <button onclick="selectControllerGame('trx', 13, 'TRX 1 Min')" id="btn-gc-trx-13" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>TRX 1 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-trx-13">--s</span>
+              </button>
+              <button onclick="selectControllerGame('trx', 14, 'TRX 3 Min')" id="btn-gc-trx-14" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>TRX 3 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-trx-14">--s</span>
+              </button>
+
+              <!-- K3 Games -->
+              <div class="text-xs uppercase font-bold text-slate-500 mt-4">K3 Dice Lotteries</div>
+              <button onclick="selectControllerGame('k3', 9, 'K3 1 Min')" id="btn-gc-k3-9" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>K3 1 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-k3-9">--s</span>
+              </button>
+
+              <!-- 5D Games -->
+              <div class="text-xs uppercase font-bold text-slate-500 mt-4">5D Digit Lotteries</div>
+              <button onclick="selectControllerGame('d5', 5, '5D 1 Min')" id="btn-gc-d5-5" class="w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center">
+                <span>5D 1 Min</span>
+                <span class="text-[10px] text-slate-600 font-semibold" id="timer-gc-d5-5">--s</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Panel Controls (Middle + Right) -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Active Game Overview Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Selected Game</span>
+                <span class="text-lg font-black text-amber-500 mt-1 block" id="gc-active-title">WinGo 1 Min</span>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Current Period ID</span>
+                <span class="text-lg font-black text-white mt-1 block select-all" id="gc-active-period">--</span>
+              </div>
+              <div class="relative">
+                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Time Remaining</span>
+                <span class="text-2xl font-black text-red-500 mt-1 block animate-pulse" id="gc-active-timer">--s</span>
+              </div>
+            </div>
+
+            <!-- Optimizer Mode Switch -->
+            <div class="bg-slate-900 border border-[#1e273a] rounded-2xl p-6 shadow-lg flex items-center justify-between border-l-4 border-l-amber-500">
+              <div>
+                <h3 class="font-bold text-white text-md flex items-center gap-2">
+                  <i class="fa-solid fa-robot text-amber-500"></i> House-Optimal Profit Mode
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">When active, the system draws the outcome with the minimum payout (maximizing house winnings).</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="gc-auto-profit-toggle" onchange="toggleGcAutoProfit()" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+
+            <!-- MANUAL RESULT OVERRIDE MODULE -->
+            <div class="bg-slate-900 border border-[#1e273a] rounded-2xl p-6 shadow-lg space-y-4">
+              <h3 class="font-bold text-white text-md flex items-center gap-2 border-b border-slate-800 pb-2">
+                <i class="fa-solid fa-bolt-lightning text-amber-500"></i> Manual Result Override
+              </h3>
+              
+              <!-- Active Override Display -->
+              <div id="active-override-status" class="bg-amber-500 bg-opacity-5 border border-amber-500/10 text-amber-400 text-xs px-4 py-2.5 rounded-xl flex items-center gap-2 hidden">
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                <span>Override active: Forced outcome will be <strong class="text-white select-all" id="override-label-status">N/A</strong>.</span>
+                <button onclick="cancelActiveOverride()" class="ml-auto text-red-400 hover:text-red-300 font-bold">Clear</button>
+              </div>
+
+              <!-- WinGo / TRX Pad -->
+              <div id="gc-pad-wingo" class="space-y-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Select forced winning color or size:</div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  <button onclick="setResultOverride('red')" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs transition-all shadow-md">Forced RED (0,2,4,6,8)</button>
+                  <button onclick="setResultOverride('green')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-md">Forced GREEN (1,3,5,7,9)</button>
+                  <button onclick="setResultOverride('violet')" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md">Forced VIOLET (0,5)</button>
+                  <button onclick="setResultOverride('big')" class="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-white border border-slate-800 font-bold rounded-xl text-xs transition-all">Forced BIG (5-9)</button>
+                  <button onclick="setResultOverride('small')" class="px-4 py-2 bg-slate-950 hover:bg-slate-800 text-white border border-slate-800 font-bold rounded-xl text-xs transition-all">Forced SMALL (0-4)</button>
+                </div>
+                
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pt-2">Or select forced winning digit (0 to 9):</div>
+                <div class="grid grid-cols-5 md:grid-cols-10 gap-2">
+                  <!-- Generate numbers 0 to 9 -->
+                  <button onclick="setResultOverride(0)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">0</button>
+                  <button onclick="setResultOverride(1)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">1</button>
+                  <button onclick="setResultOverride(2)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">2</button>
+                  <button onclick="setResultOverride(3)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">3</button>
+                  <button onclick="setResultOverride(4)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">4</button>
+                  <button onclick="setResultOverride(5)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">5</button>
+                  <button onclick="setResultOverride(6)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">6</button>
+                  <button onclick="setResultOverride(7)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">7</button>
+                  <button onclick="setResultOverride(8)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">8</button>
+                  <button onclick="setResultOverride(9)" class="aspect-square bg-slate-950 hover:bg-amber-500 hover:text-slate-950 text-slate-300 font-black rounded-xl border border-slate-800 text-lg transition-all flex items-center justify-center">9</button>
+                </div>
+              </div>
+
+              <!-- K3 Override Pad -->
+              <div id="gc-pad-k3" class="space-y-4 hidden">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Select Forced Roll for 3 Dice:</div>
+                <div class="flex items-center gap-3">
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Dice 1</label>
+                    <select id="k3-override-d1" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500">
+                      <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Dice 2</label>
+                    <select id="k3-override-d2" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500">
+                      <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Dice 3</label>
+                    <select id="k3-override-d3" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500">
+                      <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                  </div>
+                  <button onclick="setK3ResultOverride()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2 rounded-xl text-xs transition-colors self-end h-[38px]">Force Dice Roll</button>
+                </div>
+              </div>
+
+              <!-- 5D Override Pad -->
+              <div id="gc-pad-d5" class="space-y-4 hidden">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Type Forced 5-Digit Sequence:</div>
+                <div class="flex items-center gap-3">
+                  <input type="text" id="d5-override-input" maxlength="5" placeholder="e.g. 57291" class="bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-amber-500 text-sm w-48">
+                  <button onclick="setD5ResultOverride()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-6 py-2 rounded-xl text-xs transition-colors h-[38px]">Force 5D Sequence</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Bets List inside Game Controller -->
+            <div class="bg-slate-900 border border-[#1e273a] rounded-2xl p-6 shadow-lg space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-white text-md flex items-center gap-2">
+                  <i class="fa-solid fa-coins text-amber-500"></i> Active Bets placed on this Period
+                </h3>
+                <span id="gc-bets-total" class="bg-amber-500 bg-opacity-10 text-amber-400 text-xs px-2.5 py-0.5 rounded-full font-bold">Total Bet: ₹0.00</span>
+              </div>
+
+              <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                      <th class="px-4 py-3 font-bold">Mobile</th>
+                      <th class="px-4 py-3 font-bold text-center">Option Selected</th>
+                      <th class="px-4 py-3 font-bold text-center">Multiplier</th>
+                      <th class="px-4 py-3 font-bold text-right">Bet Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gc-bets-table-body" class="divide-y divide-slate-800">
+                    <tr>
+                      <td colspan="4" class="px-4 py-6 text-center text-slate-500">No bets placed on this period yet.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- TAB: Settings -->
       <section id="tab-settings" class="tab-panel space-y-6 hidden">
         <h2 class="text-xl font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-4">
@@ -544,6 +757,14 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       tempInputs[key] = value;
     }
 
+    let gcActiveGameType = 'wingo';
+    let gcActiveGameTypeId = 1;
+    let gcActiveGameTitle = 'WinGo 1 Min';
+    let gcActivePeriodId = '';
+    let gcTimerInterval = null;
+    let gcBetsData = {};
+    let gcActiveOverrides = {};
+
     window.addEventListener('DOMContentLoaded', () => {
       if (!fbUrl) {
         alert('FIREBASE_URL environment variable is missing on the server! Cannot connect.');
@@ -552,6 +773,9 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const searchBox = document.getElementById('userSearchInput');
       if (searchBox) searchBox.value = '';
       initFirebase(fbUrl, fbSecret);
+      
+      // Start Game Controller timer sync
+      setInterval(tickController, 1000);
     });
 
     function initFirebase(url, secret) {
@@ -623,6 +847,10 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         updateWithdrawalsTable();
         updateRecentPendingList();
       });
+
+      // Sync Game Controller overrides
+      syncGcOverrides();
+      selectControllerGame('wingo', 1, 'WinGo 1 Min');
     }
 
     // UI Tab Navigation Switching
@@ -631,19 +859,22 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       document.getElementById(tabId).classList.remove('hidden');
 
       const menuButtons = [
-        { id: 'btn-tab-overview', tab: 'tab-overview', activeColor: 'text-yellow-500 bg-yellow-500 bg-opacity-5 border-yellow-500/10' },
-        { id: 'btn-tab-deposits', tab: 'tab-deposits', activeColor: 'text-yellow-500 bg-yellow-500 bg-opacity-5 border-yellow-500/10' },
-        { id: 'btn-tab-withdrawals', tab: 'tab-withdrawals', activeColor: 'text-yellow-500 bg-yellow-500 bg-opacity-5 border-yellow-500/10' },
-        { id: 'btn-tab-users', tab: 'tab-users', activeColor: 'text-yellow-500 bg-yellow-500 bg-opacity-5 border-yellow-500/10' },
-        { id: 'btn-tab-settings', tab: 'tab-settings', activeColor: 'text-yellow-500 bg-yellow-500 bg-opacity-5 border-yellow-500/10' }
+        { id: 'btn-tab-overview', tab: 'tab-overview', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-deposits', tab: 'tab-deposits', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-withdrawals', tab: 'tab-withdrawals', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-users', tab: 'tab-users', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-games', tab: 'tab-games', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-settings', tab: 'tab-settings', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' }
       ];
 
       menuButtons.forEach(btn => {
         const el = document.getElementById(btn.id);
-        if (btn.tab === tabId) {
-          el.className = `w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold border ${btn.activeColor} transition-all`;
-        } else {
-          el.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all border border-transparent";
+        if (el) {
+          if (btn.tab === tabId) {
+            el.className = `w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold border ${btn.activeColor} transition-all`;
+          } else {
+            el.className = "w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-all border border-transparent";
+          }
         }
       });
     }
@@ -849,9 +1080,15 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           ? `<button onclick="toggleUserDemo('${u.mobile}', false)" class="bg-slate-800 hover:bg-slate-700 text-slate-400 text-[10px] font-bold px-2 py-1 rounded transition-colors w-24">Set Player</button>`
           : `<button onclick="toggleUserDemo('${u.mobile}', true)" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded transition-colors w-24">Set Demo</button>`;
 
+        const avatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.mobile}`;
         tbody.innerHTML += `
           <tr class="hover:bg-slate-900/40 transition-colors">
-            <td class="px-6 py-4 font-bold text-white select-all">${u.mobile}</td>
+            <td class="px-6 py-4 font-bold text-white select-all">
+              <div class="flex items-center gap-2.5">
+                <img src="${avatarUrl}" class="w-7 h-7 rounded-full bg-[#070a13] border border-[#151c2e] p-0.5" alt="Avatar">
+                <span>${u.mobile}</span>
+              </div>
+            </td>
             <td class="px-6 py-4 font-black text-emerald-400">₹${parseFloat(u.motta || 0).toFixed(2)}</td>
             <td class="px-6 py-4 text-slate-400">₹${parseFloat(u.total_deposit || 0).toFixed(2)}</td>
             <td class="px-6 py-4 text-slate-400">₹${parseFloat(u.total_bet || 0).toFixed(2)}</td>
@@ -1208,11 +1445,273 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
               <span class="text-sm font-black text-white">₹${item.amount.toFixed(2)}</span>
               ${actionLabel}
             </div>
-          </div>
-        `;
+    // =====================================================
+    // GAME CONTROLLER LOGIC & SYNC
+    // =====================================================
+    function getPeriodDetails(gameType, typeId) {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const istTime = new Date(utc + (3600000 * 5.5)); // IST timezone (UTC+5.30)
+      
+      const hours = istTime.getHours();
+      const minutes = istTime.getMinutes();
+      const seconds = istTime.getSeconds();
+      const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+      
+      let intervalSec = 60;
+      let typeChar = '1';
+      
+      if (gameType === 'wingo') {
+        if (typeId === 1) { intervalSec = 60; typeChar = '1'; }
+        else if (typeId === 2) { intervalSec = 180; typeChar = '2'; }
+        else if (typeId === 3) { intervalSec = 300; typeChar = '3'; }
+        else if (typeId === 5) { intervalSec = 30; typeChar = '5'; }
+      } else if (gameType === 'trx') {
+        if (typeId === 13) { intervalSec = 60; typeChar = '1'; }
+        else if (typeId === 14) { intervalSec = 180; typeChar = '2'; }
+        else if (typeId === 15) { intervalSec = 300; typeChar = '3'; }
+        else if (typeId === 16) { intervalSec = 600; typeChar = '4'; }
+      } else if (gameType === 'k3') {
+        if (typeId === 9) { intervalSec = 60; typeChar = '9'; }
+        else if (typeId === 10) { intervalSec = 180; typeChar = '0'; }
+        else if (typeId === 11) { intervalSec = 300; typeChar = 'a'; }
+        else if (typeId === 12) { intervalSec = 600; typeChar = 'b'; }
+      } else if (gameType === 'd5') {
+        if (typeId === 5) { intervalSec = 60; typeChar = '5'; }
+        else if (typeId === 6) { intervalSec = 180; typeChar = '6'; }
+        else if (typeId === 7) { intervalSec = 300; typeChar = '7'; }
+        else if (typeId === 8) { intervalSec = 600; typeChar = '8'; }
+      }
+      
+      const sequence = Math.floor(totalSeconds / intervalSec) + 1;
+      const elapsedInPeriod = totalSeconds % intervalSec;
+      const remaining = intervalSec - elapsedInPeriod;
+      
+      const year = istTime.getFullYear();
+      const month = String(istTime.getMonth() + 1).padStart(2, '0');
+      const date = String(istTime.getDate()).padStart(2, '0');
+      const dateStr = `${year}${month}${date}`;
+      const periodId = `${dateStr}1000${typeChar}${String(sequence).padStart(4, '0')}`;
+      
+      return { periodId, remaining };
+    }
+
+    function selectControllerGame(gameType, typeId, title) {
+      gcActiveGameType = gameType;
+      gcActiveGameTypeId = typeId;
+      gcActiveGameTitle = title;
+      
+      document.getElementById('gc-active-title').innerText = title;
+      
+      // Update sidebar styling for selectors
+      const selectorContainer = document.getElementById('game-controller-selector');
+      if (selectorContainer) {
+        selectorContainer.querySelectorAll('button').forEach(btn => {
+          if (btn.id === `btn-gc-${gameType}-${typeId}`) {
+            btn.className = "w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-amber-500 bg-opacity-15 border border-amber-500/30 transition-colors flex justify-between items-center";
+          } else {
+            btn.className = "w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-950/40 hover:bg-slate-800 border border-slate-900 hover:border-slate-800 transition-colors flex justify-between items-center";
+          }
+        });
+      }
+      
+      // Toggle pads
+      document.getElementById('gc-pad-wingo').classList.add('hidden');
+      document.getElementById('gc-pad-k3').classList.add('hidden');
+      document.getElementById('gc-pad-d5').classList.add('hidden');
+      
+      if (gameType === 'k3') {
+        document.getElementById('gc-pad-k3').classList.remove('hidden');
+      } else if (gameType === 'd5') {
+        document.getElementById('gc-pad-d5').classList.remove('hidden');
+      } else {
+        document.getElementById('gc-pad-wingo').classList.remove('hidden');
+      }
+      
+      // Sync settings & overrides
+      syncGcAutoProfit();
+      updateOverrideStatusUI();
+      
+      // Force immediate check
+      tickController();
+    }
+
+    function syncGcOverrides() {
+      db.ref('admin_overrides').on('value', snap => {
+        gcActiveOverrides = snap.val() || {};
+        updateOverrideStatusUI();
       });
     }
 
+    function syncGcAutoProfit() {
+      db.ref('system_settings').on('value', snap => {
+        const system = snap.val() || {};
+        const key = `auto_profit_${gcActiveGameType}`;
+        const isAutoProfit = system[key] === true || system[key] === 'true' || system[key] === 1 || system[key] === '1';
+        document.getElementById('gc-auto-profit-toggle').checked = isAutoProfit;
+      });
+    }
+
+    let gcBetsRef = null;
+    function syncGcBets(gameType, typeId, periodId) {
+      if (gcBetsRef) {
+        gcBetsRef.off();
+      }
+      const typeKey = `${gameType}_t${typeId}`;
+      gcBetsRef = db.ref(`game_bets/${typeKey}/${periodId}`);
+      gcBetsRef.on('value', snap => {
+        const bets = snap.val() || {};
+        updateGcBetsUI(bets);
+      });
+    }
+
+    function updateGcBetsUI(bets) {
+      const tbody = document.getElementById('gc-bets-table-body');
+      tbody.innerHTML = '';
+      
+      const list = Object.values(bets);
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-slate-500">No bets placed on this period yet.</td></tr>`;
+        document.getElementById('gc-bets-total').innerText = 'Total Bet: ₹0.00';
+        return;
+      }
+      
+      let totalAmount = 0;
+      list.forEach(b => {
+        totalAmount += parseFloat(b.totalAmount || 0);
+        
+        let selectLabel = b.selectType;
+        if (b.selectType == 10) selectLabel = '<span class="text-red-500 font-bold">Red</span>';
+        else if (b.selectType == 11) selectLabel = '<span class="text-emerald-500 font-bold">Green</span>';
+        else if (b.selectType == 12) selectLabel = '<span class="text-purple-500 font-bold">Violet</span>';
+        else if (b.selectType == 13 || b.selectType === 'big') selectLabel = '<span class="text-amber-500 font-bold">Big</span>';
+        else if (b.selectType == 14 || b.selectType === 'small') selectLabel = '<span class="text-blue-500 font-bold">Small</span>';
+        
+        tbody.innerHTML += `
+          <tr>
+            <td class="px-4 py-3 font-semibold text-slate-300 select-all">${b.userId}</td>
+            <td class="px-4 py-3 text-center">${selectLabel}</td>
+            <td class="px-4 py-3 text-center text-slate-400">${b.betCount}x</td>
+            <td class="px-4 py-3 text-right font-bold text-white">₹${parseFloat(b.totalAmount || 0).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+      
+      document.getElementById('gc-bets-total').innerText = `Total Bet: ₹${totalAmount.toFixed(2)}`;
+    }
+
+    function updateOverrideStatusUI() {
+      const typeKey = `${gcActiveGameType}_t${gcActiveGameTypeId}`;
+      const ov = gcActiveOverrides[typeKey];
+      const statusEl = document.getElementById('active-override-status');
+      
+      if (ov && ov.active === true) {
+        let val = ov.number;
+        if (gcActiveGameType === 'k3') {
+          val = `Dice: ${ov.d1}, ${ov.d2}, ${ov.d3}`;
+        } else if (gcActiveGameType === 'd5') {
+          val = `Sequence: ${ov.premium}`;
+        } else {
+          if (val === 'red') val = 'RED';
+          else if (val === 'green') val = 'GREEN';
+          else if (val === 'violet') val = 'VIOLET';
+          else if (val === 'big') val = 'BIG';
+          else if (val === 'small') val = 'SMALL';
+        }
+        document.getElementById('override-label-status').innerText = val;
+        statusEl.classList.remove('hidden');
+      } else {
+        statusEl.classList.add('hidden');
+      }
+    }
+
+    function setResultOverride(value) {
+      const typeKey = `${gcActiveGameType}_t${gcActiveGameTypeId}`;
+      db.ref(`admin_overrides/${typeKey}`).set({
+        number: value,
+        active: true
+      });
+    }
+
+    function setK3ResultOverride() {
+      const d1 = parseInt(document.getElementById('k3-override-d1').value);
+      const d2 = parseInt(document.getElementById('k3-override-d2').value);
+      const d3 = parseInt(document.getElementById('k3-override-d3').value);
+      const typeKey = `k3_t${gcActiveGameTypeId}`;
+      db.ref(`admin_overrides/${typeKey}`).set({
+        d1, d2, d3,
+        active: true
+      });
+    }
+
+    function setD5ResultOverride() {
+      const input = document.getElementById('d5-override-input').value.trim();
+      if (input.length !== 5 || isNaN(parseInt(input))) {
+        alert('Please enter a valid 5-digit number!');
+        return;
+      }
+      const typeKey = `d5_t${gcActiveGameTypeId}`;
+      db.ref(`admin_overrides/${typeKey}`).set({
+        premium: input,
+        active: true
+      });
+    }
+
+    function cancelActiveOverride() {
+      const typeKey = `${gcActiveGameType}_t${gcActiveGameTypeId}`;
+      db.ref(`admin_overrides/${typeKey}`).update({
+        active: false
+      });
+    }
+
+    function toggleGcAutoProfit() {
+      const active = document.getElementById('gc-auto-profit-toggle').checked;
+      db.ref(`system_settings`).update({
+        [`auto_profit_${gcActiveGameType}`]: active
+      });
+    }
+
+    function tickController() {
+      const gamesList = [
+        { type: 'wingo', id: 1, timerId: 'timer-gc-wingo-1' },
+        { type: 'wingo', id: 2, timerId: 'timer-gc-wingo-2' },
+        { type: 'wingo', id: 3, timerId: 'timer-gc-wingo-3' },
+        { type: 'wingo', id: 5, timerId: 'timer-gc-wingo-5' },
+        { type: 'trx', id: 13, timerId: 'timer-gc-trx-13' },
+        { type: 'trx', id: 14, timerId: 'timer-gc-trx-14' },
+        { type: 'k3', id: 9, timerId: 'timer-gc-k3-9' },
+        { type: 'd5', id: 5, timerId: 'timer-gc-d5-5' }
+      ];
+      
+      gamesList.forEach(g => {
+        const details = getPeriodDetails(g.type, g.id);
+        const timerEl = document.getElementById(g.timerId);
+        if (timerEl) {
+          timerEl.innerText = `${details.remaining}s`;
+          if (details.remaining <= 10) {
+            timerEl.className = "text-[10px] text-red-500 font-bold animate-pulse";
+          } else {
+            timerEl.className = "text-[10px] text-slate-500 font-semibold";
+          }
+        }
+        
+        if (g.type === gcActiveGameType && g.id === gcActiveGameTypeId) {
+          document.getElementById('gc-active-period').innerText = details.periodId;
+          document.getElementById('gc-active-timer').innerText = `${details.remaining}s`;
+          
+          if (details.remaining <= 10) {
+            document.getElementById('gc-active-timer').className = "text-2xl font-black text-red-500 mt-1 block animate-pulse";
+          } else {
+            document.getElementById('gc-active-timer').className = "text-2xl font-black text-amber-500 mt-1 block";
+          }
+          
+          if (details.periodId !== gcActivePeriodId) {
+            gcActivePeriodId = details.periodId;
+            syncGcBets(gcActiveGameType, gcActiveGameTypeId, gcActivePeriodId);
+          }
+        }
+      });
+    }
   </script>
   <?php endif; ?>
 </body>
