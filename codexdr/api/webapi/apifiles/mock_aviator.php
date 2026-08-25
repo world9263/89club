@@ -240,12 +240,11 @@ ini_set('display_errors', 1);
         
         let currentBalance = 0.0;
         let activeRoundId = 0;
-        let roundElapsed = 0;
         let crashMultiplier = 1.0;
         let currentMultiplier = 1.0;
         
         let localState = 'idle'; // 'betting', 'flying', 'crashed'
-        let lastSyncTime = Date.now();
+        let serverTimeOffset = 0;
         
         let panelState = {
             1: { status: 'idle', betAmount: 100 },
@@ -351,73 +350,24 @@ ini_set('display_errors', 1);
             }
         }
 
-        // Fetch state every 800ms to slow down API request rate and history updates
+        // Fetch state every 800ms
         async function updateState() {
             try {
                 let res = await fetch(`aviator_api.php?action=get_state&userId=${userId}`);
                 let data = await res.json();
                 
                 activeRoundId = data.roundId;
-                roundElapsed = data.elapsed;
                 crashMultiplier = parseFloat(data.crashMultiplier);
                 currentBalance = parseFloat(data.balance);
-                lastSyncTime = Date.now();
+                
+                // Align client clock with server clock
+                let serverNow = parseFloat(data.serverTimeMs);
+                serverTimeOffset = serverNow - Date.now();
 
                 document.getElementById('label-round-id').innerText = activeRoundId;
                 document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
 
                 updateRibbon(data.history);
-
-                if (roundElapsed < 8) {
-                    localState = 'betting';
-                    let remaining = (8 - roundElapsed).toFixed(1);
-                    document.getElementById('loading-overlay').classList.remove('opacity-0');
-                    document.getElementById('loading-overlay').classList.remove('pointer-events-none');
-                    document.getElementById('countdown-label').innerText = `Next Round In ${remaining}s`;
-                    document.getElementById('flew-away-overlay').classList.add('hidden');
-                    
-                    currentMultiplier = 1.0;
-                    document.getElementById('multiplier-label').innerText = '1.00x';
-                    document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
-
-                    for (let pNum = 1; pNum <= 2; pNum++) {
-                        let state = panelState[pNum];
-                        if (state.status === 'idle') {
-                            let btn = document.getElementById(`btn-bet-${pNum}`);
-                            btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                            document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
-                            document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
-                        }
-                    }
-                } else {
-                    document.getElementById('loading-overlay').classList.add('opacity-0');
-                    document.getElementById('loading-overlay').classList.add('pointer-events-none');
-                    
-                    let flightTime = roundElapsed - 8;
-                    let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
-
-                    if (nextMultiplier >= crashMultiplier) {
-                        localState = 'crashed';
-                        document.getElementById('flew-away-overlay').classList.remove('hidden');
-                        document.getElementById('multiplier-label').innerText = crashMultiplier.toFixed(2) + 'x';
-                        document.getElementById('multiplier-label').className = 'text-5xl font-black text-rose-600 italic tracking-tight animate-bounce';
-                        
-                        for (let pNum = 1; pNum <= 2; pNum++) {
-                            let state = panelState[pNum];
-                            if (state.status === 'wagered') {
-                                state.status = 'idle';
-                                let btn = document.getElementById(`btn-bet-${pNum}`);
-                                btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                                document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
-                                document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
-                            }
-                        }
-                    } else {
-                        localState = 'flying';
-                        document.getElementById('flew-away-overlay').classList.add('hidden');
-                    }
-                }
-
                 updateActiveTabList(data.bets);
 
             } catch (err) {
@@ -445,10 +395,10 @@ ini_set('display_errors', 1);
         }
 
         // Draw curved flight path and plane icon with rotating propeller rotor
-        function drawFlightCanvas() {
+        function drawFlightCanvas(roundElapsedMs) {
             ctx.clearRect(0, 0, width, height);
 
-            let flightTime = roundElapsed - 8;
+            let flightTime = (roundElapsedMs - 8000) / 1000;
             if (localState !== 'flying' || flightTime < 0) return;
 
             let ratio = Math.min(1.0, flightTime / 18);
@@ -640,32 +590,75 @@ ini_set('display_errors', 1);
 
         // 60fps Client-Side Animation and Multiplier Climbing
         function animate() {
-            if (localState === 'flying') {
-                let elapsedMs = Date.now() - lastSyncTime;
-                let localElapsed = roundElapsed + (elapsedMs / 1000);
-                if (localElapsed >= 8) {
-                    let flightTime = localElapsed - 8;
-                    let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
+            let adjustedNow = Date.now() + serverTimeOffset;
+            let roundElapsedMs = adjustedNow % 30000;
+            
+            if (roundElapsedMs < 8000) {
+                localState = 'betting';
+                let remaining = ((8000 - roundElapsedMs) / 1000).toFixed(1);
+                document.getElementById('loading-overlay').classList.remove('opacity-0');
+                document.getElementById('loading-overlay').classList.remove('pointer-events-none');
+                document.getElementById('countdown-label').innerText = `Next Round In ${remaining}s`;
+                document.getElementById('flew-away-overlay').classList.add('hidden');
+                
+                currentMultiplier = 1.0;
+                document.getElementById('multiplier-label').innerText = '1.00x';
+                document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
+
+                for (let pNum = 1; pNum <= 2; pNum++) {
+                    let state = panelState[pNum];
+                    if (state.status === 'idle') {
+                        let btn = document.getElementById(`btn-bet-${pNum}`);
+                        btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
+                        document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
+                        document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
+                    }
+                }
+            } else {
+                document.getElementById('loading-overlay').classList.add('opacity-0');
+                document.getElementById('loading-overlay').classList.add('pointer-events-none');
+                
+                let flightTime = (roundElapsedMs - 8000) / 1000;
+                let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
+
+                if (nextMultiplier >= crashMultiplier) {
+                    localState = 'crashed';
+                    document.getElementById('flew-away-overlay').classList.remove('hidden');
+                    document.getElementById('multiplier-label').innerText = crashMultiplier.toFixed(2) + 'x';
+                    document.getElementById('multiplier-label').className = 'text-5xl font-black text-rose-600 italic tracking-tight animate-bounce';
                     
-                    if (nextMultiplier < crashMultiplier) {
-                        currentMultiplier = nextMultiplier;
-                        document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
-                        
-                        // Update cashout labels dynamically at 60fps
-                        for (let pNum = 1; pNum <= 2; pNum++) {
-                            let state = panelState[pNum];
-                            if (state.status === 'wagered') {
-                                let btn = document.getElementById(`btn-bet-${pNum}`);
-                                btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
-                                document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
-                                let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
-                                document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
-                            }
+                    for (let pNum = 1; pNum <= 2; pNum++) {
+                        let state = panelState[pNum];
+                        if (state.status === 'wagered') {
+                            state.status = 'idle';
+                            let btn = document.getElementById(`btn-bet-${pNum}`);
+                            btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
+                            document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
+                            document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
+                        }
+                    }
+                } else {
+                    localState = 'flying';
+                    document.getElementById('flew-away-overlay').classList.add('hidden');
+                    
+                    currentMultiplier = nextMultiplier;
+                    document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
+                    document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
+
+                    for (let pNum = 1; pNum <= 2; pNum++) {
+                        let state = panelState[pNum];
+                        if (state.status === 'wagered') {
+                            let btn = document.getElementById(`btn-bet-${pNum}`);
+                            btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
+                            document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
+                            let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
+                            document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
                         }
                     }
                 }
             }
-            drawFlightCanvas();
+
+            drawFlightCanvas(roundElapsedMs);
             requestAnimationFrame(animate);
         }
 

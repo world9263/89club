@@ -78,7 +78,8 @@ switch ($action) {
             "crashMultiplier" => $roundData['crashMultiplier'],
             "history" => $history,
             "bets" => $bets,
-            "balance" => isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0
+            "balance" => isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0,
+            "serverTimeMs" => microtime(true) * 1000
         ]);
         break;
 
