@@ -95,6 +95,12 @@ ini_set('display_errors', 1);
 					// ============================================
 					// FIREBASE: Create new user
 					// ============================================
+					// Fetch default signup balance from Firebase settings or env
+					$system_settings = $firebase->get('system_settings');
+					$default_balance = isset($system_settings['default_signup_balance']) 
+						? (float)$system_settings['default_signup_balance'] 
+						: (float)(getenv('DEFAULT_SIGNUP_BALANCE') ?: 0);
+
 					$newUser = [
 						'mobile' => $username,
 						'email' => '',
@@ -102,7 +108,7 @@ ini_set('display_errors', 1);
 						'code' => $invitecode,
 						'owncode' => $owncode,
 						'status' => 1,
-						'motta' => 0,
+						'motta' => $default_balance,
 						'createdate' => $shnunc,
 						'ishonup' => $ipaddress,
 						'shonullgnt' => $shnunc,
