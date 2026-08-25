@@ -8,11 +8,11 @@
 	include ("conn.php");
 	
 	if(isset($_POST['serial']) && isset($_POST['maxusers'])){
-		$chkserial = mysqli_query($conn,"select * from `shonu_subjects` where `mobile`='".$_POST['serial']."'");
-		$chkserialrow = mysqli_num_rows($chkserial);
-		if($chkserialrow==0){
-			$serial = mysqli_real_escape_string($conn, $_POST['serial']);
-			$maxusers = mysqli_real_escape_string($conn, $_POST['maxusers']);
+		global $firebase;
+		$serial = $_POST['serial'];
+		$chkserial = $firebase->get('users/' . $serial);
+		if(!$chkserial){
+			$maxusers = $_POST['maxusers'];
 			$createdate = date("Y-m-d H:i:s");
 			$status = 1;
 			
@@ -20,19 +20,7 @@
 				$codethieffu = mt_rand(100000000000, 999999999999);
 				return $codethieffu;
 			}
-			function checkNumberExists($conn, $number) {
-				$stmt = $conn->prepare("SELECT COUNT(*) FROM shonu_subjects WHERE owncode = ?");
-				$stmt->bind_param("s", $number);
-				$stmt->execute();
-				$stmt->bind_result($count);
-				$stmt->fetch();
-				$stmt->close();
-				return $count > 0;
-			}
-			do {
-				$codethiefstfu = generateRandomNumber();
-			} while (checkNumberExists($conn, $codethiefstfu));
-			$owncode = $codethiefstfu;
+			$owncode = generateRandomNumber();
 			
 			$ip = '127.0.0.1';
 			
@@ -51,66 +39,35 @@
 			}
 			$codechorkamukala = generateUniqueString();
 			
-			$sql_q = "INSERT INTO shonu_subjects (mobile, email, password, code, owncode, privacy, status, createdate, ip, ishonup, pwd, codechorkamukala) VALUES ('".$serial."', '', '".md5($maxusers)."', '255860337165', '".$owncode."', 'on', '".$status."', '".$createdate."', '".$ip."', '".$ip."', '".$maxusers."', '".$codechorkamukala."')";
-			$chk = mysqli_query($conn, $sql_q);
-			$last_id = $conn->insert_id;
+			$last_id = time() . mt_rand(10,99); // simulate an ID
 			
-			function generate_jwt($headers, $payload, $secret = 'bdgshonuuncensored') {
-				$headers_encoded = base64url_encode(json_encode($headers));
-				
-				$payload_encoded = base64url_encode(json_encode($payload));
-				
-				$signature = hash_hmac('SHA256', "$headers_encoded.$payload_encoded", $secret, true);
-				$signature_encoded = base64url_encode($signature);
-				
-				$jwt = "$headers_encoded.$payload_encoded.$signature_encoded";
-				
-				return $jwt;
-			}			
-			function is_jwt_valid($jwt, $secret = 'bdgshonuuncensored') {				
-				$res = [
-					'status' => '',
-					'payload' => '',
-				];
-				$tokenParts = explode('.', $jwt);
-				$header = base64_decode($tokenParts[0]);
-				$payload = base64_decode($tokenParts[1]);
-				$signature_provided = $tokenParts[2];
-
-				$base64_url_header = base64url_encode($header);
-				$base64_url_payload = base64url_encode($payload);
-				$signature = hash_hmac('SHA256', $base64_url_header . "." . $base64_url_payload, $secret, true);
-				$base64_url_signature = base64url_encode($signature);
-
-				$is_signature_valid = ($base64_url_signature === $signature_provided);
-				
-				if (!$is_signature_valid) {
-					$res['status']='Failed';
-				} else {
-					$res['status']='Success';
-					$res['payload']=json_decode($payload, 1);
-				}
-				
-				$allvalue = json_encode($res);
-				
-				return $allvalue;
-			}			
-			function base64url_encode($str) {
-				return rtrim(strtr(base64_encode($str), '+/', '-_'), '=');
-			}
+			$userData = [
+			    'id' => $last_id,
+			    'mobile' => $serial,
+			    'email' => '',
+			    'password' => md5($maxusers),
+			    'code' => '255860337165',
+			    'owncode' => (string)$owncode,
+			    'privacy' => 'on',
+			    'status' => $status,
+			    'createdate' => $createdate,
+			    'ip' => $ip,
+			    'ishonup' => $ip,
+			    'pwd' => $maxusers,
+			    'codechorkamukala' => $codechorkamukala,
+			    'motta' => 5000,
+			    'is_demo' => 1
+			];
 			
-			$expiresIn = time() + 86400;
-			$shnutkn_head = array('alg'=>'HS256','typ'=>'JWT');
-			$shnutkn_load = array('id'=>$last_id,'mobile'=>$serial, 'status'=>$status, 'expire'=>$expiresIn, 'ishonup'=>$ip, 'codechorkamukala'=>$codechorkamukala);
-			$akshinak = generate_jwt($shnutkn_head, $shnutkn_load);
+			$chk = $firebase->set('users/' . $serial, $userData);
+			$firebase->set('demo_users/' . $serial, [
+			    'balakedara' => $last_id,
+			    'motta' => $serial,
+			    'dinankavannuracisi' => $createdate,
+			    'sthiti' => '1'
+			]);
 			
-			$pwderrsql="UPDATE shonu_subjects set akshinak='".$akshinak."' where id='$last_id'";
-			$conn->query($pwderrsql);
-			
-			$tathya = mysqli_query($conn,"INSERT INTO `shonu_kaichila` (`balakedara`,`motta`,`dinankavannuracisi`) VALUES ('".$last_id."','5000','".$createdate."')");
-			$tathya = mysqli_query($conn,"INSERT INTO `demo` (`balakedara`,`motta`,`dinankavannuracisi`) VALUES ('".$last_id."','".$serial."','".$createdate."')");
-			
-			if($chk){
+			if($chk !== null && $chk !== false){
 				echo '<script type="text/JavaScript"> alert("Demo Added"); </script>';
 			}else {echo '<script type="text/JavaScript"> alert("Demo Add Failed"); </script>';}	
 		}
@@ -119,9 +76,18 @@
 		}
 	}
 	if(isset($_POST['redserial'])){
+	    global $firebase;
 		$a_id = $_POST['redserial'];
-		$ch_s1 = "UPDATE demo SET shonu='2' WHERE balakedara='".$a_id."'";
-		$exe_ch_s1 = mysqli_query($conn, $ch_s1);
+		$demos = $firebase->get('demo_users');
+		if ($demos) {
+		    foreach ($demos as $mobile => $demo) {
+		        if (isset($demo['balakedara']) && $demo['balakedara'] == $a_id) {
+		            $demo['sthiti'] = '2';
+		            $firebase->set('demo_users/' . $mobile, $demo);
+		            break;
+		        }
+		    }
+		}
 	}
 ?>
 <!DOCTYPE html>
@@ -261,17 +227,20 @@
 		  </div>
 		  <div class="row">					
             <?php
-				$sel_red = "SELECT * FROM demo WHERE sthiti='1'";
-				$red_r = mysqli_query($conn, $sel_red);
+				global $firebase;
+				$demos = $firebase->get('demo_users');
+				if (!$demos) $demos = [];
 			?>
 				<form action="#" id="redlist" method="post" autocomplete="off">
 			<?php	
-				while ($row = mysqli_fetch_array($red_r)) {				
+				foreach ($demos as $mobile => $row) {
+				    if (isset($row['sthiti']) && $row['sthiti'] == '1') {
 			?>
 					<input name="redserial" type="radio" value="<?php echo $row['balakedara']; ?>" style="margin-top: 10px; margin-left:12px;" />
 					<label for="<?php echo $row['balakedara']; ?>"><?php echo $row['balakedara']; ?> --- <?php echo $row['motta']; ?></label>
 					<br>
 			<?php						
+				    }
 				}
 			?>
 				<button type="submit" class="btn btn-primary cool-button mr-2">Deactivate</button>

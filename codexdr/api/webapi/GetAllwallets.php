@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	// FIX: avoid open_basedir issue — include relative to this file
 	@include __DIR__ . "/apifiles/apibaseurl.php";
 	
@@ -81,9 +82,9 @@
 	if (
 	    isset($shonupost['language'], $shonupost['random'], $shonupost['signature'], $shonupost['timestamp'])
 	) {
-		$language  = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-		$random    = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-		$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+		$language  = $shonupost['language'];
+		$random    = $shonupost['random'];
+		$signature = $shonupost['signature'];
 		// keep original signing structure
 		$shonustr  = '{"language":'.$language.',"random":"'.$random.'"}';
 		$shonusign = strtoupper(md5($shonustr));
@@ -95,24 +96,12 @@
 			$data_auth    = json_decode($jwt_response, true);
 
 			if (!empty($data_auth['status']) && $data_auth['status'] === 'Success') {
-				$sesquery  = "SELECT akshinak FROM shonu_subjects WHERE akshinak = '$author'";
-				$sesresult = $conn->query($sesquery);
-
-				if ($sesresult && $sesresult->num_rows === 1) {
-					// ensure columns exist (MySQL 8+ supports IF NOT EXISTS)
-					@mysqli_query($conn,
-						"ALTER TABLE shonu_kaichila
-						 ADD COLUMN IF NOT EXISTS wll_jili DECIMAL(10,2) DEFAULT 0,
-						 ADD COLUMN IF NOT EXISTS wll_jdb  DECIMAL(10,2) DEFAULT 0"
-					);
-
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 					// fetch stored balances
 					$uid       = (int)($data_auth['payload']['id'] ?? 0);
-					$balquery  = "SELECT motta, wll_jdb, wll_jili
-								  FROM shonu_kaichila
-								  WHERE balakedara = $uid";
-					$balresult = $conn->query($balquery);
-					$balarr    = $balresult ? ($balresult->fetch_assoc() ?: ['motta'=>0,'wll_jdb'=>0,'wll_jili'=>0]) : ['motta'=>0,'wll_jdb'=>0,'wll_jili'=>0];
+					$balarr    = ['motta' => isset($user['motta']) ? $user['motta'] : 0, 'wll_jdb' => isset($user['wll_jdb']) ? $user['wll_jdb'] : 0, 'wll_jili' => isset($user['wll_jili']) ? $user['wll_jili'] : 0];
 
 					// CQ9 balance
 					$cq9_url  = "{$apibaseurl}cq9?action=balance"

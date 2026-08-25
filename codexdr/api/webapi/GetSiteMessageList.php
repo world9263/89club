@@ -21,11 +21,11 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {		
 		if (isset($shonupost['language']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$pageNo = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageNo']));
-			$pageSize = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageSize']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$language = $shonupost['language'];
+			$pageNo = $shonupost['pageNo'];
+			$pageSize = $shonupost['pageSize'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){

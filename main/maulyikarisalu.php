@@ -1,17 +1,16 @@
 <?php 
 	session_start();
 	include("conn.php");
+	global $firebase;
 	
-	$adid = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['username']));
-	$psad = htmlspecialchars(mysqli_real_escape_string($conn, $_POST['password']));
-	$samasye = "SELECT * FROM `nirvahaka_shonu` WHERE `nirvahaka_hesaru`='".$adid."' AND `guptapada`='".md5($psad)."' AND `sthiti`='1'";
-	$phalitansa = mysqli_query($conn,$samasye);
-	$sankhye = mysqli_num_rows($phalitansa);
-	$salu = mysqli_fetch_assoc($phalitansa);
+	$adid = htmlspecialchars($_POST['username']);
+	$psad = htmlspecialchars($_POST['password']);
 	
-	if($sankhye >= 1){
-		$_SESSION['unohs'] = $salu['unohs'];
-		$_SESSION['nirvahaka_hesaru'] = $salu['nirvahaka_hesaru'];
+	$admin = $firebase->get('admin_users/' . $adid);
+	
+	if($admin && $admin['guptapada'] == md5($psad) && $admin['sthiti'] == '1'){
+		$_SESSION['unohs'] = $admin['unohs'];
+		$_SESSION['nirvahaka_hesaru'] = $admin['nirvahaka_hesaru'];
 		
 		header("location:dashboard.php");
 		exit;

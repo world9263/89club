@@ -6,30 +6,31 @@
 ?>
 <?php
 	include ("conn.php");
+	global $firebase;
 	
 	if(isset($_POST['newupi'])){
-		$upiid = mysqli_real_escape_string($conn, $_POST['newupi']);
-		$sql_q = "INSERT INTO deyya (maulya, sthiti) VALUES ('".$upiid."', '0')";
-		$chk = mysqli_query($conn, $sql_q);
-		if($chk){
+		$upiid = $_POST['newupi'];
+		$upis = $firebase->get('system_settings/upis') ?: [];
+		$newId = time() . mt_rand(10,99);
+		$upis[$newId] = ['maulya' => $upiid, 'sthiti' => 0];
+		
+		$chk = $firebase->set('system_settings/upis', $upis);
+		if($chk !== null && $chk !== false){
 			echo '<script type="text/JavaScript"> alert("UPI ID Added"); </script>';
 		}else {echo '<script type="text/JavaScript"> alert("UPI ID Failed"); </script>';}
 	}
 	
 	if(isset($_POST['upiid'])){
 		$a_id = $_POST['upiid'];
-		$sql_s = "SELECT * FROM deyya WHERE maulya = '".$a_id."'";
-		$run = mysqli_query($conn, $sql_s);
-		//Set status to 0
-		$sql_d = "SELECT * FROM deyya WHERE sthiti = '1'";		
-		$run_d = mysqli_query($conn, $sql_d);
-		$rund_f = mysqli_fetch_array($run_d);
-		$ch_s0 = "UPDATE deyya SET sthiti='0' WHERE shonu='".$rund_f['shonu']."'";
-		$exe_ch_s0 = mysqli_query($conn, $ch_s0);
-		//Set status to 1
-		$run_f = mysqli_fetch_array($run);
-		$ch_s1 = "UPDATE deyya SET sthiti='1' WHERE shonu='".$run_f['shonu']."'";
-		$exe_ch_s1 = mysqli_query($conn, $ch_s1);
+		$upis = $firebase->get('system_settings/upis') ?: [];
+		foreach ($upis as $k => $u) {
+		    if ($u['maulya'] == $a_id) {
+		        $upis[$k]['sthiti'] = 1;
+		    } else {
+		        $upis[$k]['sthiti'] = 0;
+		    }
+		}
+		$firebase->set('system_settings/upis', $upis);
 	}
 ?>
 <!DOCTYPE html>
@@ -163,13 +164,14 @@
           </div>
 		  <div class="row">
             <?php
-				$sel_upi = "SELECT * FROM deyya WHERE sthiti='0' OR sthiti='1'";
-				$upi_r = mysqli_query($conn, $sel_upi);
+				global $firebase;
+				$upis = $firebase->get('system_settings/upis') ?: [];
 			?>
 				<form action="#" id="upisave" method="post" autocomplete="off">
-			<?php	while ($row = mysqli_fetch_array($upi_r)) {
+			<?php	
+			    foreach ($upis as $row) {
 			?>
-				<input name="upiid" type="radio" style="margin-top: 10px; margin-left:12px;" value="<?php echo $row['maulya']; ?>" <?php if($row['sthiti']==1){echo "checked";} ?> />
+				<input name="upiid" type="radio" style="margin-top: 10px; margin-left:12px;" value="<?php echo $row['maulya']; ?>" <?php if(isset($row['sthiti']) && $row['sthiti']==1){echo "checked";} ?> />
 				<label for="<?php echo $row['maulya']; ?>"><?php echo $row['maulya']; ?></label>
 				</br>
 			<?php	}

@@ -1,6 +1,7 @@
 <?php
 include "../../conn.php";
 include "../../functions2.php";
+	global $firebase;
 include "apifiles/apibaseurl.php";
 
 header('Content-Type: application/json; charset=utf-8');
@@ -119,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
         isset($shonupost['timestamp'])
     ) {
 
-        $language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-        $random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-        $signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-        $vendorCode = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['vendorCode']));
-        $gameCode = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['gameCode']));
-        $phonetype = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['phonetype']));
+        $language = $shonupost['language'];
+        $random = $shonupost['random'];
+        $signature = $shonupost['signature'];
+        $vendorCode = $shonupost['vendorCode'];
+        $gameCode = $shonupost['gameCode'];
+        $phonetype = $shonupost['phonetype'];
 
         $shonustr = '{"gameCode":"' . $gameCode . '","language":' . $language . ',"phonetype":' . $phonetype . ',"random":"' . $random . '","vendorCode":' . $vendorCode . '}';
         $shonusign = strtoupper(md5($shonustr));

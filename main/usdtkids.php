@@ -5,20 +5,16 @@ if ($_SESSION['unohs'] == null) {
 }
 
 include("conn.php");
+global $firebase;
 
-$query = "SELECT rate FROM tbl_pg WHERE value = 'usdt' LIMIT 1";
-$result = mysqli_query($conn, $query);
-$currentRate = 0;
-if ($result && mysqli_num_rows($result) > 0) {
-    $row = mysqli_fetch_assoc($result);
-    $currentRate = $row['rate'];
-}
+$settings = $firebase->get('system_settings') ?: [];
+$currentRate = $settings['usdt_rate'] ?? 0;
 
 if (isset($_POST['newupi'])) {
-    $upiid = mysqli_real_escape_string($conn, $_POST['newupi']);
-    $sql_q = "UPDATE tbl_pg SET rate='" . $upiid . "' WHERE value = 'usdt'";
-    $chk = mysqli_query($conn, $sql_q);
-    if ($chk) {
+    $upiid = $_POST['newupi'];
+    $settings['usdt_rate'] = $upiid;
+    $chk = $firebase->set('system_settings', $settings);
+    if ($chk !== null && $chk !== false) {
         echo '<script type="text/JavaScript"> alert("USDT rate updated"); </script>';
         header("Refresh:0");
     } else {

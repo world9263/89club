@@ -21,17 +21,17 @@ function generateRandomSerial($length = 32) {
 
 
 // Handling form submission to generate codes
-// Handling form submission to generate codes
 if (isset($_POST['maxserials']) && isset($_POST['maxusers']) && isset($_POST['price'])) {
-    $maxserials = mysqli_real_escape_string($conn, $_POST['maxserials']);
-    $maxusers = mysqli_real_escape_string($conn, $_POST['maxusers']);
-    $price = mysqli_real_escape_string($conn, $_POST['price']);
-    $remark = mysqli_real_escape_string($conn, $_POST['remark']);
+    global $firebase;
+    $maxserials = $_POST['maxserials'];
+    $maxusers = $_POST['maxusers'];
+    $price = $_POST['price'];
+    $remark = $_POST['remark'];
 
     // Check if maxserials is greater than 50
     if ($maxserials > 50) {
         echo '<script>alert("You can only generate a maximum of 50 serial numbers.");</script>';
-        exit;  // Stop further execution if the limit is exceeded
+        exit;
     }
 
     $totalusers = 0;
@@ -44,15 +44,19 @@ if (isset($_POST['maxserials']) && isset($_POST['maxusers']) && isset($_POST['pr
         $newSerial = generateRandomSerial(); // Generate a new random serial
         $generatedSerials[] = $newSerial;
 
-        // Insert the generated serial into the database
-        $insertRandomSerial = "INSERT INTO hodike_nirvahaka (enserie, utilisateurmax, prix, nombredutilisateurs, creerunrendezvous, shonu, remark) 
-                               VALUES ('".$newSerial."', '".$maxusers."', '".$price."', '".$totalusers."', '".$createdate."', '".$status."', '".$remark."')";
-        mysqli_query($conn, $insertRandomSerial);
+        $firebase->set('gift_codes/' . $newSerial, [
+            'enserie' => $newSerial,
+            'utilisateurmax' => $maxusers,
+            'prix' => $price,
+            'nombredutilisateurs' => $totalusers,
+            'creerunrendezvous' => $createdate,
+            'shonu' => $status,
+            'remark' => $remark
+        ]);
     }
 
     // Convert the generated serials to JSON format to pass to JavaScript
     $generatedSerialsJson = json_encode($generatedSerials);
-
 }
 
 // Pagination Setup
@@ -60,24 +64,25 @@ $limit = 10; // Number of records per page
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Fetch history of generated codes from the database
-$historyQuery = "SELECT * FROM hodike_nirvahaka ORDER BY creerunrendezvous DESC LIMIT $limit OFFSET $offset";
-$historyResult = mysqli_query($conn, $historyQuery);
+// Fetch history of generated codes from Firebase
+global $firebase;
+$allCodes = $firebase->get('gift_codes') ?: [];
+// Sort by createdate DESC
+usort($allCodes, function($a, $b) {
+    return strtotime($b['creerunrendezvous'] ?? '0') - strtotime($a['creerunrendezvous'] ?? '0');
+});
 
-// Count total records for pagination
-$totalQuery = "SELECT COUNT(*) AS total FROM hodike_nirvahaka";
-$totalResult = mysqli_query($conn, $totalQuery);
-$totalRow = mysqli_fetch_assoc($totalResult);
-$totalRecords = $totalRow['total'];
+$totalRecords = count($allCodes);
 $totalPages = ceil($totalRecords / $limit);
+$historyResult = array_slice($allCodes, $offset, $limit);
 
 // Handle deletion of serials
 if (isset($_POST['delete_serial'])) {
-    $serialToDelete = mysqli_real_escape_string($conn, $_POST['delete_serial']);
-    $deleteQuery = "DELETE FROM hodike_nirvahaka WHERE enserie = '$serialToDelete'";
-    mysqli_query($conn, $deleteQuery);
+    $serialToDelete = $_POST['delete_serial'];
+    $firebase->delete('gift_codes/' . $serialToDelete);
     header("Location: ".$_SERVER['PHP_SELF']); // Refresh the page after deletion
 }
+
 
 ?>
 
@@ -145,7 +150,7 @@ if (isset($_POST['delete_serial'])) {
                 </tr>
             </thead>
             <tbody>
-                <?php while ($row = mysqli_fetch_assoc($historyResult)): ?>
+                <?php foreach ($historyResult as $row): ?>
                     <tr>
                         <td><?php echo $row['enserie']; ?></td>
                         <td><?php echo $row['utilisateurmax']; ?></td>
@@ -158,7 +163,7 @@ if (isset($_POST['delete_serial'])) {
                             </form>
                         </td>
                     </tr>
-                <?php endwhile; ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
 

@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -22,10 +23,10 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['taskId']) && isset($shonupost['timestamp'])) {
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$taskId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['taskId']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$language = $shonupost['language'];
+			$taskId = $shonupost['taskId'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'","taskId":'.$taskId.'}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -34,12 +35,9 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak
-					  FROM shonu_subjects
-					  WHERE akshinak = '$author'";
-					$sesresult=$conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 						$shonuid = $data_auth['payload']['id'];
 						
 						if($taskId == 1){

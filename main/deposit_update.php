@@ -262,35 +262,49 @@ if (!defined("SECURITY_PASS")) { die(); }
 					</thead>
 					<tbody>
 						<?php
-							$sqq = mysqli_query($conn, "SELECT * FROM `thevani` WHERE `sthiti` = '0' ORDER BY `shonu` DESC");
+							global $firebase;
+							$transactions = $firebase->get('transactions') ?: [];
+							
+							$pendingDeposits = [];
+							foreach ($transactions as $txid => $tx) {
+							    if (isset($tx['type']) && $tx['type'] == 'deposit' && isset($tx['status']) && $tx['status'] == 0) {
+							        $pendingDeposits[] = $tx;
+							    }
+							}
+							
+							// Sort by created_at DESC
+							usort($pendingDeposits, function($a, $b) {
+							    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+							});
+							
 							$i = 0;
-							while ($row = mysqli_fetch_array($sqq)) {
-							$i = $i + 1;
+							foreach ($pendingDeposits as $row) {
+							$i++;
 						?>
-						<tr class="<?php echo $row['shonu'];?>">
+						<tr class="<?php echo $row['txid'];?>">
 							<td><?php echo $i;?></td>
-							<td><?php echo $row['balakedara'];?></td>
-							<td><?php echo $row['duravani'];?></td>
-							<td><?php echo $row['ullekha'];?></td>
-							<td><?php echo $row['motta'];?></td>
-                          	<td><?php echo $row['dharavahi'];?></td>
-							<td><?php echo $row['dinankavannuracisi'];?></td>
+							<td><?php echo $row['userid'];?></td>
+							<td><?php echo $row['mobile'] ?? '';?></td>
+							<td><?php echo $row['utr'];?></td>
+							<td><?php echo $row['amount'];?></td>
+                          	<td><?php echo $row['txid'];?></td>
+							<td><?php echo $row['created_at'];?></td>
 							<td>
-								<form id="<?php echo 'app'.$row['shonu'];?>" class="approval-form">
-									<input type="hidden" name="uid" value="<?php echo $row['balakedara'];?>">
-									<input type="hidden" name="amount" value="<?php echo $row['motta'];?>">
-									<input type="hidden" name="date" value="<?php echo $row['dinankavannuracisi'];?>"><!--Added-->
-									<input type="hidden" name="sid" value="<?php echo $row['shonu'];?>"><!--Added-->
-									<input type="hidden" name="ref_num" value="<?php echo $row['ullekha'];?>">
+								<form id="<?php echo 'app'.$row['txid'];?>" class="approval-form">
+									<input type="hidden" name="uid" value="<?php echo $row['userid'];?>">
+									<input type="hidden" name="amount" value="<?php echo $row['amount'];?>">
+									<input type="hidden" name="date" value="<?php echo $row['created_at'];?>">
+									<input type="hidden" name="sid" value="<?php echo $row['txid'];?>">
+									<input type="hidden" name="ref_num" value="<?php echo $row['utr'];?>">
 									<input type="hidden" name="app" value="Approve Payment">
 									<button class="btn btn-primary" type="submit" name="approve">Approve Payment</button>
 								</form> <br>
-								<form id="<?php echo 'rej'.$row['shonu'];?>" class="reject-form">
-									<input type="hidden" name="uid" value="<?php echo $row['balakedara'];?>">
-									<input type="hidden" name="amount" value="<?php echo $row['motta'];?>">
-									<input type="hidden" name="date" value="<?php echo $row['dinankavannuracisi'];?>"><!--Added-->
-									<input type="hidden" name="sid" value="<?php echo $row['shonu'];?>"><!--Added-->
-									<input type="hidden" name="ref_num" value="<?php echo $row['ullekha'];?>">
+								<form id="<?php echo 'rej'.$row['txid'];?>" class="reject-form">
+									<input type="hidden" name="uid" value="<?php echo $row['userid'];?>">
+									<input type="hidden" name="amount" value="<?php echo $row['amount'];?>">
+									<input type="hidden" name="date" value="<?php echo $row['created_at'];?>">
+									<input type="hidden" name="sid" value="<?php echo $row['txid'];?>">
+									<input type="hidden" name="ref_num" value="<?php echo $row['utr'];?>">
 									<input type="hidden" name="rej" value="Reject Payment">
 									<button class="btn btn-danger" type="submit" name="reject">Reject Payment</button>
 								</form>

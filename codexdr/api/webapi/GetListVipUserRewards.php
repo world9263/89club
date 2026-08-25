@@ -1,6 +1,7 @@
 <?php 
 include "../../conn.php";
 include "../../functions2.php";
+	global $firebase;
 
 header('Content-Type: application/json; charset=utf-8');
 header('Strict-Transport-Security: max-age=31536000');
@@ -24,11 +25,11 @@ $shonupost = json_decode($shonubody, true);
 
 if ($_SERVER['REQUEST_METHOD'] != 'GET') {
     if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-        $language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-        $taskId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['rewardType']));
-        $lvl = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['vipLevel']));
-        $random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-        $signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+        $language = $shonupost['language'];
+        $taskId = $shonupost['rewardType'];
+        $lvl = $shonupost['vipLevel'];
+        $random = $shonupost['random'];
+        $signature = $shonupost['signature'];
         $shonustr = '{"language":'.$language.',"random":"'.$random.'","taskId":'.$taskId.'}';
         $shonusign = strtoupper(md5($shonustr));
 

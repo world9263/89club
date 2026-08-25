@@ -88,9 +88,9 @@ if (!defined("SECURITY_PASS")) { die(); }
             </div>
           </div>
 		  <?php 
-			$chkserial = mysqli_query($conn,"select * from `nirvahaka_shonu` where `unohs`='".$_SESSION['unohs']."'");
-			$salu = mysqli_fetch_array($chkserial);
-			$dashboard = $salu['dashboard'];
+			global $firebase;
+			$salu = $firebase->get('admin_users/' . $_SESSION['nirvahaka_hesaru']);
+			$dashboard = $salu['dashboard'] ?? 0;
 			if($dashboard == 1){
 		  ?>
 		  <div class="row">

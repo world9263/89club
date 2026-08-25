@@ -6,6 +6,7 @@
 ?>
 <?php
 	include ("conn.php");
+	global $firebase;
 	
 	if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["image"])) {
     $target_dir = "../images/"; // Directory to store uploaded files
@@ -45,9 +46,12 @@
         if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
          
             $filename = basename($_FILES["image"]["name"]);
-            $sql = "INSERT INTO images (filename) VALUES ('$filename')";
+            $upi_images = $firebase->get('system_settings/upi_images') ?: [];
+            $newId = time() . mt_rand(10,99);
+            $upi_images[$newId] = ['filename' => $filename, 'status' => 0];
+            $chk = $firebase->set('system_settings/upi_images', $upi_images);
 
-            if ($conn->query($sql) === TRUE) {
+            if ($chk !== null && $chk !== false) {
                 echo '<script type="text/JavaScript"> alert("Record added to database successfully"); </script>';
             } else {
                 echo '<script type="text/JavaScript"> alert("Error adding record"); </script>';
@@ -59,18 +63,15 @@
   }
   if(isset($_POST['upiid'])){
 		$a_id = $_POST['upiid'];
-		$sql_s = "SELECT * FROM images WHERE filename = '".$a_id."'";
-		$run = mysqli_query($conn, $sql_s);
-		//Set status to 0
-		$sql_d = "SELECT * FROM images WHERE status = '1'";		
-		$run_d = mysqli_query($conn, $sql_d);
-		$rund_f = mysqli_fetch_array($run_d);
-		$ch_s0 = "UPDATE images SET status='0' WHERE id='".$rund_f['id']."'";
-		$exe_ch_s0 = mysqli_query($conn, $ch_s0);
-		//Set status to 1
-		$run_f = mysqli_fetch_array($run);
-		$ch_s1 = "UPDATE images SET status='1' WHERE id='".$run_f['id']."'";
-		$exe_ch_s1 = mysqli_query($conn, $ch_s1);
+		$upi_images = $firebase->get('system_settings/upi_images') ?: [];
+		foreach ($upi_images as $k => $u) {
+		    if ($u['filename'] == $a_id) {
+		        $upi_images[$k]['status'] = 1;
+		    } else {
+		        $upi_images[$k]['status'] = 0;
+		    }
+		}
+		$firebase->set('system_settings/upi_images', $upi_images);
 	}
 
 ?>
@@ -206,13 +207,13 @@
           </div>
 		  <div class="row">
             <?php
-				$sel_upi = "SELECT * FROM images WHERE status='0' OR status='1'";
-				$upi_r = mysqli_query($conn, $sel_upi);
+				global $firebase;
+				$upi_images = $firebase->get('system_settings/upi_images') ?: [];
 			?>
 				<form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" id="upisave" method="post" autocomplete="off">
-			<?php	while ($row = mysqli_fetch_array($upi_r)) {
+			<?php	foreach ($upi_images as $row) {
 			?>
-				<input name="upiid" type="radio" value="<?php echo $row['filename']; ?>" <?php if($row['status']==1){echo "checked";} ?> style="margin-top: 10px; margin-left:12px;" />
+				<input name="upiid" type="radio" value="<?php echo $row['filename']; ?>" <?php if(isset($row['status']) && $row['status']==1){echo "checked";} ?> style="margin-top: 10px; margin-left:12px;" />
 				<label for="<?php echo $row['filename']; ?>"><?php echo $row['filename']; ?></label>
 				</br>
 			<?php	}

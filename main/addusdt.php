@@ -6,30 +6,31 @@
 ?>
 <?php
 	include ("conn.php");
+	global $firebase;
 	
 	if(isset($_POST['newupi'])){
-		$upiid = mysqli_real_escape_string($conn, $_POST['newupi']);
-		$sql_q = "INSERT INTO deyyamrici (maulya, sthiti) VALUES ('".$upiid."', '0')";
-		$chk = mysqli_query($conn, $sql_q);
-		if($chk){
+		$upiid = $_POST['newupi'];
+		$usdts = $firebase->get('system_settings/usdts') ?: [];
+		$newId = time() . mt_rand(10,99);
+		$usdts[$newId] = ['maulya' => $upiid, 'sthiti' => 0];
+		
+		$chk = $firebase->set('system_settings/usdts', $usdts);
+		if($chk !== null && $chk !== false){
 			echo '<script type="text/JavaScript"> alert("USDT ID Added"); </script>';
 		}else {echo '<script type="text/JavaScript"> alert("USDT ID Failed"); </script>';}
 	}
 	
 	if(isset($_POST['upiid'])){
 		$a_id = $_POST['upiid'];
-		$sql_s = "SELECT * FROM deyyamrici WHERE maulya = '".$a_id."'";
-		$run = mysqli_query($conn, $sql_s);
-		//Set status to 0
-		$sql_d = "SELECT * FROM deyyamrici WHERE sthiti = '1'";		
-		$run_d = mysqli_query($conn, $sql_d);
-		$rund_f = mysqli_fetch_array($run_d);
-		$ch_s0 = "UPDATE deyyamrici SET sthiti='0' WHERE shonu='".$rund_f['shonu']."'";
-		$exe_ch_s0 = mysqli_query($conn, $ch_s0);
-		//Set status to 1
-		$run_f = mysqli_fetch_array($run);
-		$ch_s1 = "UPDATE deyyamrici SET sthiti='1' WHERE shonu='".$run_f['shonu']."'";
-		$exe_ch_s1 = mysqli_query($conn, $ch_s1);
+		$usdts = $firebase->get('system_settings/usdts') ?: [];
+		foreach ($usdts as $k => $u) {
+		    if ($u['maulya'] == $a_id) {
+		        $usdts[$k]['sthiti'] = 1;
+		    } else {
+		        $usdts[$k]['sthiti'] = 0;
+		    }
+		}
+		$firebase->set('system_settings/usdts', $usdts);
 	}
 ?>
 <!DOCTYPE html>
@@ -163,13 +164,13 @@
           </div>
 		  <div class="row">
             <?php
-				$sel_upi = "SELECT * FROM deyyamrici WHERE sthiti='0' OR sthiti='1'";
-				$upi_r = mysqli_query($conn, $sel_upi);
+				global $firebase;
+				$usdts = $firebase->get('system_settings/usdts') ?: [];
 			?>
 				<form action="#" id="upisave" method="post" autocomplete="off">
-			<?php	while ($row = mysqli_fetch_array($upi_r)) {
+			<?php	foreach ($usdts as $row) {
 			?>
-				<input name="upiid" type="radio" style="margin-top: 10px; margin-left:12px;" value="<?php echo $row['maulya']; ?>" <?php if($row['sthiti']==1){echo "checked";} ?> />
+				<input name="upiid" type="radio" style="margin-top: 10px; margin-left:12px;" value="<?php echo $row['maulya']; ?>" <?php if(isset($row['sthiti']) && $row['sthiti']==1){echo "checked";} ?> />
 				<label for="<?php echo $row['maulya']; ?>"><?php echo $row['maulya']; ?></label>
 				</br>
 			<?php	}

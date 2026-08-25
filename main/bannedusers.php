@@ -44,20 +44,30 @@
 
 <?php
 include("conn.php");
+global $firebase;
 
-$query = "SELECT * FROM banned_users ORDER BY created_at DESC";
-$result = $conn->query($query);
+$allUsers = $firebase->get('users');
+if (!$allUsers) $allUsers = [];
 
-if ($result->num_rows > 0) {
+$bannedUsers = [];
+foreach ($allUsers as $mobile => $user) {
+    if (isset($user['status']) && $user['status'] == 0) {
+        $bannedUsers[] = $user;
+    }
+}
+
+if (count($bannedUsers) > 0) {
     echo "<table>";
-    echo "<thead><tr><th>ID</th><th>User ID</th><th>Reason</th><th>Banned At</th></tr></thead>";
+    echo "<thead><tr><th>Mobile</th><th>User ID</th><th>Created At</th></tr></thead>";
     echo "<tbody>";
-    while ($row = $result->fetch_assoc()) {
+    foreach ($bannedUsers as $user) {
+        $id = $user['id'] ?? '';
+        $mobile = $user['mobile'] ?? '';
+        $createdAt = $user['createdate'] ?? '';
         echo "<tr>
-                <td>{$row['id']}</td>
-                <td>{$row['user_id']}</td>
-                <td>{$row['reason']}</td>
-                <td>{$row['created_at']}</td>
+                <td>{$mobile}</td>
+                <td>{$id}</td>
+                <td>{$createdAt}</td>
               </tr>";
     }
     echo "</tbody></table>";

@@ -21,9 +21,9 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$language = $shonupost['language'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){

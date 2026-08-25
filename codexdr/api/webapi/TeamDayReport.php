@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -23,18 +24,18 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['day']) && isset($shonupost['language']) && isset($shonupost['lv']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$day = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['day']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$lv = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['lv']));
-			$pageNo = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageNo']));
-			$pageSize = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageSize']));			
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));			
+			$day = $shonupost['day'];
+			$language = $shonupost['language'];
+			$lv = $shonupost['lv'];
+			$pageNo = $shonupost['pageNo'];
+			$pageSize = $shonupost['pageSize'];			
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];			
 			if($shonupost['userId'] == ''){
 				$shonustr = '{"day":"'.$day.'","language":'.$language.',"lv":'.$lv.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'"}';	
 			}
 			else{
-				$userId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['userId']));
+				$userId = $shonupost['userId'];
 				$shonustr = '{"day":"'.$day.'","language":'.$language.',"lv":'.$lv.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'","userId":'.$userId.'}';					
 			}						
 			$shonusign = strtoupper(md5($shonustr));

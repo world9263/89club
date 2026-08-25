@@ -1,5 +1,6 @@
 <?php
 	include "../../conn.php";
+	global $firebase;
 			
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -21,13 +22,13 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {		
 		if (isset($shonupost['language']) && isset($shonupost['password']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['smsvcode']) && isset($shonupost['timestamp']) && isset($shonupost['type']) && isset($shonupost['username'])) {			
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$password = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['password']));			
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			$smsvcode = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['smsvcode']));
-			$type = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['type']));
-			$username = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['username']));
+			$language = $shonupost['language'];
+			$password = $shonupost['password'];			
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
+			$smsvcode = $shonupost['smsvcode'];
+			$type = $shonupost['type'];
+			$username = $shonupost['username'];
 			$shonustr = '{"language":'.$language.',"password":"'.$password.'","random":"'.$random.'","smsvcode":"'.$smsvcode.'","type":"'.$type.'","username":"'.$username.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -38,23 +39,30 @@
 					$mobile = $username;
 				}
 				
-				$samasye = "SELECT id
-				  FROM shonu_subjects WHERE mobile = $mobile";
-				$samasyephalitansa = $conn->query($samasye);
-				$samasyephalitansa_dhadi = mysqli_num_rows($samasyephalitansa);
+                $user = $firebase->get('users/' . $mobile);
 				
-				if($samasyephalitansa_dhadi == 1){
-					$samasye = "SELECT otp
-					  FROM otp_record WHERE mobile = $mobile AND type = 'Reset PSWD' ORDER BY id DESC LIMIT 1";
-					$samasyephalitansa = $conn->query($samasye);
-					$samasyephalitansa_dhadi = mysqli_num_rows($samasyephalitansa);
-					if($samasyephalitansa_dhadi == 1){
-						$samasyephalitansa_sreni = mysqli_fetch_array($samasyephalitansa);
-						$otp = $samasyephalitansa_sreni['otp'];
+				if($user != null){
+                    $otps = $firebase->get('otp_record');
+                    $otp = null;
+                    $maxId = -1;
+                    if($otps != null) {
+                        foreach($otps as $key => $o) {
+                            if(isset($o['mobile']) && $o['mobile'] == $mobile && isset($o['type']) && $o['type'] == 'Reset PSWD') {
+                                if(isset($o['id']) && $o['id'] > $maxId) {
+                                    $maxId = $o['id'];
+                                    $otp = $o['otp'];
+                                }
+                            }
+                        }
+                    }
+                    
+					if($otp != null){
 						if($otp == $smsvcode){
 							$md5_password = md5($password);
-							$pwderrsql="UPDATE shonu_subjects set password='".$md5_password."', pwd='".$password."' where mobile = '$mobile'";
-							$conn->query($pwderrsql);
+                            $firebase->update('users/' . $mobile, [
+                                'password' => $md5_password,
+                                'pwd' => $password
+                            ]);
 							
 							$res['code'] = 0;
 							$res['msg'] = 'Succeed';

@@ -57,44 +57,42 @@ include ("conn.php");
         </div>
         <div class="content">
             <?php
-            // Query to find duplicate IPs in the ishonup column
-            $duplicateIPsQuery = "SELECT ishonup FROM shonu_subjects GROUP BY ishonup HAVING COUNT(ishonup) > 1";
-            $result = $conn->query($duplicateIPsQuery);
+            global $firebase;
+            $allUsers = $firebase->get('users');
+            if (!$allUsers) $allUsers = [];
+            
+            $ipCounts = [];
+            foreach ($allUsers as $mobile => $user) {
+                if (!empty($user['ishonup'])) {
+                    $ip = $user['ishonup'];
+                    if (!isset($ipCounts[$ip])) {
+                        $ipCounts[$ip] = [];
+                    }
+                    $ipCounts[$ip][] = ['mobile' => $mobile, 'id' => $user['id'] ?? ''];
+                }
+            }
 
-            if ($result->num_rows > 0) {
-                // Fetch all duplicate IPs
-                while ($row = $result->fetch_assoc()) {
-                    $duplicateIP = $row['ishonup'];
-
-                    // Fetch and print IDs of users with duplicate IPs
-                    $fetchIdsQuery = "SELECT id FROM shonu_subjects WHERE ishonup = ?";
-                    $stmtFetch = $conn->prepare($fetchIdsQuery);
-                    $stmtFetch->bind_param("s", $duplicateIP);
-                    $stmtFetch->execute();
-                    $resultIds = $stmtFetch->get_result();
-
-                    echo "<pre>Duplicate IP: $duplicateIP\n";
+            $bannedAny = false;
+            foreach ($ipCounts as $ip => $users) {
+                if (count($users) > 1) {
+                    $bannedAny = true;
+                    echo "<pre>Duplicate IP: $ip\n";
                     echo "User IDs: ";
-                    while ($idRow = $resultIds->fetch_assoc()) {
-                        echo $idRow['id'] . " ";
+                    foreach ($users as $u) {
+                        echo $u['id'] . " ";
+                        $userObj = $firebase->get('users/' . $u['mobile']);
+                        $userObj['status'] = 0;
+                        $firebase->set('users/' . $u['mobile'], $userObj);
                     }
                     echo "</pre>";
-                    $stmtFetch->close();
-
-                    // Update status to 0 for users with duplicate IPs
-                    $updateQuery = "UPDATE shonu_subjects SET status = 0 WHERE ishonup = ?";
-                    $stmt = $conn->prepare($updateQuery);
-                    $stmt->bind_param("s", $duplicateIP);
-                    $stmt->execute();
-                    $stmt->close();
                 }
+            }
+
+            if ($bannedAny) {
                 echo "<p>Users automatic banned with duplicate IPs.</p>";
             } else {
                 echo "<p>No duplicate IPs found.</p>";
             }
-
-            // Close the connection
-            $conn->close();
             ?>
         </div>
         <div class="footer">

@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -23,9 +24,9 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$language = $shonupost['language'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -34,37 +35,37 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak FROM shonu_subjects WHERE akshinak = '$author'";
-					$sesresult = $conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+                    $mobile = $data_auth['payload']['mobile'];
+                    $user = $firebase->get('users/' . $mobile);
+                    
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 					    $userId = $data_auth['payload']['id'];
 						$data['userId'] = (int)$data_auth['payload']['id'];
 						$data['userPhoto'] = '1';
 						$data['userName'] = '91'.$data_auth['payload']['mobile'];
 						$data['nickName'] = $data_auth['payload']['codechorkamukala'];
 						
-						$balquery = "SELECT motta FROM shonu_kaichila WHERE balakedara = ".$data_auth['payload']['id'];
-						$balresult = $conn->query($balquery);
-						$balarr = mysqli_fetch_array($balresult);
+						$data['amount'] = isset($user['motta']) ? $user['motta'] : 0;
 						
-						$data['amount'] = $balarr['motta'];
-						
-                        $query = "SELECT rate FROM tbl_pg WHERE value = 'usdt' LIMIT 1";
-                        $result = $conn->query($query);
-                        $row = $result->fetch_assoc();
-                        $data['uRate'] = (float)$row['rate'];
+                        // Assuming USDT rate is stored in system_settings
+                        $pg_settings = $firebase->get('system_settings/tbl_pg/usdt');
+                        $data['uRate'] = isset($pg_settings['rate']) ? (float)$pg_settings['rate'] : 85.0; // fallback
 					 
-						$creaquery = "SELECT createdate, shonullgnt FROM shonu_subjects WHERE id = ".$data_auth['payload']['id'];
-						$crearesult = $conn->query($creaquery);
-						$creaarr = mysqli_fetch_array($crearesult);
-						$countQuery = "SELECT COUNT(*) AS total_notifications FROM notification WHERE user_id = ".$data_auth['payload']['id']." AND state = 0";
-                        $countResult = $conn->query($countQuery);
-                           if ($countResult) {
-                        $row = $countResult->fetch_assoc();
-                        $unRead = (int)$row['total_notifications'];
-                           }
-						$knbdstr = '{"userId":'.$data['userId'].',"userPhoto":"'.$data['userPhoto'].'","userName":'.$data['userName'].',"nickName":"'.$data['nickName'].'","createdate":"'.$creaarr['createdate'].'"}';
+						$createdate = isset($user['createdate']) ? $user['createdate'] : '';
+						$shonullgnt = isset($user['shonullgnt']) ? $user['shonullgnt'] : '';
+                        
+                        // Notifications logic
+                        $notifications = $firebase->get('notifications');
+                        $unRead = 0;
+                        if ($notifications) {
+                            foreach ($notifications as $notif) {
+                                if (isset($notif['user_id']) && $notif['user_id'] == $userId && isset($notif['state']) && $notif['state'] == 0) {
+                                    $unRead++;
+                                }
+                            }
+                        }
+                        
+						$knbdstr = '{"userId":'.$data['userId'].',"userPhoto":"'.$data['userPhoto'].'","userName":'.$data['userName'].',"nickName":"'.$data['nickName'].'","createdate":"'.$createdate.'"}';
 						
 						$data['sign'] = strtoupper(hash('sha256', $knbdstr));
 						
@@ -74,7 +75,7 @@
 						$data['withdrawCount'] = 0;
 						
 						$data['addTime'] = '2024-04-17 14:10:50';
-						$data['userLoginDate'] = $creaarr['shonullgnt']; 
+						$data['userLoginDate'] = $shonullgnt; 
 						$data['startTime'] = null;
 						$data['endTime'] = null;
 						$data['fee'] = 0.0;

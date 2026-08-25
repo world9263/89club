@@ -143,22 +143,35 @@
 						</thead>
 						<tbody>
 						<?php
-							$Query=mysqli_query($conn,"select *,(select `mobile` from `shonu_subjects` where `id`=`hintegedukolli`.`balakedara`)as user 
-							from `hintegedukolli` where `sthiti`='0' order by shonu desc");
+							global $firebase;
+							$transactions = $firebase->get('transactions') ?: [];
+							
+							$pendingWithdrawals = [];
+							foreach ($transactions as $txid => $tx) {
+							    if (isset($tx['type']) && $tx['type'] == 'withdraw' && isset($tx['status']) && $tx['status'] == 0) {
+							        $pendingWithdrawals[] = $tx;
+							    }
+							}
+							
+							// Sort by created_at DESC
+							usort($pendingWithdrawals, function($a, $b) {
+							    return strtotime($b['created_at'] ?? '0') - strtotime($a['created_at'] ?? '0');
+							});
+							
 							$i=0;
 							$total=0; 
-							while($row=mysqli_fetch_array($Query)){
+							foreach ($pendingWithdrawals as $row) {
 								$i++;
-								$total+=$row['motta'];
+								$total += $row['amount'];
 						?>  
 								<tr>
 									<td><?php echo $i; ?></td>
-									<td><?php echo $row["user"]; ?></td>
-									<td><?php echo number_format($row['motta'],2);?></td>
+									<td><?php echo $row["mobile"] ?? ''; ?></td>
+									<td><?php echo number_format($row['amount'],2);?></td>
 									<td><?php echo 'bank'; ?></td>
-                                  	<td><?php echo $row["dharavahi"]; ?></td>
-									<td><?php echo date('d-m-Y', strtotime($row['dinankavannuracisi']));?></td>
-									<td><a href="withdrawal-accept-reject.php?id=<?php echo encryptor('encrypt', $row['shonu']); ?>" data-toggle="tooltip" title="Accept/Reject"><i class="fa fa-eye" style="font-size:20px;"></i></a></td>
+                                  	<td><?php echo $row["txid"] ?? ''; ?></td>
+									<td><?php echo date('d-m-Y', strtotime($row['created_at'] ?? 'now'));?></td>
+									<td><a href="withdrawal-accept-reject.php?id=<?php echo encryptor('encrypt', $row['txid'] ?? ''); ?>" data-toggle="tooltip" title="Accept/Reject"><i class="fa fa-eye" style="font-size:20px;"></i></a></td>
 								</tr>
 						<?php 
 							}

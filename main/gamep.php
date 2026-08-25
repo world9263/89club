@@ -139,26 +139,27 @@ include("conn.php");
                   </thead>
                   <tbody>
                     <?php
-                    $sql = "SELECT id, userid, deposit_order_no,bank_account_number,ifsc, order_amount, text_content, remarks FROM your_table WHERE prob = 'Game Problems' AND status = 2";
-                    $result = $conn->query($sql);
-
-                    if ($result->num_rows > 0) {
-                        while ($row = $result->fetch_assoc()) {
+                    global $firebase;
+                    $tickets = $firebase->get('support_tickets') ?: [];
+                    $found = false;
+                    foreach ($tickets as $id => $row) {
+                        if (isset($row['prob']) && $row['prob'] == 'Game Problems' && isset($row['status']) && $row['status'] == 2) {
+                            $found = true;
                             echo "<tr>";
-                            echo "<td>" . $row["id"] . "</td>";
-                            echo "<td>" . $row["userid"] . "</td>";
-                            echo "<td>" . $row["deposit_order_no"] . "</td>";
-                            echo "<td>" . $row["text_content"] . "</td>";
-                             echo "<td><a href='https://89club-production.up.railway.app/uploads/" . $row["file_upload"] . "'>" . $row["file_upload"] . "</a></td>";
+                            echo "<td>" . $id . "</td>";
+                            echo "<td>" . ($row["userid"] ?? '') . "</td>";
+                            echo "<td>" . ($row["deposit_order_no"] ?? '') . "</td>";
+                            echo "<td>" . ($row["text_content"] ?? '') . "</td>";
+                             echo "<td><a href='https://89club-production.up.railway.app/uploads/" . ($row["file_upload"] ?? '') . "'>" . ($row["file_upload"] ?? '') . "</a></td>";
                            
-                            echo "<td><button class='btn btn-primary edit-btn' data-id='" . $row["id"] . "' data-remarks='" . $row["remarks"] . "'>Do Responce</button></td>";
+                            echo "<td><button class='btn btn-primary edit-btn' data-id='" . $id . "' data-remarks='" . ($row["remarks"] ?? '') . "'>Do Responce</button></td>";
                             echo "</tr>";
                         }
-                    } else {
-                        echo "<tr><td colspan='6'>No results found.</td></tr>";
                     }
 
-                    $conn->close();
+                    if (!$found) {
+                        echo "<tr><td colspan='6'>No results found.</td></tr>";
+                    }
                     ?>
                   </tbody>
                 </table>

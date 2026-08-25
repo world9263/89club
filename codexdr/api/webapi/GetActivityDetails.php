@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -22,10 +23,10 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['bannerId']) && isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$bannerId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['bannerId']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$bannerId = $shonupost['bannerId'];
+			$language = $shonupost['language'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"bannerId":'.$bannerId.',"language":'.$language.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -34,12 +35,9 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak
-					  FROM shonu_subjects
-					  WHERE akshinak = '$author'";
-					$sesresult=$conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 						if($bannerId == 71){
 							$data['title'] = 'Member Recharge Benefits';
 							$data['img'] = '[{"Id":"17225024498060d979egil58","Url":"https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/banner/rechargebenifet.png"}]';

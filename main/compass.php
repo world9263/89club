@@ -1,13 +1,13 @@
 		<?php
-			$chkserial = mysqli_query($conn,"select * from `nirvahaka_shonu` where `unohs`='".$_SESSION['unohs']."'");
-			$salu = mysqli_fetch_array($chkserial);
-			$dashboard = $salu['dashboard'];
-			$wingomanager = $salu['wingomanager'];
-			$k3manager = $salu['k3manager'];
-			$d5manager = $salu['5dmanager'];
-			$finance = $salu['finance'];
-			$managegame = $salu['managegame'];
-            $support = $salu['support'];
+			global $firebase;
+			$salu = $firebase->get('admin_users/' . $_SESSION['nirvahaka_hesaru']);
+			$dashboard = $salu['dashboard'] ?? 0;
+			$wingomanager = $salu['wingomanager'] ?? 0;
+			$k3manager = $salu['k3manager'] ?? 0;
+			$d5manager = $salu['5dmanager'] ?? 0;
+			$finance = $salu['finance'] ?? 0;
+			$managegame = $salu['managegame'] ?? 0;
+            $support = $salu['support'] ?? 0;
 		?>
 		<ul class="nav">
           <li class="nav-item">

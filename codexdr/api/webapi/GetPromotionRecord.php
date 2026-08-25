@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -23,14 +24,14 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['endDate']) && isset($shonupost['language']) && isset($shonupost['level']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['startDate']) && isset($shonupost['timestamp'])) {
-			$endDate = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['endDate']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$level = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['level']));
-			$pageNo = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageNo']));
-			$pageSize = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageSize']));			
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			$startDate = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['startDate']));
+			$endDate = $shonupost['endDate'];
+			$language = $shonupost['language'];
+			$level = $shonupost['level'];
+			$pageNo = $shonupost['pageNo'];
+			$pageSize = $shonupost['pageSize'];			
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
+			$startDate = $shonupost['startDate'];
 			if($endDate == '' && $startDate == ''){
 				$shonustr = '{"language":'.$language.',"level":'.$level.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'"}';	
 			}
@@ -44,12 +45,9 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak
-					  FROM shonu_subjects
-					  WHERE akshinak = '$author'";
-					$sesresult=$conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 						$samatolana = ($pageNo - 1) * 10;
 						$shonuid = $data_auth['payload']['id'];
 												

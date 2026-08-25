@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -23,13 +24,13 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['amount']) && isset($shonupost['bid']) && isset($shonupost['language']) && isset($shonupost['pwd']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['type'])) {
-			$amount = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['amount']));
-			$bid = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['bid']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));			
-			$pwd = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pwd']));			
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			$type = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['type']));
+			$amount = $shonupost['amount'];
+			$bid = $shonupost['bid'];
+			$language = $shonupost['language'];			
+			$pwd = $shonupost['pwd'];			
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
+			$type = $shonupost['type'];
 			
 			$shonustr = '{"amount":'.$amount.',"bid":"'.$bid.'","language":'.$language.',"pwd":"'.$pwd.'","random":"'.$random.'","type":'.$type.'}';
 			$shonusign = strtoupper(md5($shonustr));

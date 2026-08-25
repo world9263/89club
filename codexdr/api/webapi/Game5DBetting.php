@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -25,15 +26,15 @@
 		if (isset($shonupost['amount']) && isset($shonupost['betCount']) && isset($shonupost['gameType']) && isset($shonupost['issuenumber']) && 
 			isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['selectType']) && isset($shonupost['signature']) && 
 			isset($shonupost['timestamp']) && isset($shonupost['typeId'])) {
-			$amount = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['amount']));
-			$betCount = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['betCount']));
-			$gameType = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['gameType']));
-			$issuenumber = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['issuenumber']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$selectType = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['selectType']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			$typeId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['typeId']));
+			$amount = $shonupost['amount'];
+			$betCount = $shonupost['betCount'];
+			$gameType = $shonupost['gameType'];
+			$issuenumber = $shonupost['issuenumber'];
+			$language = $shonupost['language'];
+			$random = $shonupost['random'];
+			$selectType = $shonupost['selectType'];
+			$signature = $shonupost['signature'];
+			$typeId = $shonupost['typeId'];
 			$shonustr = '{"amount":'.$amount.',"betCount":'.$betCount.',"gameType":'.$gameType.',"issuenumber":"'.$issuenumber.'","language":'.$language.',"random":"'.$random.'","selectType":"'.$selectType.'","typeId":'.$typeId.'}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -42,12 +43,9 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak
-					  FROM shonu_subjects
-					  WHERE akshinak = '$author'";
-					$sesresult=$conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 						if($typeId == 5){
 							$oedajnahb = 'bajikattuttate_aidudi';
 							$mothermary = 'gelluonduhogu_aidudi';

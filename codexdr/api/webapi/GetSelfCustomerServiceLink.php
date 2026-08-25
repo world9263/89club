@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -22,10 +23,10 @@
 	$shonupost = json_decode($shonubody, true);
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['webSite']) && isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$typeId = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['webSite']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
+			$typeId = $shonupost['webSite'];
+			$language = $shonupost['language'];
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'","webSite":'.$typeId.'}';
 			$shonusign = strtoupper(md5($shonustr));
             $bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);

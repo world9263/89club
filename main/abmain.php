@@ -5,26 +5,21 @@ if ($_SESSION['unohs'] == null) {
 }
 
 include("conn.php");
+global $firebase;
 
 // Fetch maintenance status and message
-$query = "SELECT status, message FROM maintenance WHERE id = 1"; 
-$result = mysqli_query($conn, $query);
-$maintenanceStatus = 'inactive';
-$maintenanceMessage = '';
-
-if ($result && mysqli_num_rows($result) > 0) {
-    $row = mysqli_fetch_assoc($result);
-    $maintenanceStatus = $row['status'];
-    $maintenanceMessage = $row['message'];
-}
+$settings = $firebase->get('system_settings');
+$maintenanceStatus = $settings['maintenance_status'] ?? 'inactive';
+$maintenanceMessage = $settings['maintenance_message'] ?? '';
 
 // Handle form submission for USDT rate update
 if (isset($_POST['newupi'])) {
-    $newRate = mysqli_real_escape_string($conn, $_POST['newupi']);
-    $updateQuery = "UPDATE tbl_pg SET rate='" . $newRate . "' WHERE value = 'usdt'";
-    $updateResult = mysqli_query($conn, $updateQuery);
+    $newRate = $_POST['newupi'];
+    $settings = $firebase->get('system_settings') ?: [];
+    $settings['usdt_rate'] = $newRate;
+    $updateResult = $firebase->set('system_settings', $settings);
 
-    if ($updateResult) {
+    if ($updateResult !== null && $updateResult !== false) {
         echo '<script type="text/JavaScript"> alert("USDT rate updated"); </script>';
         header("Refresh:0");
     } else {
@@ -35,8 +30,9 @@ if (isset($_POST['newupi'])) {
 // Handle maintenance mode toggle
 if (isset($_POST['toggleMaintenance'])) {
     $newStatus = ($_POST['toggleMaintenance'] === 'active') ? 'inactive' : 'active';
-    $updateMaintenance = "UPDATE maintenance SET status='$newStatus' WHERE id=1";
-    mysqli_query($conn, $updateMaintenance);
+    $settings = $firebase->get('system_settings') ?: [];
+    $settings['maintenance_status'] = $newStatus;
+    $firebase->set('system_settings', $settings);
     header("Refresh:0");
 }
 ?>

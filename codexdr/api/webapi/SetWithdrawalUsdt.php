@@ -1,6 +1,7 @@
 <?php 
 	include "../../conn.php";
 	include "../../functions2.php";
+	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
 	header('Strict-Transport-Security: max-age=31536000');
@@ -23,16 +24,16 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['bankid']) && isset($shonupost['codeType']) && isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {			
-			$bankid = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['bankid']));
-			$codeType = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['codeType']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));		
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			$smsCode = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['smsCode']));
-			$type = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['type']));
-			$usdtRemarkName = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['usdtRemarkName']));
-			$usdtaddress = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['usdtaddress']));
-			$withdrawid = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['withdrawid']));
+			$bankid = $shonupost['bankid'];
+			$codeType = $shonupost['codeType'];
+			$language = $shonupost['language'];		
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
+			$smsCode = $shonupost['smsCode'];
+			$type = $shonupost['type'];
+			$usdtRemarkName = $shonupost['usdtRemarkName'];
+			$usdtaddress = $shonupost['usdtaddress'];
+			$withdrawid = $shonupost['withdrawid'];
 			$shonustr = '{"bankid":'.$bankid.',"codeType":'.$codeType.',"language":'.$language.',"random":"'.$random.'","usdtRemarkName":"'.$usdtRemarkName.'","usdtaddress":"'.$usdtaddress.'","withdrawid":'.$withdrawid.'}';							
 			
 			$shonusign = strtoupper(md5($shonustr));
@@ -42,12 +43,9 @@
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
-					$sesquery = "SELECT akshinak
-					  FROM shonu_subjects
-					  WHERE akshinak = '$author'";
-					$sesresult=$conn->query($sesquery);
-					$sesnum = mysqli_num_rows($sesresult);
-					if($sesnum == 1){
+					$mobile = $data_auth['payload']['mobile'];
+					$user = $firebase->get('users/' . $mobile);
+					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
 						/*$url = 'https://api.skywin786.in/api/webapi/GetBankList';
 						$payld = array(
 							'language' => 0,							

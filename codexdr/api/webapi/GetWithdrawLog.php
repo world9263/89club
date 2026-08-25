@@ -1,6 +1,7 @@
 <?php
 include "../../conn.php";
 include "../../functions2.php";
+	global $firebase;
 
 header('Content-Type: application/json; charset=utf-8');
 header('Strict-Transport-Security: max-age=31536000');
@@ -39,17 +40,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     if (isset($requestData['language'], $requestData['random'], $requestData['signature'], $requestData['timestamp'], $requestData['type'], $requestData['startDate'], $requestData['endDate'], $requestData['pageNo'], $requestData['pageSize'])) {
         
-        $language = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['language']));
-        $random = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['random']));
-        $signature = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['signature']));
-        $withdrawid = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['type']));
-        $startDate = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['startDate']));
-        $endDate = htmlspecialchars(mysqli_real_escape_string($conn, $requestData['endDate']));
+        $language = $requestData['language'];
+        $random = $requestData['random'];
+        $signature = $requestData['signature'];
+        $withdrawid = $requestData['type'];
+        $startDate = $requestData['startDate'];
+        $endDate = $requestData['endDate'];
         $pageNo = (int)$requestData['pageNo'];
         
         // Sanitize and set default for pageSize with a maximum limit
         $pageSize = isset($requestData['pageSize']) 
-            ? (int)htmlspecialchars(mysqli_real_escape_string($conn, $requestData['pageSize'])) 
+            ? (int)$requestData['pageSize'] 
             : 10;
         $pageSize = min($pageSize, 100);
 

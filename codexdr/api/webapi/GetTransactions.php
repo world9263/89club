@@ -29,14 +29,14 @@ error_reporting(E_ALL);
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['date']) && isset($shonupost['language']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['type'])) {
-			$date = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['date']));
-			$language = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['language']));
-			$pageNo = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageNo']));
-			$pageSize = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['pageSize']));			
-			$random = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['random']));
-			$signature = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['signature']));
-			//$startDate = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['startDate']));
-			$type = htmlspecialchars(mysqli_real_escape_string($conn, $shonupost['type']));
+			$date = $shonupost['date'];
+			$language = $shonupost['language'];
+			$pageNo = $shonupost['pageNo'];
+			$pageSize = $shonupost['pageSize'];			
+			$random = $shonupost['random'];
+			$signature = $shonupost['signature'];
+			//$startDate = $shonupost['startDate'];
+			$type = $shonupost['type'];
 			if($date == ''){
 				$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'","type":'.$type.'}';	
 			}

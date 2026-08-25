@@ -8,11 +8,12 @@
 	include ("conn.php");
 	
 	if(isset($_POST['serial']) && isset($_POST['maxusers'])){
-		$chkserial = mysqli_query($conn,"select * from `nirvahaka_shonu` where `nirvahaka_hesaru`='".$_POST['serial']."'");
-		$chkserialrow = mysqli_num_rows($chkserial);
-		if($chkserialrow==0){
-			$serial = mysqli_real_escape_string($conn, $_POST['serial']);
-			$maxusers = mysqli_real_escape_string($conn, $_POST['maxusers']);
+		global $firebase;
+		$serial = $_POST['serial'];
+		$chkserial = $firebase->get('admin_users/' . $serial);
+		
+		if(!$chkserial){
+			$maxusers = $_POST['maxusers'];
 			$dashboard = isset($_POST['dashboard']) ? 1 : 0;
 			$wingomanager = isset($_POST['wingomanager']) ? 1 : 0;
 			$k3manager = isset($_POST['k3manager']) ? 1 : 0;
@@ -20,9 +21,24 @@
 			$finance = isset($_POST['finance']) ? 1 : 0;
 			$managegame = isset($_POST['managegame']) ? 1 : 0;
 			$status = 1;
-			$sql_q = "INSERT INTO nirvahaka_shonu (hesaru, nirvahaka_hesaru, guptapada, sthiti, dashboard, wingomanager, k3manager, 5dmanager, finance, managegame) VALUES ('".$serial."', '".$serial."', '".md5($maxusers)."', '".$status."', '".$dashboard."', '".$wingomanager."', '".$k3manager."', '".$d5manager."', '".$finance."', '".$managegame."')";
-			$chk = mysqli_query($conn, $sql_q);
-			if($chk){
+			$unohs = time();
+			
+			$adminData = [
+			    'unohs' => $unohs,
+			    'hesaru' => $serial,
+			    'nirvahaka_hesaru' => $serial,
+			    'guptapada' => md5($maxusers),
+			    'sthiti' => $status,
+			    'dashboard' => $dashboard,
+			    'wingomanager' => $wingomanager,
+			    'k3manager' => $k3manager,
+			    '5dmanager' => $d5manager,
+			    'finance' => $finance,
+			    'managegame' => $managegame
+			];
+			$chk = $firebase->set('admin_users/' . $serial, $adminData);
+			
+			if($chk !== null && $chk !== false){
 				echo '<script type="text/JavaScript"> alert("Admin Added"); </script>';
 			}else {echo '<script type="text/JavaScript"> alert("Admin Add Failed"); </script>';}	
 		}

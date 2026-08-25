@@ -6,14 +6,25 @@
 ?>
 <?php
 	include ("conn.php");
+	global $firebase;
 	
 	if($id=encryptor('decrypt', $_GET['id'])){	
-		$Query=mysqli_query($conn,"select shonu_subjects.mobile,shonu_subjects.email,shonu_subjects.owncode,khate.phalanubhavi,khate.kod,khate.khatehesaru,
-		khate.khatesankhye,`hintegedukolli`.`shonu`,`hintegedukolli`.`motta`,`hintegedukolli`.`khateshonu`,`hintegedukolli`.`sthiti`,`hintegedukolli`.`dinankavannuracisi` from `hintegedukolli`
-		INNER JOIN shonu_subjects ON shonu_subjects.id=`hintegedukolli`.`balakedara`
-		INNER JOIN khate ON khate.shonu=`hintegedukolli`.`khateshonu`
-		where `hintegedukolli`.`shonu`='".$id."'");
-		$Result=mysqli_fetch_array($Query);
+	    $Result = [];
+	    $tx = $firebase->get('transactions/' . $id);
+	    if ($tx && isset($tx['type']) && $tx['type'] == 'withdraw') {
+	        $Result['mobile'] = $tx['mobile'] ?? '';
+	        $Result['dinankavannuracisi'] = $tx['created_at'] ?? '';
+	        $Result['motta'] = $tx['amount'] ?? 0;
+	        
+	        $bankDetails = is_string($tx['bank_details'] ?? '') ? json_decode($tx['bank_details'], true) : ($tx['bank_details'] ?? []);
+	        $Result['khatehesaru'] = $bankDetails['bank_name'] ?? ($bankDetails['khatehesaru'] ?? '');
+	        $Result['kod'] = $bankDetails['ifsc'] ?? ($bankDetails['kod'] ?? '');
+	        $Result['khatesankhye'] = $bankDetails['account_number'] ?? ($bankDetails['khatesankhye'] ?? '');
+	        $Result['phalanubhavi'] = $bankDetails['account_name'] ?? ($bankDetails['phalanubhavi'] ?? '');
+	        
+	        $Result['sthiti'] = $tx['status'] ?? 0;
+	        $Result['shonu'] = $tx['txid'] ?? $id;
+	    }
 	}
 ?>
 <!DOCTYPE html>

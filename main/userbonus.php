@@ -17,50 +17,40 @@ $bonusTypes = [
     115 => "Return Awards",
 ];
 
-// Function to add bonus
-function addBonus($userId, $type, $amount, $remark, $conn, $bonusTypes) {
-    $tableNames = [
-        3   => "hodike_balakedara",
-        8   => "agent_red_envelope_recharge_table",
-        10  => "recharge_gift_table",
-        13  => "bonus_recharge_table",
-        14  => "first_full_gift_table",
-        20  => "invite_bonus_table",
-        25  => "card_binding_gift_table",
-        107 => "weekly_awards_table",
-        124 => "agent_bonus_table",
-        118 => "daily_awards_table",
-        117 => "new_members_bonus_table",
-        115 => "return_awards_table",
-    ];
-
-    if (!isset($tableNames[$type])) {
-        return "Invalid bonus type.";
+function addBonus($userId, $type, $amount, $remark, $bonusTypes) {
+    global $firebase;
+    $allUsers = $firebase->get('users');
+    $targetMobile = null;
+    if ($allUsers) {
+        foreach ($allUsers as $mobile => $user) {
+            if (isset($user['id']) && $user['id'] == $userId) {
+                $targetMobile = $mobile;
+                break;
+            }
+        }
     }
-
-    $tableName = $tableNames[$type];
-    $date = date("Y-m-d H:i:s");
-    $serial = "Imitator"; // Fixed serial value
-
-    // Prepare the SQL query
-    $stmt = $conn->prepare("INSERT INTO $tableName (userkani, price, serial, shonu, remark) VALUES (?, ?, ?, ?, ?)");
-    if (!$stmt) {
-        return "Error preparing statement: " . $conn->error;
+    
+    if (!$targetMobile) {
+        return "User ID not found.";
     }
-
-    // Bind parameters
-    if (!$stmt->bind_param("idsss", $userId, $amount, $serial, $date, $remark)) {
-        return "Error binding parameters: " . $stmt->error;
-    }
-
-    // Execute the query
-    if ($stmt->execute()) {
-        $stmt->close();
-        return "Bonus successfully added to table: $tableName.";
-    } else {
-        $stmt->close();
-        return "Error executing statement: " . $stmt->error;
-    }
+    
+    // Update user balance
+    $userObj = $firebase->get('users/' . $targetMobile);
+    $userObj['motta'] = (float)($userObj['motta'] ?? 0) + $amount;
+    $firebase->set('users/' . $targetMobile, $userObj);
+    
+    // Log bonus
+    $logId = time() . mt_rand(100, 999);
+    $firebase->set('bonus_logs/' . $logId, [
+        'userId' => $userId,
+        'mobile' => $targetMobile,
+        'type' => $type,
+        'amount' => $amount,
+        'remark' => $remark,
+        'created_at' => date("Y-m-d H:i:s")
+    ]);
+    
+    return "Bonus successfully added to user and logged.";
 }
 
 // Input handling
@@ -72,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate inputs
     if ($userId > 0 && $type > 0 && $amount > 0) {
-        $result = addBonus($userId, $type, $amount, $remark, $conn, $bonusTypes);
+        $result = addBonus($userId, $type, $amount, $remark, $bonusTypes);
         echo "<div class='result'>" . htmlspecialchars($result) . "</div>";
     } else {
         echo "<div class='result error'>Please provide valid inputs for all required fields: user_id, type, and amount.</div>";

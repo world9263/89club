@@ -6,12 +6,21 @@
 ?>
 <?php
 	include ("conn.php");
+	global $firebase;
 	
 	if(isset($_POST['newupi'])){
-		$upiid = mysqli_real_escape_string($conn, $_POST['newupi']);
-		$sql_q = "UPDATE nirvahaka_shonu SET guptapada='".md5($upiid)."' WHERE unohs='1'";
-		$chk = mysqli_query($conn, $sql_q);
-		if($chk){
+		$upiid = $_POST['newupi'];
+		$adminUser = $_SESSION['nirvahaka_hesaru'];
+		
+		$admin = $firebase->get('admin_users/' . $adminUser);
+		if ($admin) {
+		    $admin['guptapada'] = md5($upiid);
+		    $chk = $firebase->set('admin_users/' . $adminUser, $admin);
+		} else {
+		    $chk = false;
+		}
+		
+		if($chk !== null && $chk !== false){
 			echo '<script type="text/JavaScript"> alert("Password Updated"); </script>';
 		}else {echo '<script type="text/JavaScript"> alert("Failed"); </script>';}
 	}		
