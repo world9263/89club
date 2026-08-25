@@ -54,6 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 
                 $fbTypeKey = 'd5_t' . $typeId;
                 
+                // Ensure recent results are generated and settled
+                d5_ensure_recent_results($firebase, $typeId, 5);
+                
                 $result = $firebase->get('game_results/' . $fbTypeKey . '/' . $issueNumber);
                 if ($result != null) {
                     $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $issueNumber) ?: [];

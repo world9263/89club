@@ -2081,21 +2081,6 @@ $jsonData = '{
                 "motoRaceAmount": null,
                 "videoWinGoAmount": null,
                 "gameCode": "TrxWinGo_1M"
-            },
-            {
-                "id": 9,
-                "categoryCode": "MotoRace",
-                "categoryName": "摩托赛车",
-                "state": 1,
-                "sort": 0,
-                "categoryImg": "https://ossimg.91admin123admin.com/91club/lotterycategory/lotterycategory_202505160400383npi.png",
-                "wingoAmount": null,
-                "k3Amount": null,
-                "fiveDAmount": null,
-                "trxWingoAmount": null,
-                "motoRaceAmount": null,
-                "videoWinGoAmount": null,
-                "gameCode": "MotoRace_1M"
             }
         ],
         "awardRecordList": [

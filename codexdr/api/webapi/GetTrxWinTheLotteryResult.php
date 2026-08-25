@@ -60,6 +60,9 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                     
                     $fbTypeKey = 'trx_t' . $typeId;
                     
+                    // Ensure recent results are generated and settled
+                    trx_ensure_recent_results($firebase, $typeId, 5);
+                    
                     // Fetch result
                     $result = $firebase->get('game_results/' . $fbTypeKey . '/' . $issueNumber);
                     if ($result != null) {
