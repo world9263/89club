@@ -401,7 +401,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
             <p class="text-xs text-slate-500">Search and adjust user balances, resets passwords, toggle demo status, and ban/unban.</p>
           </div>
           <div class="flex gap-2">
-            <input type="text" id="userSearchInput" oninput="filterUsers()" placeholder="Search by Mobile..." class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 text-sm transition-colors w-64">
+            <input type="text" autocomplete="off" id="userSearchInput" oninput="filterUsers()" placeholder="Search by Mobile..." class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 text-sm transition-colors w-64" value="">
           </div>
         </div>
 
@@ -539,12 +539,18 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
     let depositsData = {};
     let withdrawalsData = {};
     let settingsData = {};
+    const tempInputs = {};
+    function storeTempInput(key, value) {
+      tempInputs[key] = value;
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
       if (!fbUrl) {
         alert('FIREBASE_URL environment variable is missing on the server! Cannot connect.');
         return;
       }
+      const searchBox = document.getElementById('userSearchInput');
+      if (searchBox) searchBox.value = '';
       initFirebase(fbUrl, fbSecret);
     });
 
@@ -853,12 +859,16 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
             <td class="px-6 py-4">${statusBadge}</td>
             <td class="px-6 py-4 text-center">
               <div class="flex items-center justify-center gap-1.5">
-                <button onclick="promptEditBalance('${u.mobile}', 'add')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs p-1.5 rounded-lg border border-emerald-500/10 transition-colors" title="Add Balance"><i class="fa-solid fa-plus-circle"></i></button>
-                <button onclick="promptEditBalance('${u.mobile}', 'deduct')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs p-1.5 rounded-lg border border-red-500/10 transition-colors" title="Subtract Balance"><i class="fa-solid fa-minus-circle"></i></button>
+                <input type="number" id="amt-${u.mobile}" placeholder="0" oninput="storeTempInput('amt-${u.mobile}', this.value)" value="${tempInputs['amt-' + u.mobile] || ''}" class="w-16 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-yellow-500">
+                <button onclick="inlineAdjustBalance('${u.mobile}', 'add')" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs p-1.5 rounded border border-emerald-500/10 transition-colors" title="Add Balance"><i class="fa-solid fa-plus"></i></button>
+                <button onclick="inlineAdjustBalance('${u.mobile}', 'deduct')" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold text-xs p-1.5 rounded border border-red-500/10 transition-colors" title="Deduct Balance"><i class="fa-solid fa-minus"></i></button>
               </div>
             </td>
             <td class="px-6 py-4 text-center">
-              <button onclick="promptChangePassword('${u.mobile}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-2.5 py-1.5 border border-slate-700 rounded-lg transition-colors">Reset Pass</button>
+              <div class="flex items-center justify-center gap-1.5">
+                <input type="text" id="pass-${u.mobile}" placeholder="New Pass" oninput="storeTempInput('pass-${u.mobile}', this.value)" value="${tempInputs['pass-' + u.mobile] || ''}" class="w-24 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-xs text-white text-center focus:outline-none focus:border-yellow-500">
+                <button onclick="inlineChangePassword('${u.mobile}')" class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold text-xs p-1.5 rounded border border-blue-500/10 transition-colors" title="Change Password"><i class="fa-solid fa-check"></i></button>
+              </div>
             </td>
             <td class="px-6 py-4 text-center">
               <div class="flex items-center justify-center gap-2">
@@ -978,53 +988,48 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       });
     }
 
-    // 5. ADJUST WALLET BALANCE
-    function promptEditBalance(mobile, action) {
-      openActionModal(
-        'Adjust Wallet Balance',
-        `Enter the amount you wish to ${action === 'add' ? 'add to' : 'deduct from'} ${mobile}:`,
-        (amountVal) => {
-          const val = parseFloat(amountVal);
-          if (isNaN(val) || val <= 0) return;
-
-          db.ref(`users/${mobile}`).once('value', snap => {
-            const user = snap.val();
-            if (!user) return;
-
-            let newBalance = parseFloat(user.motta || 0);
-            if (action === 'add') {
-              newBalance += val;
-            } else {
-              newBalance = Math.max(0, newBalance - val);
-            }
-
-            db.ref(`users/${mobile}`).update({
-              motta: newBalance
-            });
-          });
-        },
-        true,
-        'Amount in INR (e.g. 500)',
-        'number'
-      );
+    // 5. ADJUST WALLET BALANCE (INLINE)
+    function inlineAdjustBalance(mobile, action) {
+      const inputEl = document.getElementById(`amt-${mobile}`);
+      const val = parseFloat(inputEl.value.trim());
+      if (isNaN(val) || val <= 0) return;
+      
+      db.ref(`users/${mobile}`).once('value', snap => {
+        const user = snap.val();
+        if (!user) return;
+        
+        let newBalance = parseFloat(user.motta || 0);
+        if (action === 'add') {
+          newBalance += val;
+        } else {
+          newBalance = Math.max(0, newBalance - val);
+        }
+        
+        // Clear input value
+        tempInputs[`amt-${mobile}`] = '';
+        inputEl.value = '';
+        
+        db.ref(`users/${mobile}`).update({
+          motta: newBalance
+        });
+      });
     }
 
-    // 6. RESET PASSWORD
-    function promptChangePassword(mobile) {
-      openActionModal(
-        'Reset Player Password',
-        `Enter new plain text password for player ${mobile}:`,
-        (newPassword) => {
-          if (!newPassword || newPassword.length < 4) return;
-          const md5Hash = tempCalculateMd5(newPassword);
-          db.ref(`users/${mobile}`).update({
-            password: md5Hash
-          });
-        },
-        true,
-        'New Plaintext Password',
-        'text'
-      );
+    // 6. RESET PASSWORD (INLINE)
+    function inlineChangePassword(mobile) {
+      const inputEl = document.getElementById(`pass-${mobile}`);
+      const pass = inputEl.value.trim();
+      if (!pass || pass.length < 4) return;
+      
+      const md5Hash = tempCalculateMd5(pass);
+      
+      // Clear input value
+      tempInputs[`pass-${mobile}`] = '';
+      inputEl.value = '';
+      
+      db.ref(`users/${mobile}`).update({
+        password: md5Hash
+      });
     }
 
     // MD5 Javascript function wrapper
