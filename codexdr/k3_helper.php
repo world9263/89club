@@ -95,27 +95,112 @@ function k3_generate_result($firebase, $typeId, $periodId) {
     return $result;
 }
 
-function k3_settle_bets($firebase, $typeId, $periodId, $sum, $gameType, $premium, $bets) {
+function k3_settle_bets($firebase, $typeId, $periodId, $sum, $gameTypeClassification, $premium, $bets) {
     $fbTypeKey = 'k3_t' . $typeId;
     $userPayouts = [];
     
+    // Sort rolled digits for easier matching
+    $digits = str_split((string)$premium);
+    sort($digits);
+    $sorted_premium = implode('', $digits);
+    
+    $isAllSame = ($digits[0] === $digits[1] && $digits[1] === $digits[2]);
+    $isConsecutive = ($digits[0] + 1 == $digits[1] && $digits[1] + 1 == $digits[2]);
+    $isTwoSame = ($digits[0] === $digits[1] || $digits[1] === $digits[2]);
+    $isAllDifferent = ($digits[0] !== $digits[1] && $digits[1] !== $digits[2] && $digits[0] !== $digits[2]);
+    
     foreach ($bets as $betKey => $bet) {
-        if (!isset($bet['selectType']) || !isset($bet['contractAmount'])) continue;
+        if (!isset($bet['selectType']) || !isset($bet['contractAmount']) || !isset($bet['gameType'])) continue;
         
         $st = $bet['selectType'];
+        $gt = (string)$bet['gameType']; // gameType from bet data
         $contractAmt = (float)$bet['contractAmount'];
         $userId = $bet['userId'];
         $won = false;
-        $multiplier = 2; // Default 2x
+        $multiplier = 1.0;
         
-        // Simple settlement logic: check if selected sum or type matches
-        if (is_numeric($st) && (int)$st == $sum) {
-            $won = true;
-            $multiplier = 9;
-        } elseif ($st == 'big' && $sum >= 11) {
-            $won = true;
-        } elseif ($st == 'small' && $sum <= 10) {
-            $won = true;
+        // 1. Sum bets (gameType == '1')
+        if ($gt === '1') {
+            if (is_numeric($st) && (int)$st === $sum) {
+                $won = true;
+                $sumMultipliers = [
+                    3 => 207.36, 18 => 207.36,
+                    4 => 69.12, 17 => 69.12,
+                    5 => 34.56, 16 => 34.56,
+                    6 => 20.74, 15 => 20.74,
+                    7 => 13.83, 14 => 13.83,
+                    8 => 9.88,  13 => 9.88,
+                    9 => 8.3,   12 => 8.3,
+                    10 => 7.68, 11 => 7.68
+                ];
+                $multiplier = isset($sumMultipliers[$sum]) ? $sumMultipliers[$sum] : 1.92;
+            }
+        }
+        // 2. Big/Small bets (gameType == '2')
+        elseif ($gt === '2') {
+            // 'H' (Haute) = Big, 'B' (Bas) = Small
+            if ($st === 'H' && $sum >= 11) {
+                $won = true;
+                $multiplier = 1.92;
+            } elseif ($st === 'B' && $sum <= 10) {
+                $won = true;
+                $multiplier = 1.92;
+            }
+        }
+        // 3. Odd/Even bets (gameType == '3')
+        elseif ($gt === '3') {
+            // 'O' (Impair/Odd) = Odd, 'E' (Pair/Even) = Even
+            if ($st === 'O' && $sum % 2 !== 0) {
+                $won = true;
+                $multiplier = 1.92;
+            } elseif ($st === 'E' && $sum % 2 === 0) {
+                $won = true;
+                $multiplier = 1.92;
+            }
+        }
+        // 4. 2 Same Double bets (gameType == '4' or '6')
+        elseif ($gt === '4' || $gt === '6') {
+            // e.g. selectType '11', '22', etc.
+            if ($isTwoSame) {
+                $rolled_double = ($digits[0] === $digits[1]) ? ($digits[0].$digits[0]) : ($digits[1].$digits[1]);
+                if ($st === $rolled_double) {
+                    $won = true;
+                    $multiplier = 13.83;
+                }
+            }
+        }
+        // 5. 3 Same Single (specific triple) bets (gameType == '7')
+        elseif ($gt === '7') {
+            // e.g. selectType '111', '222', etc.
+            if ($isAllSame && $st === $premium) {
+                $won = true;
+                $multiplier = 207.36;
+            }
+        }
+        // 6. 3 Same Double (any triple) bets (gameType == '8')
+        elseif ($gt === '8') {
+            if ($isAllSame) {
+                $won = true;
+                $multiplier = 34.56;
+            }
+        }
+        // 7. 3 Consecutive bets (gameType == '10')
+        elseif ($gt === '10') {
+            if ($isConsecutive) {
+                $won = true;
+                $multiplier = 8.64;
+            }
+        }
+        // 8. 3 Different bets (gameType == '9')
+        elseif ($gt === '9') {
+            // Check if all selected digits are different and exist in the rolled result
+            $selected_digits = str_split((string)$st);
+            sort($selected_digits);
+            $sorted_selected = implode('', $selected_digits);
+            if ($isAllDifferent && $sorted_selected === $sorted_premium) {
+                $won = true;
+                $multiplier = 34.56;
+            }
         }
         
         $winAmount = $won ? round($contractAmt * $multiplier, 2) : 0;
