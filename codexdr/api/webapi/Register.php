@@ -24,9 +24,9 @@ ini_set('display_errors', 1);
 	$shonupost = json_decode($shonubody, true);
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-		if (isset($shonupost['domainurl']) && isset($shonupost['invitecode']) && isset($shonupost['language']) && isset($shonupost['phonetype']) && isset($shonupost['pwd']) && isset($shonupost['random']) && isset($shonupost['registerType']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['username'])) {
+		if (isset($shonupost['domainurl']) && isset($shonupost['language']) && isset($shonupost['phonetype']) && isset($shonupost['pwd']) && isset($shonupost['random']) && isset($shonupost['registerType']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['username'])) {
 			$domainurl = htmlspecialchars($shonupost['domainurl']);
-			$invitecode = htmlspecialchars($shonupost['invitecode']);
+			$invitecode = isset($shonupost['invitecode']) ? htmlspecialchars($shonupost['invitecode']) : '';
 			$language = htmlspecialchars($shonupost['language']);
 			$phonetype = htmlspecialchars($shonupost['phonetype']);
 			$pwd = htmlspecialchars($shonupost['pwd']);
@@ -41,17 +41,21 @@ ini_set('display_errors', 1);
 			}
 
 			// ============================================
-			// FIREBASE: Check if invite code exists
+			// FIREBASE: Check if invite code exists (optional)
 			// ============================================
-			$allUsers = $firebase->get('users');
 			$inviterFound = false;
 			$inviterKey = '';
-			if ($allUsers && is_array($allUsers)) {
-				foreach ($allUsers as $key => $user) {
-					if (isset($user['owncode']) && $user['owncode'] == $invitecode) {
-						$inviterFound = true;
-						$inviterKey = $key;
-						break;
+			if (empty($invitecode)) {
+				$inviterFound = true;
+			} else {
+				$allUsers = $firebase->get('users');
+				if ($allUsers && is_array($allUsers)) {
+					foreach ($allUsers as $key => $user) {
+						if (isset($user['owncode']) && $user['owncode'] == $invitecode) {
+							$inviterFound = true;
+							$inviterKey = $key;
+							break;
+						}
 					}
 				}
 			}

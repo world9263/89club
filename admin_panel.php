@@ -1441,10 +1441,12 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <p class="text-xs text-slate-500">${item.date || 'N/A'}</p>
               </div>
             </div>
-            <div class="flex items-center gap-4">
-              <span class="text-sm font-black text-white">₹${item.amount.toFixed(2)}</span>
-              ${actionLabel}
             </div>
+          </div>
+        `;
+      });
+    }
+
     // =====================================================
     // GAME CONTROLLER LOGIC & SYNC
     // =====================================================
