@@ -46,14 +46,39 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
             $user = $firebase->get('users/' . $mobile);
             
             if ($user != null) {
+                // Ensure recent results are present (capped at 10)
+                trx_ensure_recent_results($firebase, $typeId, 1);
+                
                 $period = trx_get_current_period($typeId);
                 
-                $data = [
+                // Get latest settled result
+                $fbTypeKey = 'trx_t' . $typeId;
+                $allResults = $firebase->get('game_results/' . $fbTypeKey) ?: [];
+                $latest = null;
+                if (!empty($allResults)) {
+                    krsort($allResults);
+                    $latest = reset($allResults);
+                }
+                
+                $predraw = [
                     'issueNumber' => (string)$period['periodId'],
                     'startTime' => $period['startTime'],
                     'endTime' => $period['endTime'],
                     'serviceTime' => $period['serviceTime'],
                     'intervalM' => ($typeId == 13) ? 1 : (($typeId == 14) ? 3 : (($typeId == 15) ? 5 : 10))
+                ];
+                
+                $settled = [
+                    'issueNumber' => $latest ? (string)$latest['periodId'] : "",
+                    'sumCount' => null,
+                    'premium' => 1,
+                    'blockID' => $latest ? (string)$latest['blockID'] : "",
+                    'number' => $latest ? (int)$latest['blockNumber'] : 0
+                ];
+                
+                $data = [
+                    'predraw' => $predraw,
+                    'settled' => $settled
                 ];
                 
                 $res = [
