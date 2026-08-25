@@ -121,6 +121,9 @@ ini_set('display_errors', 1);
             <!-- Canvas Graph -->
             <canvas id="flight-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
 
+            <!-- Floating Win badges overlay -->
+            <div id="floating-win-container" class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none gap-2"></div>
+
             <!-- Loading Countdown Overlay -->
             <div id="loading-overlay" class="absolute inset-0 z-20 bg-black/50 flex flex-col items-center justify-center space-y-2 transition-opacity duration-300">
                 <div class="w-14 h-14 rounded-full border-4 border-rose-500 border-t-transparent animate-spin flex items-center justify-center">
@@ -156,10 +159,24 @@ ini_set('display_errors', 1);
             <div class="bg-card rounded-2xl p-3 border border-[#1c1d24] flex flex-col space-y-2" id="panel-1">
                 <div class="flex items-center justify-between">
                     <div class="flex rounded-full bg-[#0a0b0d] p-0.5 border border-[#1e2029]">
-                        <button class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white">Bet</button>
-                        <button class="px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white">Auto</button>
+                        <button id="mode-btn-bet-1" onclick="switchBetMode(1, 'bet')" class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white">Bet</button>
+                        <button id="mode-btn-auto-1" onclick="switchBetMode(1, 'auto')" class="px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white">Auto</button>
                     </div>
                 </div>
+
+                <!-- Auto Options (Hidden by default) -->
+                <div id="auto-settings-1" class="hidden flex items-center justify-between bg-[#0a0b0d] p-2 rounded-xl border border-[#1e2029] text-[10px]">
+                    <div class="flex items-center gap-1.5">
+                        <input type="checkbox" id="chk-autobet-1" class="accent-rose-500">
+                        <label for="chk-autobet-1" class="font-bold text-slate-300">Auto Bet</label>
+                    </div>
+                    <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
+                        <input type="checkbox" id="chk-autocashout-1" class="accent-rose-500">
+                        <label for="chk-autocashout-1" class="font-bold text-slate-300">Auto Cash Out</label>
+                        <input type="number" id="num-autocashout-1" value="2.00" step="0.1" min="1.01" class="w-12 bg-[#1c1d25] border border-slate-800 rounded px-1 text-center font-bold text-emerald-400 outline-none">
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-12 gap-2 items-center">
                     <!-- Bet Control -->
                     <div class="col-span-7 flex flex-col space-y-1.5">
@@ -187,10 +204,24 @@ ini_set('display_errors', 1);
             <div class="bg-card rounded-2xl p-3 border border-[#1c1d24] flex flex-col space-y-2" id="panel-2">
                 <div class="flex items-center justify-between">
                     <div class="flex rounded-full bg-[#0a0b0d] p-0.5 border border-[#1e2029]">
-                        <button class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white">Bet</button>
-                        <button class="px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white">Auto</button>
+                        <button id="mode-btn-bet-2" onclick="switchBetMode(2, 'bet')" class="px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white">Bet</button>
+                        <button id="mode-btn-auto-2" onclick="switchBetMode(2, 'auto')" class="px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white">Auto</button>
                     </div>
                 </div>
+
+                <!-- Auto Options (Hidden by default) -->
+                <div id="auto-settings-2" class="hidden flex items-center justify-between bg-[#0a0b0d] p-2 rounded-xl border border-[#1e2029] text-[10px]">
+                    <div class="flex items-center gap-1.5">
+                        <input type="checkbox" id="chk-autobet-2" class="accent-rose-500">
+                        <label for="chk-autobet-2" class="font-bold text-slate-300">Auto Bet</label>
+                    </div>
+                    <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
+                        <input type="checkbox" id="chk-autocashout-2" class="accent-rose-500">
+                        <label for="chk-autocashout-2" class="font-bold text-slate-300">Auto Cash Out</label>
+                        <input type="number" id="num-autocashout-2" value="2.00" step="0.1" min="1.01" class="w-12 bg-[#1c1d25] border border-slate-800 rounded px-1 text-center font-bold text-emerald-400 outline-none">
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-12 gap-2 items-center">
                     <!-- Bet Control -->
                     <div class="col-span-7 flex flex-col space-y-1.5">
@@ -247,15 +278,34 @@ ini_set('display_errors', 1);
         let serverTimeOffset = 0;
         
         let panelState = {
-            1: { status: 'idle', betAmount: 100 },
-            2: { status: 'idle', betAmount: 100 }
+            1: { status: 'idle', betAmount: 100, mode: 'bet' },
+            2: { status: 'idle', betAmount: 100, mode: 'bet' }
         };
+
+        let autoBetPlaced = { 1: false, 2: false };
 
         // Graph flight line configurations
         const canvas = document.getElementById('flight-canvas');
         const ctx = canvas.getContext('2d');
         let width = canvas.width = canvas.offsetWidth;
         let height = canvas.height = canvas.offsetHeight;
+
+        function switchBetMode(panelNum, mode) {
+            panelState[panelNum].mode = mode;
+            let betBtn = document.getElementById(`mode-btn-bet-${panelNum}`);
+            let autoBtn = document.getElementById(`mode-btn-auto-${panelNum}`);
+            let settings = document.getElementById(`auto-settings-${panelNum}`);
+
+            if (mode === 'bet') {
+                betBtn.className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white';
+                autoBtn.className = 'px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white';
+                settings.classList.add('hidden');
+            } else {
+                autoBtn.className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-[#1d1e25] text-white';
+                betBtn.className = 'px-3 py-1 rounded-full text-[10px] font-bold text-slate-500 hover:text-white';
+                settings.classList.remove('hidden');
+            }
+        }
 
         function adjustWager(panelNum, delta) {
             if (panelState[panelNum].status !== 'idle') return;
@@ -271,6 +321,31 @@ ini_set('display_errors', 1);
             document.getElementById(`input-wager-${panelNum}`).value = val;
             document.getElementById(`btn-wager-label-${panelNum}`).innerText = val.toFixed(2) + ' INR';
             panelState[panelNum].betAmount = val;
+        }
+
+        function resetPanelButton(panelNum) {
+            let state = panelState[panelNum];
+            let btn = document.getElementById(`btn-bet-${panelNum}`);
+            btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
+            document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Bet';
+            document.getElementById(`btn-wager-label-${panelNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
+        }
+
+        function showFloatingWinBadge(amount, multiplier) {
+            let container = document.getElementById('floating-win-container');
+            let badge = document.createElement('div');
+            badge.className = 'px-4 py-2 bg-emerald-500 text-slate-950 font-black text-xs rounded-xl border border-emerald-400 shadow-lg animate-bounce flex items-center gap-1.5 transition-all duration-500';
+            badge.innerHTML = `<i class="fa-solid fa-trophy"></i> Cashed Out: ₹${amount.toFixed(2)} (${multiplier.toFixed(2)}x)`;
+            
+            container.appendChild(badge);
+            
+            setTimeout(() => {
+                badge.classList.add('opacity-0');
+                badge.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    badge.remove();
+                }, 500);
+            }, 1800);
         }
 
         async function clickBetBtn(panelNum) {
@@ -314,39 +389,50 @@ ini_set('display_errors', 1);
                         state.status = 'idle';
                         currentBalance = parseFloat(data.balance);
                         document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
-                        
-                        let btn = document.getElementById(`btn-bet-${panelNum}`);
-                        btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                        document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Bet';
+                        resetPanelButton(panelNum);
                     }
                 } catch (e) {
                     console.error(e);
                 }
             } else if (state.status === 'wagered' && localState === 'flying') {
-                try {
-                    let res = await fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: currentMultiplier })
-                    });
-                    let data = await res.json();
+                // INSTANT OPTIMISTIC CASHOUT (100% Client Snappy!)
+                let cashoutMultiplier = currentMultiplier;
+                let betAmount = state.betAmount;
+                let winAmount = betAmount * cashoutMultiplier;
+                
+                // Immediately settle balance locally
+                state.status = 'idle';
+                currentBalance += winAmount;
+                document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                
+                // Instantly disable the button and show Cashed Out state
+                let btn = document.getElementById(`btn-bet-${panelNum}`);
+                btn.className = 'col-span-5 h-16 rounded-xl bg-[#1b1c24] text-slate-500 flex flex-col items-center justify-center tracking-wide cursor-not-allowed';
+                document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Cashed Out';
+                document.getElementById(`btn-wager-label-${panelNum}`).innerText = '₹' + winAmount.toFixed(2);
+                
+                // Display floating overlay badge
+                showFloatingWinBadge(winAmount, cashoutMultiplier);
+
+                // Run fetch silently in the background
+                fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: cashoutMultiplier })
+                }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        state.status = 'idle';
                         currentBalance = parseFloat(data.balance);
                         document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
-                        
-                        alert(`Cashed out at ${currentMultiplier.toFixed(2)}x! Win: ₹${data.winAmount}`);
-
-                        let btn = document.getElementById(`btn-bet-${panelNum}`);
-                        btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                        document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Bet';
-                        document.getElementById(`btn-wager-label-${panelNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
                     } else {
-                        alert(data.error || "Cashout failed");
+                        state.status = 'wagered';
+                        currentBalance -= winAmount;
+                        document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                        resetPanelButton(panelNum);
+                        alert("Cashout failed: " + (data.error || "unknown error"));
                     }
-                } catch(e) {
-                    console.error(e);
-                }
+                }).catch(err => {
+                    console.error(err);
+                });
             }
         }
 
@@ -594,6 +680,7 @@ ini_set('display_errors', 1);
             let roundElapsedMs = adjustedNow % 30000;
             
             if (roundElapsedMs < 8000) {
+                // Betting phase
                 localState = 'betting';
                 let remaining = ((8000 - roundElapsedMs) / 1000).toFixed(1);
                 document.getElementById('loading-overlay').classList.remove('opacity-0');
@@ -605,13 +692,17 @@ ini_set('display_errors', 1);
                 document.getElementById('multiplier-label').innerText = '1.00x';
                 document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
 
+                // Handle AUTO BET trigger at the start of betting phase
                 for (let pNum = 1; pNum <= 2; pNum++) {
                     let state = panelState[pNum];
-                    if (state.status === 'idle') {
-                        let btn = document.getElementById(`btn-bet-${pNum}`);
-                        btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                        document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
-                        document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
+                    if (state.mode === 'auto') {
+                        let isAutoBetChecked = document.getElementById(`chk-autobet-${pNum}`).checked;
+                        if (isAutoBetChecked && state.status === 'idle' && !autoBetPlaced[pNum]) {
+                            autoBetPlaced[pNum] = true;
+                            clickBetBtn(pNum);
+                        }
+                    } else {
+                        autoBetPlaced[pNum] = false; // reset manual
                     }
                 }
             } else {
@@ -622,37 +713,49 @@ ini_set('display_errors', 1);
                 let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
 
                 if (nextMultiplier >= crashMultiplier) {
+                    // Crashed!
                     localState = 'crashed';
                     document.getElementById('flew-away-overlay').classList.remove('hidden');
                     document.getElementById('multiplier-label').innerText = crashMultiplier.toFixed(2) + 'x';
                     document.getElementById('multiplier-label').className = 'text-5xl font-black text-rose-600 italic tracking-tight animate-bounce';
                     
+                    // Reset round indicators
                     for (let pNum = 1; pNum <= 2; pNum++) {
+                        autoBetPlaced[pNum] = false; // reset for next round
                         let state = panelState[pNum];
                         if (state.status === 'wagered') {
                             state.status = 'idle';
-                            let btn = document.getElementById(`btn-bet-${pNum}`);
-                            btn.className = 'col-span-5 h-16 rounded-xl btn-bet text-white flex flex-col items-center justify-center tracking-wide transition-all';
-                            document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Bet';
-                            document.getElementById(`btn-wager-label-${pNum}`).innerText = state.betAmount.toFixed(2) + ' INR';
+                            resetPanelButton(pNum);
                         }
                     }
                 } else {
-                    localState = 'flying';
-                    document.getElementById('flew-away-overlay').classList.add('hidden');
-                    
-                    currentMultiplier = nextMultiplier;
-                    document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
-                    document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
+                    // Flying
+                    if (localState !== 'crashed') {
+                        localState = 'flying';
+                        document.getElementById('flew-away-overlay').classList.add('hidden');
+                        
+                        currentMultiplier = nextMultiplier;
+                        document.getElementById('multiplier-label').innerText = currentMultiplier.toFixed(2) + 'x';
+                        document.getElementById('multiplier-label').className = 'text-5xl font-black text-white italic tracking-tight';
 
-                    for (let pNum = 1; pNum <= 2; pNum++) {
-                        let state = panelState[pNum];
-                        if (state.status === 'wagered') {
-                            let btn = document.getElementById(`btn-bet-${pNum}`);
-                            btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
-                            document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
-                            let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
-                            document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
+                        for (let pNum = 1; pNum <= 2; pNum++) {
+                            let state = panelState[pNum];
+                            if (state.status === 'wagered') {
+                                let btn = document.getElementById(`btn-bet-${pNum}`);
+                                btn.className = 'col-span-5 h-16 rounded-xl btn-cashout text-slate-950 flex flex-col items-center justify-center tracking-wide transition-all';
+                                document.getElementById(`btn-bet-label-${pNum}`).innerText = 'Cash Out';
+                                let cashWin = (state.betAmount * currentMultiplier).toFixed(2);
+                                document.getElementById(`btn-wager-label-${pNum}`).innerText = cashWin + ' INR';
+
+                                // Handle AUTO CASHOUT trigger
+                                if (state.mode === 'auto') {
+                                    let isAutoCashoutChecked = document.getElementById(`chk-autocashout-${pNum}`).checked;
+                                    let autoCashoutVal = parseFloat(document.getElementById(`num-autocashout-${pNum}`).value) || 2.00;
+                                    if (isAutoCashoutChecked && currentMultiplier >= autoCashoutVal) {
+                                        clickBetBtn(pNum); // auto trigger cashout instantly!
+                                    }
+                                }
+                            }
                         }
                     }
                 }
