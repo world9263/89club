@@ -25,10 +25,7 @@ $shonupost = json_decode($shonubody, true);
 
 if ($_SERVER['REQUEST_METHOD'] != 'GET') {
     if (isset($shonupost['issueNumber'])) {
-        $issueNumbers = $shonupost['issueNumber'];
-        if (!is_array($issueNumbers)) {
-            $issueNumbers = [$issueNumbers];
-        }
+        $issueNumber = (string)$shonupost['issueNumber'];
         
         $authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
         if (empty($authHeader)) {
@@ -49,54 +46,57 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
             $user = $firebase->get('users/' . $mobile);
             
             if ($user != null) {
-                $list = [];
+                // Determine 5D typeId from separator
+                $typeId = 5;
+                if (strpos($issueNumber, '10202') !== false) $typeId = 6;
+                elseif (strpos($issueNumber, '10203') !== false) $typeId = 7;
+                elseif (strpos($issueNumber, '10204') !== false) $typeId = 8;
                 
-                foreach ($issueNumbers as $issueNumber) {
-                    // Determine game typeId from separator string
-                    $typeId = 5;
-                    if (strpos($issueNumber, '10202') !== false) $typeId = 6;
-                    elseif (strpos($issueNumber, '10203') !== false) $typeId = 7;
-                    elseif (strpos($issueNumber, '10204') !== false) $typeId = 8;
+                $fbTypeKey = 'd5_t' . $typeId;
+                
+                $result = $firebase->get('game_results/' . $fbTypeKey . '/' . $issueNumber);
+                if ($result != null) {
+                    $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $issueNumber) ?: [];
+                    $winAmount = 0;
+                    $state = 0;
                     
-                    $fbTypeKey = 'd5_t' . $typeId;
-                    
-                    // Fetch result
-                    $result = $firebase->get('game_results/' . $fbTypeKey . '/' . $issueNumber);
-                    if ($result != null) {
-                        // Fetch user bets for this period
-                        $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $issueNumber) ?: [];
-                        $winAmount = 0;
-                        $state = 0;
-                        
-                        foreach ($bets as $bet) {
-                            if (isset($bet['userId']) && $bet['userId'] == $mobile) {
-                                $winAmount += (float)$bet['winAmount'];
-                                if ($bet['status'] == 'win') {
-                                    $state = 1;
-                                }
+                    foreach ($bets as $bet) {
+                        if (isset($bet['userId']) && $bet['userId'] == $mobile) {
+                            $winAmount += (float)$bet['winAmount'];
+                            if ($bet['status'] == 'win') {
+                                $state = 1;
                             }
                         }
-                        
-                        $typeNames = [5 => '5D 1 Minute', 6 => '5D 3 Minute', 7 => '5D 5 Minute', 8 => '5D 10 Minute'];
-                        
-                        $list[] = [
-                            'issueNumber' => (string)$issueNumber,
-                            'sumCount' => isset($result['sumCount']) ? (int)$result['sumCount'] : 0,
-                            'premium' => isset($result['premium']) ? (string)$result['premium'] : '',
-                            'winAmount' => $winAmount,
-                            'typeName' => isset($typeNames[$typeId]) ? $typeNames[$typeId] : '5D Game',
-                            'state' => $state
-                        ];
                     }
+                    
+                    $typeNames = [5 => '5D 1 Minute', 6 => '5D 3 Minute', 7 => '5D 5 Minute', 8 => '5D 10 Minute'];
+                    
+                    $data = [
+                        'issueNumber' => (string)$issueNumber,
+                        'typeID' => $typeId,
+                        'typeName' => isset($typeNames[$typeId]) ? $typeNames[$typeId] : '5D Game',
+                        'state' => $state,
+                        'winAmount' => $winAmount,
+                        'premium' => isset($result['premium']) ? (string)$result['premium'] : '',
+                        'sumCount' => isset($result['sumCount']) ? (int)$result['sumCount'] : 0
+                    ];
+                    
+                    $res = [
+                        'code' => 0,
+                        'msg' => 'Succeed',
+                        'msgCode' => 0,
+                        'serviceNowTime' => $shnunc,
+                        'data' => $data
+                    ];
+                } else {
+                    $res = [
+                        'code' => 1,
+                        'msg' => 'Result not found',
+                        'msgCode' => 0,
+                        'serviceNowTime' => $shnunc,
+                        'data' => null
+                    ];
                 }
-                
-                $res = [
-                    'code' => 0,
-                    'msg' => 'Succeed',
-                    'msgCode' => 0,
-                    'serviceNowTime' => $shnunc,
-                    'data' => empty($list) ? null : $list
-                ];
                 http_response_code(200);
                 echo json_encode($res);
             } else {
