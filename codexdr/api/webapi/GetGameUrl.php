@@ -61,7 +61,40 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 if ($user != null) {
                     $uid = $mobile;
                     
-                    // No wallet consolidation or zeroing out is needed because B2B wallet systems are self-hosted now.
+                    // Check if user has deposited
+                    $hasDeposited = false;
+                    if (isset($user['has_deposited']) && $user['has_deposited'] == true) {
+                        $hasDeposited = true;
+                    } else {
+                        // Check if there is any approved deposit for this user in Firebase
+                        $allDeposits = $firebase->get('deposits');
+                        if ($allDeposits) {
+                            foreach ($allDeposits as $dep) {
+                                if (isset($dep['userId']) && $dep['userId'] == $mobile && isset($dep['status']) && strtolower($dep['status']) == 'approved') {
+                                    $hasDeposited = true;
+                                    // Cache this on the user profile so next check is instant
+                                    $firebase->update('users/' . $mobile, ['has_deposited' => true]);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$hasDeposited) {
+                        // Redirect to the recharge page
+                        $scheme = 'https://';
+                        $host = $_SERVER['HTTP_HOST'];
+                        $game = $scheme . $host . '/#/wallet/Recharge';
+                        
+                        $res['data'] = ["url"=>$game, "returnType"=>1];
+                        $res['code'] = 0;
+                        $res['msg'] = 'Succeed';
+                        $res['msgCode'] = 0;
+                        http_response_code(200);
+                        echo json_encode($res);
+                        exit;
+                    }
+
                     // Keep players balance inside the central motta key so home screen and game screen balance are identical.
                     if ($vendorCode == 'SPRIBE' || $vendorCode == 23 || $gameCode == 22001 || $gameCode == '22001' || strpos(strtolower($gameCode), 'aviator') !== false) {
                         $game = generateUrl("mock_aviator.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
@@ -77,18 +110,28 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                     echo json_encode($res);
                     exit;
                 } else {
-                    $res['code'] = 4;
-                    $res['msg'] = 'No operation permission';
-                    $res['msgCode'] = 2;
-                    http_response_code(401);
+                    // Redirect to registration if user not found
+                    $scheme = 'https://';
+                    $host = $_SERVER['HTTP_HOST'];
+                    $game = $scheme . $host . '/#/register';
+                    $res['data'] = ["url"=>$game, "returnType"=>1];
+                    $res['code'] = 0;
+                    $res['msg'] = 'Succeed';
+                    $res['msgCode'] = 0;
+                    http_response_code(200);
                     echo json_encode($res);
                     exit;
                 }
             } else {
-                $res['code'] = 4;
-                $res['msg'] = 'No operation permission';
-                $res['msgCode'] = 2;
-                http_response_code(401);
+                // Redirect to registration if token invalid
+                $scheme = 'https://';
+                $host = $_SERVER['HTTP_HOST'];
+                $game = $scheme . $host . '/#/register';
+                $res['data'] = ["url"=>$game, "returnType"=>1];
+                $res['code'] = 0;
+                $res['msg'] = 'Succeed';
+                $res['msgCode'] = 0;
+                http_response_code(200);
                 echo json_encode($res);
                 exit;
             }
