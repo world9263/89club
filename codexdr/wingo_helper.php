@@ -253,15 +253,15 @@ function wingo_settle_bets($firebase, $typeId, $periodId, $winningDigit, $premiu
 }
 
 /**
- * Cleanup: keep only last 50 results, delete older ones
+ * Cleanup: keep only last 10 results, delete older ones
  */
 function wingo_cleanup_old_results($firebase, $fbTypeKey) {
     $allResults = $firebase->get('game_results/' . $fbTypeKey);
-    if ($allResults && is_array($allResults) && count($allResults) > 50) {
+    if ($allResults && is_array($allResults) && count($allResults) > 10) {
         // Sort by periodId (they're date-based so lexicographic sort works)
         ksort($allResults);
         $keys = array_keys($allResults);
-        $toDelete = count($keys) - 50;
+        $toDelete = count($keys) - 10;
         for ($i = 0; $i < $toDelete; $i++) {
             $firebase->delete('game_results/' . $fbTypeKey . '/' . $keys[$i]);
         }
@@ -273,6 +273,9 @@ function wingo_cleanup_old_results($firebase, $fbTypeKey) {
  * Generates any missing results for the last N periods
  */
 function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
+    // Only generate/ensure up to 10 periods (history list only shows 10 anyway)
+    $count = min($count, 10);
+    
     $current = wingo_get_current_period($typeId);
     $currentSeq = $current['sequence'];
     $dateStr = date('Ymd');
@@ -280,8 +283,9 @@ function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
     $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
     $fbTypeKey = 'wingo_t' . $typeIdMapped;
     
-    // Fetch all existing results for this type at once (1 HTTP request instead of N)
+    // Fetch all existing results and bets for this type at once (2 HTTP requests total)
     $existingResults = $firebase->get('game_results/' . $fbTypeKey) ?: [];
+    $allBets = $firebase->get('game_bets/' . $fbTypeKey) ?: [];
     
     $results = [];
     $updates = [];
@@ -310,7 +314,7 @@ function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
                 $override = null; // Clear static cache
             } else {
                 // Check if any bets exist for this period
-                $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $pastPeriodId);
+                $bets = isset($allBets[$pastPeriodId]) ? $allBets[$pastPeriodId] : null;
                 if ($bets != null && is_array($bets) && count($bets) > 0) {
                     $winningDigit = wingo_calculate_house_optimal($bets);
                 } else {
@@ -335,13 +339,9 @@ function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
             $hasNewResults = true;
             
             // Settle bets for this period if any exist
-            if (isset($bets) && $bets != null && is_array($bets)) {
+            $bets = isset($allBets[$pastPeriodId]) ? $allBets[$pastPeriodId] : null;
+            if ($bets != null && is_array($bets)) {
                 wingo_settle_bets($firebase, $typeIdMapped, $pastPeriodId, $winningDigit, $premium, $bets);
-            } else {
-                $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $pastPeriodId);
-                if ($bets != null && is_array($bets)) {
-                    wingo_settle_bets($firebase, $typeIdMapped, $pastPeriodId, $winningDigit, $premium, $bets);
-                }
             }
         }
     }
