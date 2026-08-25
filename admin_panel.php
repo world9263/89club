@@ -127,9 +127,6 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Password</label>
           <input type="password" name="password" required placeholder="••••••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 transition-colors">
-          <?php if (empty($res) || json_decode($res, true) === null): ?>
-          <span class="text-[10px] text-slate-500 mt-1 block">Default password: <strong class="text-slate-400">admin89club</strong> (Change this inside Firebase settings node)</span>
-          <?php endif; ?>
         </div>
         
         <button type="submit" name="login" class="w-full bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold py-3 rounded-xl transition-colors shadow-lg shadow-yellow-500/10">
@@ -928,95 +925,57 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
     // 1. APPROVE DEPOSIT
     function approveDeposit(id, mobile, amount) {
-      openActionModal(
-        'Approve Deposit Request',
-        `Confirm that you want to credit ₹${parseFloat(amount).toFixed(2)} to player account ${mobile}.`,
-        () => {
-          db.ref(`users/${mobile}`).once('value', snap => {
-            const user = snap.val();
-            if (!user) {
-              alert('Player not found! Cannot credit balance.');
-              return;
-            }
+      db.ref(`users/${mobile}`).once('value', snap => {
+        const user = snap.val();
+        if (!user) return;
 
-            const currentBalance = parseFloat(user.motta || 0);
-            const currentTotalDeposit = parseFloat(user.total_deposit || 0);
-            
-            const newBalance = currentBalance + parseFloat(amount);
-            const newTotalDeposit = currentTotalDeposit + parseFloat(amount);
+        const currentBalance = parseFloat(user.motta || 0);
+        const currentTotalDeposit = parseFloat(user.total_deposit || 0);
+        
+        const newBalance = currentBalance + parseFloat(amount);
+        const newTotalDeposit = currentTotalDeposit + parseFloat(amount);
 
-            db.ref(`users/${mobile}`).update({
-              motta: newBalance,
-              total_deposit: newTotalDeposit
-            }).then(() => {
-              db.ref(`deposits/${id}`).update({
-                status: 'success'
-              }).then(() => {
-                alert('Deposit request approved and wallet credited successfully!');
-              });
-            });
+        db.ref(`users/${mobile}`).update({
+          motta: newBalance,
+          total_deposit: newTotalDeposit
+        }).then(() => {
+          db.ref(`deposits/${id}`).update({
+            status: 'success'
           });
-        }
-      );
+        });
+      });
     }
 
     // 2. REJECT DEPOSIT
     function rejectDeposit(id) {
-      openActionModal(
-        'Reject Deposit Request',
-        'Are you sure you want to reject this deposit request?',
-        () => {
-          db.ref(`deposits/${id}`).update({
-            status: 'failed'
-          }).then(() => {
-            alert('Deposit request rejected.');
-          });
-        }
-      );
+      db.ref(`deposits/${id}`).update({
+        status: 'failed'
+      });
     }
 
     // 3. APPROVE WITHDRAWAL
     function approveWithdrawal(id) {
-      openActionModal(
-        'Approve Withdrawal Request',
-        'Confirm that you want to approve this withdrawal request.',
-        () => {
-          db.ref(`withdrawals/${id}`).update({
-            status: 'approved'
-          }).then(() => {
-            alert('Withdrawal request approved.');
-          });
-        }
-      );
+      db.ref(`withdrawals/${id}`).update({
+        status: 'approved'
+      });
     }
 
     // 4. REJECT WITHDRAWAL (REFUND BALANCE)
     function rejectWithdrawal(id, mobile, amount) {
-      openActionModal(
-        'Reject & Refund Withdrawal',
-        `Rejecting this withdrawal will automatically refund ₹${parseFloat(amount).toFixed(2)} back to player wallet ${mobile}.`,
-        () => {
-          db.ref(`users/${mobile}`).once('value', snap => {
-            const user = snap.val();
-            if (!user) {
-              alert('Player not found! Withdrawal rejected but no refund processed.');
-              return;
-            }
+      db.ref(`users/${mobile}`).once('value', snap => {
+        const user = snap.val();
+        if (!user) return;
 
-            const newBalance = parseFloat(user.motta || 0) + parseFloat(amount);
-            
-            db.ref(`users/${mobile}`).update({
-              motta: newBalance
-            }).then(() => {
-              db.ref(`withdrawals/${id}`).update({
-                status: 'failed'
-              }).then(() => {
-                alert('Withdrawal rejected and player wallet refunded successfully!');
-              });
-            });
+        const newBalance = parseFloat(user.motta || 0) + parseFloat(amount);
+        
+        db.ref(`users/${mobile}`).update({
+          motta: newBalance
+        }).then(() => {
+          db.ref(`withdrawals/${id}`).update({
+            status: 'failed'
           });
-        }
-      );
+        });
+      });
     }
 
     // 5. ADJUST WALLET BALANCE
@@ -1026,17 +985,11 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         `Enter the amount you wish to ${action === 'add' ? 'add to' : 'deduct from'} ${mobile}:`,
         (amountVal) => {
           const val = parseFloat(amountVal);
-          if (isNaN(val) || val <= 0) {
-            alert('Invalid amount entered!');
-            return;
-          }
+          if (isNaN(val) || val <= 0) return;
 
           db.ref(`users/${mobile}`).once('value', snap => {
             const user = snap.val();
-            if (!user) {
-              alert('User not found!');
-              return;
-            }
+            if (!user) return;
 
             let newBalance = parseFloat(user.motta || 0);
             if (action === 'add') {
@@ -1047,8 +1000,6 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
             db.ref(`users/${mobile}`).update({
               motta: newBalance
-            }).then(() => {
-              alert(`Wallet balance adjusted successfully! New balance: ₹${newBalance.toFixed(2)}`);
             });
           });
         },
@@ -1062,19 +1013,12 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
     function promptChangePassword(mobile) {
       openActionModal(
         'Reset Player Password',
-        `Enter new plain text password for player ${mobile}. The password will be hashed with MD5 before saving.`,
+        `Enter new plain text password for player ${mobile}:`,
         (newPassword) => {
-          if (!newPassword || newPassword.length < 4) {
-            alert('Password must be at least 4 characters long!');
-            return;
-          }
-
+          if (!newPassword || newPassword.length < 4) return;
           const md5Hash = tempCalculateMd5(newPassword);
-
           db.ref(`users/${mobile}`).update({
             password: md5Hash
-          }).then(() => {
-            alert(`Password for ${mobile} updated successfully!`);
           });
         },
         true,
@@ -1147,34 +1091,16 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
     // 7. TOGGLE USER STATUS (BAN/UNBAN)
     function toggleUserStatus(mobile, statusVal) {
-      const mode = statusVal === 1 ? 'Activate' : 'Ban';
-      openActionModal(
-        `${mode} Player Account`,
-        `Are you sure you want to ${mode.toLowerCase()} player ${mobile}?`,
-        () => {
-          db.ref(`users/${mobile}`).update({
-            status: statusVal
-          }).then(() => {
-            alert(`User status updated to ${mode}d successfully!`);
-          });
-        }
-      );
+      db.ref(`users/${mobile}`).update({
+        status: statusVal
+      });
     }
 
     // 8. TOGGLE DEMO STATUS
     function toggleUserDemo(mobile, isDemoVal) {
-      const mode = isDemoVal ? 'Demo User' : 'Normal Player';
-      openActionModal(
-        `Set account as ${mode}`,
-        `Are you sure you want to change player ${mobile} to ${mode}?`,
-        () => {
-          db.ref(`users/${mobile}`).update({
-            is_demo: isDemoVal
-          }).then(() => {
-            alert(`Player type updated to ${mode} successfully!`);
-          });
-        }
-      );
+      db.ref(`users/${mobile}`).update({
+        is_demo: isDemoVal
+      });
     }
 
     // 9. SAVE PAYMENT SETTINGS
@@ -1184,10 +1110,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const usdtAddress = document.getElementById('setting-usdt-address').value.trim();
       const usdtRate = parseFloat(document.getElementById('setting-usdt-rate').value.trim());
 
-      if (isNaN(usdtRate) || usdtRate <= 0) {
-        alert('Invalid USDT conversion rate!');
-        return;
-      }
+      if (isNaN(usdtRate) || usdtRate <= 0) return;
 
       const updates = {};
       updates['deposit_settings/upi/upi_id'] = upiId;
@@ -1195,11 +1118,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       updates['deposit_settings/usdt/usdt_address'] = usdtAddress;
       updates['system_settings/usdt_rate'] = usdtRate;
 
-      db.ref().update(updates).then(() => {
-        alert('Payment settings updated successfully!');
-      }).catch(err => {
-        alert('Error saving settings: ' + err.message);
-      });
+      db.ref().update(updates);
     }
 
     // 10. SAVE PLATFORM SETTINGS
@@ -1208,31 +1127,21 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const newAdminPassword = document.getElementById('setting-admin-password').value.trim();
       const maintenanceVal = document.getElementById('setting-maintenance').checked;
 
-      if (isNaN(signupBal) || signupBal < 0) {
-        alert('Invalid default signup balance!');
-        return;
-      }
+      if (isNaN(signupBal) || signupBal < 0) return;
 
       const updates = {};
       updates['system_settings/default_signup_balance'] = signupBal;
       updates['system_settings/maintenance'] = maintenanceVal;
       
       if (newAdminPassword.length > 0) {
-        if (newAdminPassword.length < 4) {
-          alert('Admin password must be at least 4 characters long!');
-          return;
-        }
+        if (newAdminPassword.length < 4) return;
         updates['system_settings/admin_password'] = newAdminPassword;
       }
 
       db.ref().update(updates).then(() => {
-        alert('Platform settings updated successfully!');
         if (newAdminPassword.length > 0) {
-          alert('Admin password changed! Please log in again.');
           window.location.href = 'admin_panel.php?logout=1';
         }
-      }).catch(err => {
-        alert('Error saving settings: ' + err.message);
       });
     }
 
