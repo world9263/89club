@@ -38,7 +38,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						http_response_code(200);
 						if($withdrawid == 1){
 							echo '

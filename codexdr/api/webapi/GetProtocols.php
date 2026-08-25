@@ -37,7 +37,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$data['protocols'] = '<div class="content" style="padding: 16px;"><h3 class="text-xs-center" style="box-sizing: inherit; 
 						font-family: Futura; margin: 0px 0px 12px; background-repeat: no-repeat; padding: 0px; text-align: center !important;">
 						<p style="box-sizing: inherit; margin-bottom: 16px; background-repeat: no-repeat; padding: 0px; font-size: 14px; text-align: start;">

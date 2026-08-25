@@ -98,7 +98,7 @@
 			if (!empty($data_auth['status']) && $data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 					// fetch stored balances
 					$uid       = (int)($data_auth['payload']['id'] ?? 0);
 					$balarr    = ['motta' => isset($user['motta']) ? $user['motta'] : 0, 'wll_jdb' => isset($user['wll_jdb']) ? $user['wll_jdb'] : 0, 'wll_jili' => isset($user['wll_jili']) ? $user['wll_jili'] : 0];

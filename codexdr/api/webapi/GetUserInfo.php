@@ -38,7 +38,7 @@
                     $mobile = $data_auth['payload']['mobile'];
                     $user = $firebase->get('users/' . $mobile);
                     
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 					    $userId = $data_auth['payload']['id'];
 						$data['userId'] = (int)$data_auth['payload']['id'];
 						$data['userPhoto'] = '1';

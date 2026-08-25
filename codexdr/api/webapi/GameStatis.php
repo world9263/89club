@@ -40,7 +40,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$shonuid = $data_auth['payload']['id'];
 						$samasye = "SELECT parichaya, ketebida, phalaphala, sesabida, tiarikala, 1 as gameType
 									FROM bajikattuttate WHERE byabaharkarta = $shonuid AND date(tiarikala) >= date('".$startDate."') AND date(tiarikala) <= date('".$endDate."')

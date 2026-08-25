@@ -36,7 +36,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$data["isTaskState"] = "1";
                         $data["isOpenJackpotReward"] = "1";
                         $data["isOpenWashCode"] = "1";

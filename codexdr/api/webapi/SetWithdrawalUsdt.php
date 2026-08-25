@@ -45,7 +45,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						/*$url = 'https://api.skywin786.in/api/webapi/GetBankList';
 						$payld = array(
 							'language' => 0,							

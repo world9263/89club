@@ -37,7 +37,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$data['state'] = '0';
 						$data['shareTime'] = 1;
 						$data['dayShareRate'] = 0.1;

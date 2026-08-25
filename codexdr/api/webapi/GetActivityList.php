@@ -38,7 +38,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
                         $data["list"][0]["bannerTitle"] = "First Deposit Bonus";
                         $data["list"][0]["bannerID"] = 71;
                         $data["list"][0]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/1.png";

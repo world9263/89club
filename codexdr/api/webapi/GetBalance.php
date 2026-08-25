@@ -127,7 +127,7 @@ if (!defined("SECURITY_PASS")) { die(); }
                     $mobile = $data_auth['payload']['mobile'];
                     $user = $firebase->get('users/' . $mobile);
                     
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$data['amount'] = isset($user['motta']) ? $user['motta'] : 0;
 						
 						$res['data'] = $data;

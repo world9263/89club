@@ -51,7 +51,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$shonuid = $data_auth['payload']['id'];
 						if($withdrawid == 1){
 							$samasye = "SELECT phalanubhavi

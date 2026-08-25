@@ -39,7 +39,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$shonuid = $data_auth['payload']['id'];
 						
 						$existance = mysqli_query($conn,"SELECT `daysonearth`, `totalblessings`, `amen` FROM `cihne` WHERE `identity`='".$shonuid."' ORDER BY `dearlord` ASC");

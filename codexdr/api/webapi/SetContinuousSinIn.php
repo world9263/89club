@@ -37,7 +37,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$shonuid = $data_auth['payload']['id'];
 						
 						$recharge = mysqli_query($conn,"SELECT SUM(`motta`) as allrech FROM `thevani` WHERE `balakedara`='".$shonuid."' AND `sthiti`='1'");

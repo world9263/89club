@@ -37,7 +37,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						$data['typelist'][0]['payID'] = 2;
 						$data['typelist'][0]['payTypeID'] = 0;
 						$data['typelist'][0]['payName'] = 'Wake UP-APP';

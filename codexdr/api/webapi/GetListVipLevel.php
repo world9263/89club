@@ -38,7 +38,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						if($vipLevel == 1){														
 							$data[0]['id'] = 1;
 							$data[0]['name'] = '升级礼包';

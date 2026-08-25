@@ -37,7 +37,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						if($bannerId == 71){
 							$data['title'] = 'Member Recharge Benefits';
 							$data['img'] = '[{"Id":"17225024498060d979egil58","Url":"https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/banner/rechargebenifet.png"}]';

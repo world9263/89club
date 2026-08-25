@@ -39,7 +39,7 @@
 				if($data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
-					if($user != null && isset($user['akshinak']) && $user['akshinak'] == $author){
+					if($user != null){
 						if($codeType == -1 || $codeType == 3){
 							$samatolana = ($pageNo - 1) * 10;
 							$shonuid = $data_auth['payload']['id'];
