@@ -23,8 +23,8 @@ if (file_exists(__DIR__ . '/.env')) {
 }
 
 // Global Config Variables
-$tgBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: (isset($_ENV['TELEGRAM_BOT_TOKEN']) ? $_ENV['TELEGRAM_BOT_TOKEN'] : '');
-$tgChatId = getenv('TELEGRAM_CHAT_ID') ?: (isset($_ENV['TELEGRAM_CHAT_ID']) ? $_ENV['TELEGRAM_CHAT_ID'] : '');
+$tgBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: (isset($_ENV['TELEGRAM_BOT_TOKEN']) ? $_ENV['TELEGRAM_BOT_TOKEN'] : '8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A');
+$tgChatId = getenv('TELEGRAM_CHAT_ID') ?: (isset($_ENV['TELEGRAM_CHAT_ID']) ? $_ENV['TELEGRAM_CHAT_ID'] : '7606730935');
 
 // =====================================================
 // FIX: Apache strips Authorization header from PHP
