@@ -1,15 +1,13 @@
 <?php
 include "../../conn.php";
 include "../../functions2.php";
-	global $firebase;
+global $firebase;
 
 header('Content-Type: application/json; charset=utf-8');
-header('Strict-Transport-Security: max-age=31536000');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
 header('Access-Control-Allow-Credentials: true');
-header('Vary: Origin');
 
 date_default_timezone_set("Asia/Kolkata");
 $currentDate = date("Y-m-d H:i:s");
@@ -20,144 +18,112 @@ $response = [
     'serviceNowTime' => $currentDate,
 ];
 
-$requestBody = file_get_contents("php://input");
-$requestData = json_decode($requestBody, true);
-
-function maskSensitiveInfo($string) {
-    if (strlen($string) < 10) return $string;
-    $start = substr($string, 0, 6);
-    $masked = str_repeat('*', 4);
-    $end = substr($string, 10);
-    return $start . $masked . $end;
-}
-
 // Handle OPTIONS request for preflight
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
+$requestBody = file_get_contents("php://input");
+$requestData = json_decode($requestBody, true);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     if (isset($requestData['language'], $requestData['random'], $requestData['signature'], $requestData['timestamp'], $requestData['type'], $requestData['startDate'], $requestData['endDate'], $requestData['pageNo'], $requestData['pageSize'])) {
         
-        $language = $requestData['language'];
-        $random = $requestData['random'];
-        $signature = $requestData['signature'];
-        $withdrawid = $requestData['type'];
-        $startDate = $requestData['startDate'];
-        $endDate = $requestData['endDate'];
+        $withdrawid = $requestData['type']; // 1 = bank, 3 = usdt, -1 = all
         $pageNo = (int)$requestData['pageNo'];
-        
-        // Sanitize and set default for pageSize with a maximum limit
-        $pageSize = isset($requestData['pageSize']) 
-            ? (int)$requestData['pageSize'] 
-            : 10;
+        $pageSize = isset($requestData['pageSize']) ? (int)$requestData['pageSize'] : 10;
         $pageSize = min($pageSize, 100);
 
-        $generatedString = '{"language":"' . $language . '","random":"' . $random . '","withdrawid":' . $withdrawid . ',"startDate":"' . $startDate . '","endDate":"' . $endDate . '"}';
-        $expectedSignature = strtoupper(md5($generatedString));
+        $token = explode(" ", $_SERVER['HTTP_AUTHORIZATION'])[1] ?? '';
+        $isValidJWT = is_jwt_valid($token);
+        $authData = json_decode($isValidJWT, true);
 
-        if ($expectedSignature) {
-            $token = explode(" ", $_SERVER['HTTP_AUTHORIZATION'])[1] ?? '';
-            $isValidJWT = is_jwt_valid($token);
-            $authData = json_decode($isValidJWT, true);
-
-            if ($authData['status'] === 'Success') {
-                $userId = $authData['payload']['id'];
-                $checkQuery = "SELECT akshinak FROM shonu_subjects WHERE akshinak = '$token'";
-                $checkResult = $conn->query($checkQuery);
-
-                if (mysqli_num_rows($checkResult) === 1) {
-                    try {
-                        // Determine the query conditions based on withdrawid
-                        $dateCondition = "";
-                        if (!empty($startDate) && !empty($endDate)) {
-                            $dateCondition = " AND dinankavannuracisi BETWEEN '$startDate' AND '$endDate' ";
+        if ($authData['status'] === 'Success') {
+            $mobile = $authData['payload']['mobile'];
+            
+            try {
+                // Fetch withdrawals from Firebase
+                $allWithdrawals = $firebase->get('withdrawals');
+                $filtered = [];
+                
+                if ($allWithdrawals) {
+                    foreach ($allWithdrawals as $wd) {
+                        // Filter by user ID (mobile)
+                        if (($wd['userId'] ?? '') !== $mobile) {
+                            continue;
                         }
-
-                        $condition = "";
-                        if ($withdrawid == 1) {
-                            $condition = "AND madari = 1";
-                        } elseif ($withdrawid == -1) {
-                            $condition = "";
-                        } elseif ($withdrawid == 3) {
-                            $condition = "AND madari = 3";
+                        
+                        // Filter by type
+                        $wdType = ($wd['method'] ?? 'BANK_CARD') === 'USDT' ? 3 : 1;
+                        if ($withdrawid != -1 && $wdType != $withdrawid) {
+                            continue;
                         }
-
-                        // Calculate total count
-                        $countQuery = "SELECT COUNT(*) as totalCount FROM hintegedukolli WHERE balakedara = $userId $condition $dateCondition";
-                        $countResult = $conn->query($countQuery);
-                        $totalCount = $countResult->fetch_assoc()['totalCount'];
-
-                        // Calculate total pages
-                        $totalPage = ceil($totalCount / $pageSize);
-
-                        // Set offset for pagination
-                        $offset = ($pageNo - 1) * $pageSize;
-
-                        // Main query with LIMIT and OFFSET for pagination
-                        $query = "SELECT shonu, motta, remarks, dinankavannuracisi, madari, sthiti, dharavahi FROM hintegedukolli 
-                                  WHERE balakedara = $userId $condition $dateCondition 
-                                  ORDER BY shonu DESC LIMIT $offset, $pageSize";
-                        $result = $conn->query($query);
-                        $type = (int)$withdrawRow['madari']; $withdrawalslist[$i]['withdrawName'] = ($type === 1) ? 'BANK CARD' : (($type === 3) ? 'USDT' : 'OTHER');
-
-                        if ($result) {
-                            $withdrawalslist = [];
-                            $i = 0;
-                            while ($withdrawRow = $result->fetch_assoc()) {
-                                $withdrawalslist[$i]['withdrawID'] = $withdrawRow['shonu'];
-                                $withdrawalslist[$i]['type'] = (int)$withdrawRow['madari'];
-                                $withdrawalslist[$i]['withdrawNumber'] = $withdrawRow['dharavahi'];
-                                $withdrawalslist[$i]['withdrawName'] = ($withdrawRow['madari'] == 1) ? 'BANK CARD' : (($withdrawRow['madari'] == 3) ? 'USDT' : 'KIDS_OP');
-                                $withdrawalslist[$i]['price'] = (int)$withdrawRow['motta'];
-                                $withdrawalslist[$i]['addTime'] = $withdrawRow['dinankavannuracisi'];
-                                $withdrawalslist[$i]['realityAmount'] = (int)$withdrawRow['motta'];
-                                $withdrawalslist[$i]['remark'] = $withdrawRow['remarks'];
-                                $withdrawalslist[$i]['state'] = (int)$withdrawRow['sthiti'];
-                                $withdrawalslist[$i]['thirdpartyState'] = (int)$withdrawRow['sthiti'];
-                                $i++;
-                            }
-
-                            $response = [
-                                "data" => [
-                                    "list" => $withdrawalslist,
-                                    "pageNo" => (int)$pageNo,
-                                    "totalPage" => (int)$totalPage,
-                                    "totalCount" => (int)$totalCount
-                                ],
-                                "code" => 0,
-                                "msg" => "Succeed",
-                                "msgCode" => 0,
-                                "serviceNowTime" => $currentDate
-                            ];
-                            http_response_code(200);
-                        } else {
-                            throw new Exception('Database query failed');
-                        }
-                    } catch (Exception $e) {
-                        $response['code'] = 6;
-                        $response['msg'] = $e->getMessage();
-                        $response['msgCode'] = 4;
-                        http_response_code(500);
+                        
+                        $filtered[] = $wd;
                     }
-                } else {
-                    $response['code'] = 4;
-                    $response['msg'] = 'No operation permission';
-                    $response['msgCode'] = 2;
-                    http_response_code(403);
                 }
-            } else {
-                $response['code'] = 5;
-                $response['msg'] = 'Invalid JWT';
-                $response['msgCode'] = 3;
-                http_response_code(401);
+                
+                // Sort by createdAt DESC
+                usort($filtered, function($a, $b) {
+                    return strcmp($b['createdAt'] ?? '', $a['createdAt'] ?? '');
+                });
+                
+                $totalCount = count($filtered);
+                $totalPage = ceil($totalCount / $pageSize);
+                $offset = ($pageNo - 1) * $pageSize;
+                $paginated = array_slice($filtered, $offset, $pageSize);
+                
+                $withdrawalslist = [];
+                foreach ($paginated as $wd) {
+                    $state = 0; // pending
+                    if (($wd['status'] ?? 'pending') === 'approved') {
+                        $state = 1; // success
+                    } elseif (($wd['status'] ?? 'pending') === 'failed') {
+                        $state = 2; // failed
+                    }
+                    
+                    $type = ($wd['method'] ?? 'BANK_CARD') === 'USDT' ? 3 : 1;
+                    
+                    $withdrawalslist[] = [
+                        'withdrawID' => $wd['id'] ?? '',
+                        'type' => $type,
+                        'withdrawNumber' => $wd['withdrawNumber'] ?? '',
+                        'withdrawName' => $type === 1 ? 'BANK CARD' : 'USDT',
+                        'price' => (int)($wd['amount'] ?? 0),
+                        'addTime' => $wd['createdAt'] ?? '',
+                        'realityAmount' => (int)($wd['amount'] ?? 0),
+                        'remark' => $wd['remark'] ?? '',
+                        'state' => $state,
+                        'thirdpartyState' => $state
+                    ];
+                }
+                
+                $response = [
+                    "data" => [
+                        "list" => $withdrawalslist,
+                        "pageNo" => $pageNo,
+                        "totalPage" => $totalPage,
+                        "totalCount" => $totalCount
+                    ],
+                    "code" => 0,
+                    "msg" => "Succeed",
+                    "msgCode" => 0,
+                    "serviceNowTime" => $currentDate
+                ];
+                http_response_code(200);
+                
+            } catch (Exception $e) {
+                $response['code'] = 6;
+                $response['msg'] = $e->getMessage();
+                $response['msgCode'] = 4;
+                http_response_code(500);
             }
         } else {
-            $response['code'] = 7;
-            $response['msg'] = 'Invalid signature';
-            $response['msgCode'] = 6;
-            http_response_code(403);
+            $response['code'] = 5;
+            $response['msg'] = 'Invalid JWT';
+            $response['msgCode'] = 3;
+            http_response_code(401);
         }
     } else {
         $response['code'] = 8;
@@ -167,7 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     }
 } else {
     http_response_code(405);
-    echo json_encode($response);
 }
 
 echo json_encode($response);

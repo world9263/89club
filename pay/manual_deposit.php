@@ -83,12 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // Inline keyboard for approval/rejection
-        $sites = "https://89club-production.up.railway.app";
         $keyboard = [
             'inline_keyboard' => [
                 [
-                    ['text' => '✅ Approve', 'url' => $sites . "/codexdr/api/webapi/HandleTelegramDeposit.php?action=approve&id=" . $depositId],
-                    ['text' => '❌ Reject', 'url' => $sites . "/codexdr/api/webapi/HandleTelegramDeposit.php?action=reject&id=" . $depositId]
+                    ['text' => '✅ Approve', 'callback_data' => 'approve_dep:' . $depositId],
+                    ['text' => '❌ Reject', 'callback_data' => 'reject_dep:' . $depositId]
                 ]
             ]
         ];
