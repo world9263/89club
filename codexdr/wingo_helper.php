@@ -280,12 +280,77 @@ function wingo_ensure_recent_results($firebase, $typeId, $count = 10) {
     $typeIdMapped = ($typeId == 4) ? 5 : $typeId;
     $fbTypeKey = 'wingo_t' . $typeIdMapped;
     
+    // Fetch all existing results for this type at once (1 HTTP request instead of N)
+    $existingResults = $firebase->get('game_results/' . $fbTypeKey) ?: [];
+    
     $results = [];
+    $updates = [];
+    $hasNewResults = false;
+    
     for ($i = 1; $i <= $count && ($currentSeq - $i) >= 1; $i++) {
         $seq = $currentSeq - $i;
         $pastPeriodId = $dateStr . "1000" . $typeChar . sprintf("%04d", $seq);
-        $result = wingo_generate_result($firebase, $typeIdMapped, $pastPeriodId);
-        $results[] = $result;
+        
+        if (isset($existingResults[$pastPeriodId])) {
+            $results[] = $existingResults[$pastPeriodId];
+        } else {
+            // Generate missing result
+            // Check for admin override (only check once per generation run)
+            static $override = null;
+            static $overrideChecked = false;
+            if (!$overrideChecked) {
+                $override = $firebase->get('admin_overrides/wingo_t' . $typeIdMapped);
+                $overrideChecked = true;
+            }
+            
+            if ($override != null && isset($override['number']) && isset($override['active']) && $override['active'] == true && $i == 1) {
+                $winningDigit = (int)$override['number'];
+                // Reset override
+                $firebase->update('admin_overrides/wingo_t' . $typeIdMapped, ['active' => false]);
+                $override = null; // Clear static cache
+            } else {
+                // Check if any bets exist for this period
+                $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $pastPeriodId);
+                if ($bets != null && is_array($bets) && count($bets) > 0) {
+                    $winningDigit = wingo_calculate_house_optimal($bets);
+                } else {
+                    $winningDigit = rand(0, 9);
+                }
+            }
+            
+            $color = wingo_get_color($winningDigit);
+            $premium = wingo_generate_premium($winningDigit);
+            
+            $result = [
+                'periodId' => $pastPeriodId,
+                'number' => $winningDigit,
+                'color' => $color,
+                'premium' => $premium,
+                'createdAt' => date('Y-m-d H:i:s'),
+                'type' => 'wingo'
+            ];
+            
+            $updates[$pastPeriodId] = $result;
+            $results[] = $result;
+            $hasNewResults = true;
+            
+            // Settle bets for this period if any exist
+            if (isset($bets) && $bets != null && is_array($bets)) {
+                wingo_settle_bets($firebase, $typeIdMapped, $pastPeriodId, $winningDigit, $premium, $bets);
+            } else {
+                $bets = $firebase->get('game_bets/' . $fbTypeKey . '/' . $pastPeriodId);
+                if ($bets != null && is_array($bets)) {
+                    wingo_settle_bets($firebase, $typeIdMapped, $pastPeriodId, $winningDigit, $premium, $bets);
+                }
+            }
+        }
+    }
+    
+    // Save all new results in a single PATCH update
+    if ($hasNewResults && !empty($updates)) {
+        $firebase->update('game_results/' . $fbTypeKey, $updates);
+        // Trigger clean up
+        wingo_cleanup_old_results($firebase, $fbTypeKey);
     }
     
     return $results;
