@@ -27,23 +27,52 @@
 			$language = $shonupost['language'];
 			$random = $shonupost['random'];
 			$signature = $shonupost['signature'];
-			$shonustr = '{"language":'.$language.',"random":"'.$random.'"}';
-			$shonusign = strtoupper(md5($shonustr));
 			if(true){
-				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
+				$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+				if (empty($authHeader)) {
+					$res['code'] = 4;
+					$res['msg'] = 'No operation permission';
+					$res['msgCode'] = 2;
+					http_response_code(401);
+					echo json_encode($res);
+					exit;
+				}
+				$bearer = explode(" ", $authHeader);
+				$author = isset($bearer[1]) ? $bearer[1] : '';
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
 				if($data_auth['status'] === 'Success') {
 					if($data_auth['payload']['expire'] >= time()){
-						$data = null;
+						// Token is still valid — generate a fresh one
+						$mobile = $data_auth['payload']['mobile'];
+						$user = $firebase->get('users/' . $mobile);
 						
-						$res['data'] = $data;
-						$res['code'] = 12;
-						$res['msg'] = 'Your account is already logged in elsewhere';
-						$res['msgCode'] = 22;
-						http_response_code(200);
-						echo json_encode($res);
+						if ($user != null) {
+							$expiresIn = time() + 86400;
+							$shnutkn_head = array('alg'=>'HS256','typ'=>'JWT');
+							$shnutkn_load = array('id'=>$mobile,'mobile'=>$mobile, 'status'=>(isset($user['status']) ? $user['status'] : 1), 'expire'=>$expiresIn, 'ishonup'=>(isset($user['ishonup']) ? $user['ishonup'] : ''), 'codechorkamukala'=>(isset($user['codechorkamukala']) ? $user['codechorkamukala'] : ''));
+							$newToken = generate_jwt($shnutkn_head, $shnutkn_load);
+							
+							// Update token in Firebase
+							$firebase->update('users/' . $mobile, ['akshinak' => $newToken, 'shonullgnt' => $shnunc]);
+							
+							$data['tokenHeader'] = 'Bearer ';
+							$data['token'] = $newToken;
+							$data['expiresIn'] = $expiresIn;
+							
+							$res['data'] = $data;
+							$res['code'] = 0;
+							$res['msg'] = 'Succeed';
+							$res['msgCode'] = 0;
+							http_response_code(200);
+							echo json_encode($res);
+						} else {
+							$res['code'] = 4;
+							$res['msg'] = 'User not found';
+							$res['msgCode'] = 2;
+							http_response_code(401);
+							echo json_encode($res);
+						}
 					}
 					else{
 						$res['code'] = 4;
