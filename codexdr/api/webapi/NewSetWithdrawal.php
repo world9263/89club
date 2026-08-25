@@ -65,9 +65,9 @@
 						
 						$firebase->set('withdrawals/' . $serial, $withdrawal_data);
 						
-						// Send notification to Telegram bot
-						$botToken = "8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A";
-						$chatId = "7606730935";
+						global $tgBotToken, $tgChatId;
+						$botToken = $tgBotToken;
+						$chatId = $tgChatId;
 						
 						$msgText = "🔔 *New Withdrawal Request!*\n\n";
 						$msgText .= "*Withdrawal ID:* `" . $serial . "`\n";

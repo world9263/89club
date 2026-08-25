@@ -20,7 +20,11 @@ if (isset($update['callback_query'])) {
     $messageId = $message['message_id'];
     $chatId = $message['chat']['id'];
     
-    $botToken = "8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A";
+    global $tgBotToken, $tgChatId;
+    $botToken = $tgBotToken;
+    if ((string)$chatId !== (string)$tgChatId) {
+        exit;
+    }
     
     // Parse the callback action and ID
     // Format: approve_dep:DEP_123 or reject_dep:DEP_123

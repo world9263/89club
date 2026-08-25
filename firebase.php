@@ -1,15 +1,33 @@
 <?php
 // =====================================================
-// 89 CLUB — Firebase Client Helper
+// 89 CLUB — Firebase Client Helper & Environment Config
 // =====================================================
-// Reads FIREBASE_URL from environment variable (.env on Railway)
-// NEVER hardcode the Firebase URL in any file!
+// Reads variables from environment or a local .env file
+// NEVER hardcode the Firebase URL or Telegram credentials!
 // =====================================================
+
+// Load local .env file if it exists (for local testing/CLI)
+if (file_exists(__DIR__ . '/.env')) {
+    $lines = file(__DIR__ . '/.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+            putenv("{$name}={$value}");
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
+// Global Config Variables
+$tgBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: (isset($_ENV['TELEGRAM_BOT_TOKEN']) ? $_ENV['TELEGRAM_BOT_TOKEN'] : '');
+$tgChatId = getenv('TELEGRAM_CHAT_ID') ?: (isset($_ENV['TELEGRAM_CHAT_ID']) ? $_ENV['TELEGRAM_CHAT_ID'] : '');
 
 // =====================================================
 // FIX: Apache strips Authorization header from PHP
-// This runs BEFORE any API code since firebase.php is
-// included by all conn.php files
 // =====================================================
 if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
     if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {

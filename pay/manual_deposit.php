@@ -66,8 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $firebase->set('deposits/' . $depositId, $deposit_data);
         
         // Notify via Telegram Bot
-        $botToken = "8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A";
-        $chatId = "7606730935";
+        global $tgBotToken, $tgChatId;
+        $botToken = $tgBotToken;
+        $chatId = $tgChatId;
         
         $msgText = "🔔 *New Deposit Request!*\n\n";
         $msgText .= "*Deposit ID:* `" . $depositId . "`\n";

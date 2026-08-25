@@ -29,8 +29,9 @@ if ($status !== 'pending') {
     die("<h3>This deposit request has already been processed! Current Status: " . strtoupper($status) . "</h3>");
 }
 
-$botToken = "8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A";
-$chatId = "7606730935";
+global $tgBotToken, $tgChatId;
+$botToken = $tgBotToken;
+$chatId = $tgChatId;
 $htmlResponse = "";
 
 if ($action === 'approve') {
