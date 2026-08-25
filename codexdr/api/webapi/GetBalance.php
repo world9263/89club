@@ -128,7 +128,21 @@ if (!defined("SECURITY_PASS")) { die(); }
                     $user = $firebase->get('users/' . $mobile);
                     
 					if($user != null){
-						$data['amount'] = isset($user['motta']) ? $user['motta'] : 0;
+						$motta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
+						$wll_jili = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+						$wll_jdb = isset($user['wll_jdb']) ? (float)$user['wll_jdb'] : 0.0;
+						
+						if ($wll_jili > 0 || $wll_jdb > 0) {
+						    $total = $motta + $wll_jili + $wll_jdb;
+						    $firebase->update('users/' . $mobile, [
+						        'motta' => $total,
+						        'wll_jili' => 0.0,
+						        'wll_jdb' => 0.0
+						    ]);
+						    $data['amount'] = $total;
+						} else {
+						    $data['amount'] = $motta;
+						}
 						
 						$res['data'] = $data;
 						$res['code'] = 0;

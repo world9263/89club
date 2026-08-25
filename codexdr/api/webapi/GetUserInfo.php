@@ -45,7 +45,21 @@
 						$data['userName'] = '91'.$data_auth['payload']['mobile'];
 						$data['nickName'] = $data_auth['payload']['codechorkamukala'];
 						
-						$data['amount'] = isset($user['motta']) ? $user['motta'] : 0;
+						$motta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
+						$wll_jili = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+						$wll_jdb = isset($user['wll_jdb']) ? (float)$user['wll_jdb'] : 0.0;
+						
+						if ($wll_jili > 0 || $wll_jdb > 0) {
+						    $total = $motta + $wll_jili + $wll_jdb;
+						    $firebase->update('users/' . $mobile, [
+						        'motta' => $total,
+						        'wll_jili' => 0.0,
+						        'wll_jdb' => 0.0
+						    ]);
+						    $data['amount'] = $total;
+						} else {
+						    $data['amount'] = $motta;
+						}
 						
                         // Assuming USDT rate is stored in system_settings
                         $pg_settings = $firebase->get('system_settings/tbl_pg/usdt');
