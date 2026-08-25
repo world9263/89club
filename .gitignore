@@ -13,3 +13,7 @@ Thumbs.db
 # Domain lock file
 main/domain.lock
 domain.lock
+
+# Admin panels and env secrets
+admin_panel.html
+.env
