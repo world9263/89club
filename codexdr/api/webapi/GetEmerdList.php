@@ -30,7 +30,7 @@ if($data_auth['status'] === 'Success') {
         $list = [];
         if($results) {
             foreach($results as $periodId => $res) {
-                $res['issueNumber'] = $periodId;
+                $res['issueNumber'] = (string)$periodId;
                 $list[] = $res;
             }
         }

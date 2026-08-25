@@ -50,7 +50,7 @@ if($data_auth['status'] === 'Success') {
         $formattedData = [];
         foreach($pageData as $row) {
             $formattedData[] = [
-                'issueNumber' => $row['issueNumber'],
+                'issueNumber' => (string)$row['issueNumber'],
                 'number' => $row['number'],
                 'colour' => $row['colour'],
                 'premium' => $row['premium']

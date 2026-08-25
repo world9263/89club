@@ -68,7 +68,7 @@ if($data_auth['status'] === 'Success') {
             
             $formattedData[] = [
                 'orderNumber' => $row['id'],
-                'issueNumber' => $row['issueNumber'],
+                'issueNumber' => (string)$row['issueNumber'],
                 'amount' => $row['unitAmount'],
                 'betCount' => $row['betCount'],
                 'realAmount' => $row['contractAmount'],

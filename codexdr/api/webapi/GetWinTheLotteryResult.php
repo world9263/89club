@@ -54,7 +54,7 @@ if($data_auth['status'] === 'Success') {
             
             if($result) {
                 $results[] = [
-                    'issueNumber' => $issuenumber,
+                    'issueNumber' => (string)$issuenumber,
                     'number' => $result['number'],
                     'colour' => $result['colour'],
                     'winAmount' => $userWinAmount,
