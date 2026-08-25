@@ -46,7 +46,11 @@ if($data_auth['status'] === 'Success') {
         }
         
         $user['motta'] = $userBalance - $totalAmount;
-        $firebase->set('users/' . $mobile . '/motta', $user['motta']);
+        $currentTotalBet = isset($user['total_bet']) ? (float)$user['total_bet'] : 0.0;
+        $firebase->update('users/' . $mobile, [
+            'motta' => $user['motta'],
+            'total_bet' => $currentTotalBet + $totalAmount
+        ]);
         
         $betData = [
             'userId' => $mobile,

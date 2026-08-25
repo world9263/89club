@@ -45,9 +45,13 @@ if (isset($update['callback_query'])) {
                 if ($user != null) {
                     $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
                     $newBalance = round($currentBalance + $amount, 2);
+                    $currentTotalDeposit = isset($user['total_deposit']) ? (float)$user['total_deposit'] : 0.0;
                     
-                    // Update user balance and deposit status
-                    $firebase->update('users/' . $userId, ['motta' => $newBalance]);
+                    // Update user balance, total deposits, and deposit status
+                    $firebase->update('users/' . $userId, [
+                        'motta' => $newBalance,
+                        'total_deposit' => $currentTotalDeposit + $amount
+                    ]);
                     $firebase->update('deposits/' . $requestId, ['status' => 'success']);
                     
                     // Edit message in Telegram

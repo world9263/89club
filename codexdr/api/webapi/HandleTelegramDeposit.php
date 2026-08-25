@@ -40,9 +40,13 @@ if ($action === 'approve') {
         if ($user != null) {
             $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
             $newBalance = round($currentBalance + $amount, 2);
+            $currentTotalDeposit = isset($user['total_deposit']) ? (float)$user['total_deposit'] : 0.0;
             
-            // Update user balance
-            $firebase->update('users/' . $userId, ['motta' => $newBalance]);
+            // Update user balance and total deposits
+            $firebase->update('users/' . $userId, [
+                'motta' => $newBalance,
+                'total_deposit' => $currentTotalDeposit + $amount
+            ]);
             
             // Mark deposit as success
             $firebase->update('deposits/' . $depositId, ['status' => 'success']);

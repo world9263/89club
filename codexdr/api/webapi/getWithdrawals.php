@@ -30,216 +30,129 @@
 		$toReplace = substr($inputString, 6, 4);
 		$after = substr($inputString, 10);
 		$replaced = str_repeat('*', strlen($toReplace));
-		$resultString = $before . $replaced . $after;
-		return $resultString;
+		return $before . $replaced . $after;
 	}
-	
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['withdrawid'])) {
-			$language = $shonupost['language'];
-			$random = $shonupost['random'];
-			$signature = $shonupost['signature'];
-			$withdrawid = $shonupost['withdrawid'];
-			$shonustr = '{"language":'.$language.',"random":"'.$random.'","withdrawid":'.$withdrawid.'}';
-			$shonusign = strtoupper(md5($shonustr));
-			if(true){
-				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
-				$is_jwt_valid = is_jwt_valid($author);
-				$data_auth = json_decode($is_jwt_valid, 1);
-				if($data_auth['status'] === 'Success') {
-					$mobile = $data_auth['payload']['mobile'];
-					$user = $firebase->get('users/' . $mobile);
-					if($user != null){
-						$shonuid = $data_auth['payload']['id'];
-						if($withdrawid == 1){
-							$samasye = "SELECT phalanubhavi
-							  FROM khate WHERE byabaharkarta = $shonuid AND khatehesaru != 'TRC'
-							  ORDER BY shonu DESC LIMIT 1";
-							$samasyephalitansa = $conn->query($samasye);
-							$samasyephalitansa_dhadi = mysqli_num_rows($samasyephalitansa);	
-							if($samasyephalitansa_dhadi >= 1){
-								$samasyephalitansa_sreni = mysqli_fetch_array($samasyephalitansa);						
-								$data['lastBandCarkName'] = $samasyephalitansa_sreni['phalanubhavi'];
-								
-								$samasye = "SELECT shonu, khatehesaru, khatesankhye, kod, duravani
-								  FROM khate WHERE byabaharkarta = $shonuid AND khatehesaru != 'TRC'
-								  ORDER BY shonu DESC";
-								$samasyephalitansa = $conn->query($samasye);
-								$i = 0;
-								while($row = mysqli_fetch_array($samasyephalitansa)){
-									$data['withdrawalslist'][$i]['bid'] = $row['shonu'];
-									$data['withdrawalslist'][$i]['bankName'] = $row['khatehesaru'];
-									$data['withdrawalslist'][$i]['beneficiaryName'] = '';
-									
-									$data['withdrawalslist'][$i]['accountNo'] = replaceWithAsterisks($row['khatesankhye']);
-									$data['withdrawalslist'][$i]['ifsCode'] = $row['kod'];
-									$data['withdrawalslist'][$i]['withType'] = 1;
-									$data['withdrawalslist'][$i]['mobileNo'] = replaceWithAsterisks($row['duravani']);
-									$data['withdrawalslist'][$i]['bankProvince'] = '';
-									$data['withdrawalslist'][$i]['bankCity'] = '';
-									$data['withdrawalslist'][$i]['bankAddress'] = '';
-									$i++;
+			$withdrawid = (int)$shonupost['withdrawid']; // 1 = bank card, 3 = usdt
+			
+			$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
+			$author = $bearer[1] ?? '';				
+			$is_jwt_valid = is_jwt_valid($author);
+			$data_auth = json_decode($is_jwt_valid, 1);
+			if($data_auth['status'] === 'Success') {
+				$mobile = $data_auth['payload']['mobile'];
+				$user = $firebase->get('users/' . $mobile);
+				if($user != null){
+					$currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
+					
+					// Fetch linked withdrawal accounts
+					$accounts = $firebase->get('users/' . $mobile . '/withdrawal_accounts');
+					$withdrawalslist = [];
+					$lastBankCardName = null;
+					
+					if ($accounts) {
+						// Sort by createdAt DESC to get the latest first
+						usort($accounts, function($a, $b) {
+							return strcmp($b['createdAt'] ?? '', $a['createdAt'] ?? '');
+						});
+						
+						foreach ($accounts as $acc) {
+							if (($acc['type'] ?? 1) == $withdrawid) {
+								if ($lastBankCardName === null) {
+									$lastBankCardName = $acc['beneficiaryName'] ?? '';
 								}
-							}
-							else{
-								$data['lastBandCarkName'] = null;
-								$data['withdrawalslist'] = [];
-							}
-						}
-						elseif($withdrawid == 3){
-							$samasye = "SELECT phalanubhavi
-							  FROM khate WHERE byabaharkarta = $shonuid AND khatehesaru = 'TRC'
-							  ORDER BY shonu DESC LIMIT 1";
-							$samasyephalitansa = $conn->query($samasye);
-							$samasyephalitansa_dhadi = mysqli_num_rows($samasyephalitansa);	
-							if($samasyephalitansa_dhadi >= 1){
-								$samasyephalitansa_sreni = mysqli_fetch_array($samasyephalitansa);						
-								$data['lastBandCarkName'] = $samasyephalitansa_sreni['phalanubhavi'];
 								
-								$samasye = "SELECT shonu, khatehesaru, khatesankhye, kod, duravani
-								  FROM khate WHERE byabaharkarta = $shonuid AND khatehesaru = 'TRC'
-								  ORDER BY shonu DESC";
-								$samasyephalitansa = $conn->query($samasye);
-								$i = 0;
-								while($row = mysqli_fetch_array($samasyephalitansa)){
-									$data['withdrawalslist'][$i]['bid'] = $row['shonu'];
-									$data['withdrawalslist'][$i]['bankName'] = $row['khatehesaru'];
-									$data['withdrawalslist'][$i]['beneficiaryName'] = '';
-									
-									$data['withdrawalslist'][$i]['accountNo'] = replaceWithAsterisks($row['khatesankhye']);
-									$data['withdrawalslist'][$i]['ifsCode'] = $row['kod'];
-									$data['withdrawalslist'][$i]['withType'] = 1;
-									$data['withdrawalslist'][$i]['mobileNo'] = replaceWithAsterisks($row['duravani']);
-									$data['withdrawalslist'][$i]['bankProvince'] = '';
-									$data['withdrawalslist'][$i]['bankCity'] = '';
-									$data['withdrawalslist'][$i]['bankAddress'] = '';
-									$i++;
-								}
-							}
-							else{
-								$data['lastBandCarkName'] = null;
-								$data['withdrawalslist'] = [];
+								$withdrawalslist[] = [
+									'bid' => $acc['id'] ?? '',
+									'bankName' => $acc['bankName'] ?? '',
+									'beneficiaryName' => $acc['beneficiaryName'] ?? '',
+									'accountNo' => replaceWithAsterisks($acc['accountNo'] ?? ''),
+									'ifsCode' => $acc['ifsCode'] ?? '',
+									'withType' => 1,
+									'mobileNo' => replaceWithAsterisks($acc['mobileNo'] ?? ''),
+									'bankProvince' => '',
+									'bankCity' => '',
+									'bankAddress' => ''
+								];
 							}
 						}
-						
-						// Query to retrieve data based on user ID and date
-$samasye_1 = "SELECT shonu
-              FROM hintegedukolli 
-              WHERE balakedara = '".$shonuid."' 
-              AND DATE(dinankavannuracisi) = date('".$shnunc."')";
-              
-$samasyephalitansa_1 = $conn->query($samasye_1);
-$shelly = mysqli_num_rows($samasyephalitansa_1);
-if ($withdrawid == 3) {
-    $shelly_1 = 5 - $shelly;
-} elseif ($withdrawid == 1) {
-    $shelly_1 = 3 - $shelly;
-}
-
-
-// Withdrawal rules array
-$data["withdrawalsrule"]["withdrawCount"] = $shelly;
-$data["withdrawalsrule"]["withdrawRemainingCount"] = $shelly_1;
-$data["withdrawalsrule"]["startTime"] = "00:00";
-$data["withdrawalsrule"]["endTime"] = "23:59";
-$data["withdrawalsrule"]["fee"] = (int)"0";
-$data["withdrawalsrule"]["minPrice"] = (int)"110";
-$data["withdrawalsrule"]["maxPrice"] = (int)"50000";
-
-// Query to fetch withdrawal amount
-$balquery = "SELECT motta
-             FROM shonu_kaichila
-             WHERE balakedara = ".$data_auth['payload']['id'];
-
-$balresult = $conn->query($balquery);
-$balarr = mysqli_fetch_array($balresult);
-
-// Assign withdrawal amount
-$data["withdrawalsrule"]["amount"] = $balarr["motta"];
-						
-						$rtatqr = "SELECT SUM(motta) as sote
-						  FROM thevani
-						  WHERE balakedara = '".$shonuid."' AND sthiti = '1'";
-						$rtatresult = $conn->query($rtatqr);
-						$rtat_ar = mysqli_fetch_array($rtatresult);
-						
-						$rtatqr_a = "SELECT SUM(price) as sote
-						  FROM hodike_balakedara
-						  WHERE userkani = '".$shonuid."'";
-						$rtatresult_a = $conn->query($rtatqr_a);
-						$rtat_ar_a = mysqli_fetch_array($rtatresult_a);
-						
-						$sotek = $rtat_ar['sote'] + $rtat_ar_a['sote'] + 0;						
-						
-                        $bet_wingo_trx = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_trx` where byabaharkarta = '".$shonuid."'"));
-                        $bet_wingo_trx3 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_trx3` where byabaharkarta = '".$shonuid."'"));
-                        $bet_wingo_trx5 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_trx5` where byabaharkarta = '".$shonuid."'"));
-                        $bet_wingo_trx10 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_trx10` where byabaharkarta = '".$shonuid."'"));
-						$bet_wingo_1 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate` where byabaharkarta = '".$shonuid."'"));
-						$bet_wingo_3 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_drei` where byabaharkarta = '".$shonuid."'"));
-						$bet_wingo_5 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_funf` where byabaharkarta = '".$shonuid."'"));
-						$bet_wingo_10 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_zehn` where byabaharkarta = '".$shonuid."'"));
-						$bet_k3_1 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_kemuru` where byabaharkarta = '".$shonuid."'"));
-						$bet_k3_3 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_kemuru_drei` where byabaharkarta = '".$shonuid."'"));
-						$bet_k3_5 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_kemuru_funf` where byabaharkarta = '".$shonuid."'"));
-						$bet_k3_10 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_kemuru_zehn` where byabaharkarta = '".$shonuid."'"));
-						$bet_5d_1 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_aidudi` where byabaharkarta = '".$shonuid."'"));
-						$bet_5d_3 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_aidudi_drei` where byabaharkarta = '".$shonuid."'"));
-						$bet_5d_5 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_aidudi_funf` where byabaharkarta = '".$shonuid."'"));
-						$bet_5d_10 = mysqli_fetch_assoc(mysqli_query($conn,"SELECT sum(ketebida) as total FROM `bajikattuttate_aidudi_zehn` where byabaharkarta = '".$shonuid."'"));
-						$total_bet = $bet_wingo_trx['total']+$bet_wingo_trx3['total']+$bet_wingo_trx5['total']+$bet_wingo_trx10['total']+$bet_wingo_1['total'] + $bet_wingo_3['total'] + $bet_wingo_5['total'] + $bet_wingo_10['total'] + $bet_k3_1['total'] + $bet_k3_3['total'] + $bet_k3_5['total'] + $bet_k3_10['total'] + $bet_5d_1['total'] + $bet_5d_3['total'] + $bet_5d_5['total'] + $bet_5d_10['total'];												
-						
-						if ($sotek > $total_bet) {
-  			  					$wiwo = 0;
-  				  				$data["withdrawalsrule"]["amountofCode"] = $sotek - $total_bet;
-																								}
-								// Check if $sotek is less than or equal to $total_bet
-						else if ($sotek <= $total_bet) {
-   						 if ($rtat_ar['sote'] == null || $rtat_ar['sote'] == '') {
-     					   $wiwo = 0;
-  							  } else {
-     							   $wiwo = $balarr["motta"];
- 					   }
-   					 $data["withdrawalsrule"]["amountofCode"] = (int)"0";
-						}
-
-				// Additional Data Assignments
-				$data["withdrawalsrule"]["canWithdrawAmount"] = $wiwo;
-				$data["withdrawalsrule"]["c2cUnitAmount"] = 0;
-				$data["withdrawalsrule"]["uRate"] = 93;
-				$data["withdrawalsrule"]["uGold"] = 0;
-						
-						$res['data'] = $data;
-						$res['code'] = 0;
-						$res['msg'] = 'Succeed';
-						$res['msgCode'] = 0;
-						http_response_code(200);
-						echo json_encode($res);					
 					}
-					else{
-						$res['code'] = 4;
-						$res['msg'] = 'No operation permission';
-						$res['msgCode'] = 2;
-						http_response_code(401);
-						echo json_encode($res);
-					}					
+					
+					$data['lastBandCarkName'] = $lastBankCardName;
+					$data['withdrawalslist'] = $withdrawalslist;
+					
+					// Calculate today's withdrawal count
+					$allWithdrawals = $firebase->get('withdrawals');
+					$todayDateStr = date('Y-m-d');
+					$withdrawCount = 0;
+					if ($allWithdrawals) {
+						foreach ($allWithdrawals as $wd) {
+							if (($wd['userId'] ?? '') === $mobile) {
+								$createdDate = substr($wd['createdAt'] ?? '', 0, 10);
+								if ($createdDate === $todayDateStr) {
+									$withdrawCount++;
+								}
+							}
+						}
+					}
+					
+					$limit = ($withdrawid === 3) ? 5 : 3;
+					$withdrawRemainingCount = max(0, $limit - $withdrawCount);
+					
+					// Wagering checks
+					$total_deposit = isset($user['total_deposit']) ? (float)$user['total_deposit'] : 0.0;
+					$total_bet = isset($user['total_bet']) ? (float)$user['total_bet'] : 0.0;
+					
+					if ($total_deposit == 0.0) {
+						$amountofCode = 0;
+						$wiwo = $currentBalance;
+					} else {
+						if ($total_bet >= $total_deposit) {
+							$amountofCode = 0;
+							$wiwo = $currentBalance;
+						} else {
+							$amountofCode = round($total_deposit - $total_bet, 2);
+							$wiwo = 0;
+						}
+					}
+					
+					$data["withdrawalsrule"]["withdrawCount"] = $withdrawCount;
+					$data["withdrawalsrule"]["withdrawRemainingCount"] = $withdrawRemainingCount;
+					$data["withdrawalsrule"]["startTime"] = "00:00";
+					$data["withdrawalsrule"]["endTime"] = "23:59";
+					$data["withdrawalsrule"]["fee"] = 0;
+					$data["withdrawalsrule"]["minPrice"] = 110;
+					$data["withdrawalsrule"]["maxPrice"] = 50000;
+					$data["withdrawalsrule"]["amount"] = $currentBalance;
+					$data["withdrawalsrule"]["amountofCode"] = (int)$amountofCode;
+					$data["withdrawalsrule"]["canWithdrawAmount"] = $wiwo;
+					$data["withdrawalsrule"]["c2cUnitAmount"] = 0;
+					$data["withdrawalsrule"]["uRate"] = 93;
+					$data["withdrawalsrule"]["uGold"] = 0;
+					
+					$res['data'] = $data;
+					$res['code'] = 0;
+					$res['msg'] = 'Succeed';
+					$res['msgCode'] = 0;
+					http_response_code(200);
+					echo json_encode($res);					
 				}
-				else{					
+				else{
 					$res['code'] = 4;
 					$res['msg'] = 'No operation permission';
 					$res['msgCode'] = 2;
 					http_response_code(401);
-					echo json_encode($res);					
-				}
+					echo json_encode($res);
+				}					
 			}
-			else{
-				$res['code'] = 5;
-				$res['msg'] = 'Wrong signature';
-				$res['msgCode'] = 3;
-				http_response_code(200);
-				echo json_encode($res);				
+			else{					
+				$res['code'] = 4;
+				$res['msg'] = 'No operation permission';
+				$res['msgCode'] = 2;
+				http_response_code(401);
+				echo json_encode($res);					
 			}
 		}
 		else{

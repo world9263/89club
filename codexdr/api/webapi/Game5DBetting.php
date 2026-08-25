@@ -70,7 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0;
                 if ($currentBalance >= $totalamount) {
                     $newBalance = round($currentBalance - $totalamount, 2);
-                    $firebase->update('users/' . $mobile, ['motta' => $newBalance]);
+                    $currentTotalBet = isset($user['total_bet']) ? (float)$user['total_bet'] : 0.0;
+                    $firebase->update('users/' . $mobile, [
+                        'motta' => $newBalance,
+                        'total_bet' => $currentTotalBet + $totalamount
+                    ]);
                     
                     $contractAmount = $totalamount * 0.98;
                     $fbTypeKey = 'd5_t' . $typeId;
