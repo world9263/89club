@@ -63,18 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                 if ($user != null) {
                     $uid = $mobile;
                     
-                    // Initialize Jili wallet session balance by transferring all money to wll_jili
-                    $wll_jdb = isset($user['wll_jdb']) ? (float)$user['wll_jdb'] : 0.0;
-                    $wll_jili = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
-                    $motta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
-                    
-                    $firebase->update('users/' . $mobile, [
-                        'wll_jili' => $wll_jdb + $wll_jili + $motta,
-                        'motta' => 0.0,
-                        'wll_jdb' => 0.0
-                    ]);
-
-                    // Route to mock pages locally
+                    // No wallet consolidation or zeroing out is needed because B2B wallet systems are self-hosted now.
+                    // Keep players balance inside the central motta key so home screen and game screen balance are identical.
                     if ($vendorCode == 'SPRIBE' || $vendorCode == 23 || strpos(strtolower($gameCode), 'aviator') !== false) {
                         $game = generateUrl("apifiles/mock_aviator.php") . "?userid=" . urlencode($mobile) . "&gameid=" . urlencode($gameCode);
                     } else {

@@ -78,7 +78,7 @@ switch ($action) {
             "crashMultiplier" => $roundData['crashMultiplier'],
             "history" => $history,
             "bets" => $bets,
-            "balance" => isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0,
+            "balance" => isset($user['motta']) ? (float)$user['motta'] : 0.0,
             "serverTimeMs" => microtime(true) * 1000
         ]);
         break;
@@ -96,14 +96,14 @@ switch ($action) {
             respondJson(["error" => "Betting phase has ended for this round"], 400);
         }
 
-        $balance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+        $balance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
         if ($balance < $amount) {
             respondJson(["error" => "Insufficient balance"], 400);
         }
 
         // Deduct balance
         $newBalance = $balance - $amount;
-        $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+        $firebase->update('users/' . $userId, ['motta' => $newBalance]);
 
         // Record bet
         $betRecord = [
@@ -169,9 +169,9 @@ switch ($action) {
         $winAmount = round($bet['amount'] * $finalMultiplier, 2);
 
         // Update player balance
-        $balance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+        $balance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
         $newBalance = $balance + $winAmount;
-        $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+        $firebase->update('users/' . $userId, ['motta' => $newBalance]);
 
         // Settle bet
         $firebase->update("aviator_bets/{$roundId}/{$userId}_{$panelId}", [

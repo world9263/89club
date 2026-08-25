@@ -27,7 +27,7 @@ if ($method === 'GET' && strpos($request, '/Balance') !== false && strpos($reque
         handleError("User not found");
     }
 
-    $balance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+    $balance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
     echo json_encode(["balance" => $balance]);
     exit();
 }
@@ -48,10 +48,10 @@ if ($method === 'POST' && strpos($request, '/Balance2') !== false) {
         handleError("User not found");
     }
 
-    $currentBalance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+    $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
     $newBalance = $currentBalance - $betAmount + $winloseAmount;
 
-    $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+    $firebase->update('users/' . $userId, ['motta' => $newBalance]);
     echo json_encode(["newBalance" => $newBalance]);
     exit();
 }
@@ -73,10 +73,10 @@ if ($method === 'POST' && strpos($request, '/Balance3') !== false) {
         handleError("User not found");
     }
 
-    $currentBalance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+    $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
     $newBalance = ($type == 1) ? ($currentBalance - $betAmount) : ($currentBalance + $winloseAmount);
 
-    $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+    $firebase->update('users/' . $userId, ['motta' => $newBalance]);
     echo json_encode(["newBalance" => $newBalance]);
     exit();
 }
@@ -96,10 +96,10 @@ if ($method === 'POST' && strpos($request, '/Balance4') !== false) {
         handleError("User not found");
     }
 
-    $currentBalance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+    $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
     $newBalance = $currentBalance + $betAmount;
 
-    $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+    $firebase->update('users/' . $userId, ['motta' => $newBalance]);
     echo json_encode(["newBalance" => $newBalance, "message" => "Bet canceled"]);
     exit();
 }
@@ -119,10 +119,10 @@ if ($method === 'POST' && strpos($request, '/Balance5') !== false) {
         handleError("User not found");
     }
 
-    $currentBalance = isset($user['wll_jili']) ? (float)$user['wll_jili'] : 0.0;
+    $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
     $newBalance = $currentBalance + $betAmount;
 
-    $firebase->update('users/' . $userId, ['wll_jili' => $newBalance]);
+    $firebase->update('users/' . $userId, ['motta' => $newBalance]);
     echo json_encode(["newBalance" => $newBalance, "message" => "Session bet canceled"]);
     exit();
 }
