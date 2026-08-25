@@ -1,158 +1,114 @@
-<?php 
-	include "../../conn.php";
-	include "../../functions2.php";
-	global $firebase;
-	
-	header('Content-Type: application/json; charset=utf-8');
-	header('Strict-Transport-Security: max-age=31536000');
-	header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
-	header('Access-Control-Allow-Credentials: true');
-	$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-	header('Access-Control-Allow-Origin: ' . $origin);
-	header('vary: Origin');
-	
-	date_default_timezone_set("Asia/Kolkata");
-	$shnunc = date("Y-m-d H:i:s");
-	$res = [
-		'code' => 11,
-		'msg' => 'Method not allowed',
-		'msgCode' => 12,
-		'serviceNowTime' => $shnunc,
-	];
-	$shonubody = file_get_contents("php://input");
-	$shonupost = json_decode($shonubody, true);
-	
-	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-		if (isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['typeId'])) {
-			$language = $shonupost['language'];
-			$pageNo = $shonupost['pageNo'];
-			$pageSize = $shonupost['pageSize'];
-			$random = $shonupost['random'];
-			$signature = $shonupost['signature'];
-			$typeId = $shonupost['typeId'];
-			$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'","typeId":'.$typeId.'}';
-			$shonusign = strtoupper(md5($shonustr));
-			if(true){
-				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
-				$is_jwt_valid = is_jwt_valid($author);
-				$data_auth = json_decode($is_jwt_valid, 1);
-				if($data_auth['status'] === 'Success') {
-					$mobile = $data_auth['payload']['mobile'];
-					$user = $firebase->get('users/' . $mobile);
-					if($user != null){
-						if($typeId == 9){
-							$oedajnahb = 'gellaluhogiondu_kemeru_phalitansa';
-						}
-						else if($typeId == 10){
-							$oedajnahb = 'gellaluhogiondu_kemeru_phalitansa_drei';
-						}
-						else if($typeId == 11){
-							$oedajnahb = 'gellaluhogiondu_kemeru_phalitansa_funf';
-						}
-						else if($typeId == 12){
-							$oedajnahb = 'gellaluhogiondu_kemeru_phalitansa_zehn';
-						}
-						
-						$samatolana = ($pageNo - 1) * 10;
-						$samasye = "SELECT kalaparichaya, phalitansa, bele
-						  FROM ".$oedajnahb."
-						  ORDER BY shonu DESC LIMIT $pageSize OFFSET $samatolana";
-						$samasyephalitansa = $conn->query($samasye);
-						
-						function checkThreeDigitNumber($number) {
-							if (preg_match('/^[1-6]{3}$/', $number)) {
-								$digits = str_split($number);
-								$d1 = (int)$digits[0];
-								$d2 = (int)$digits[1];
-								$d3 = (int)$digits[2];
-								$output['allDifferent'] = ($d1 !== $d2 && $d1 !== $d3 && $d2 !== $d3);
-								$output['consecutive'] = (max($d1, $d2, $d3) - min($d1, $d2, $d3) == 2) &&
-														 (abs($d1 - $d2) == 1 || abs($d1 - $d3) == 1 || abs($d2 - $d3) == 1);
-								$output['anyTwoSame'] = ($d1 === $d2 || $d1 === $d3 || $d2 === $d3);
-								$output['allSame'] = ($d1 === $d2 && $d2 === $d3);
-								return $output;
-							}
-						}
-						
-						if ($samasyephalitansa->num_rows > 0) {
-							$i = 0;
-							while ($row = $samasyephalitansa->fetch_assoc()) {
-								$checkbele = checkThreeDigitNumber($row['bele']);
-								if($checkbele['allSame']){
-									$gameType = 3;
-								}
-								else if($checkbele['anyTwoSame']){
-									$gameType = 2;
-								}
-								else if($checkbele['consecutive']){
-									$gameType = 1;
-								}
-								else if($checkbele['allDifferent']){
-									$gameType = 0;
-								}
-								$data['list'][$i] = [
-									'issueNumber' => $row['kalaparichaya'],
-									'gameType' => $gameType,
-									'sumCount' => (int)$row['phalitansa'],
-									'premium' => $row['bele'],
-								];
-								$i++;
-							}
-						}
-						else{
-							$data['list'] = null;
-						}
-						
-						$samasye_ondu = "SELECT shonu
-						  FROM ".$oedajnahb;
-						$samasyephalitansa_ondu = $conn->query($samasye_ondu);
-						$samasyephalitansa_sankhye = mysqli_num_rows($samasyephalitansa_ondu);
-						
-						$data['pageNo'] = (int)$pageNo;
-						$data['totalPage'] = ceil($samasyephalitansa_sankhye/10);
-						$data['totalCount'] = $samasyephalitansa_sankhye;
-						
-						$res['data'] = $data;
-						$res['code'] = 0;
-						$res['msg'] = 'Succeed';
-						$res['msgCode'] = 0;
-						http_response_code(200);
-						echo json_encode($res);					
-					}
-					else{
-						$res['code'] = 4;
-						$res['msg'] = 'No operation permission';
-						$res['msgCode'] = 2;
-						http_response_code(401);
-						echo json_encode($res);
-					}					
-				}
-				else{					
-					$res['code'] = 4;
-					$res['msg'] = 'No operation permission';
-					$res['msgCode'] = 2;
-					http_response_code(401);
-					echo json_encode($res);					
-				}
-			}
-			else{
-				$res['code'] = 5;
-				$res['msg'] = 'Wrong signature';
-				$res['msgCode'] = 3;
-				http_response_code(200);
-				echo json_encode($res);				
-			}
-		}
-		else{
-			$res['code'] = 7;
-			$res['msg'] = 'Param is Invalid';
-			$res['msgCode'] = 6;
-			http_response_code(200);
-			echo json_encode($res);			
-		}		
-	} else {		
-		http_response_code(405);
-		echo json_encode($res);
-	}
+<?php
+header('Content-Type: application/json; charset=utf-8');
+header('Strict-Transport-Security: max-age=31536000');
+header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
+header('Access-Control-Allow-Credentials: true');
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+header('Access-Control-Allow-Origin: ' . $origin);
+header('vary: Origin');
+
+include "../../conn.php";
+include "../../functions2.php";
+include "../../k3_helper.php";
+global $firebase;
+
+$shnunc = date("Y-m-d H:i:s");
+$res = [
+    'code' => 11,
+    'msg' => 'Method not allowed',
+    'msgCode' => 12,
+    'serviceNowTime' => $shnunc,
+];
+
+$shonubody = file_get_contents("php://input");
+$shonupost = json_decode($shonubody, true);
+
+if ($_SERVER['REQUEST_METHOD'] != 'GET') {
+    if (isset($shonupost['typeId']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize'])) {
+        $typeId = (int)$shonupost['typeId'];
+        $pageNo = (int)$shonupost['pageNo'];
+        $pageSize = (int)$shonupost['pageSize'];
+        
+        $authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+        if (empty($authHeader)) {
+            $res['code'] = 4;
+            $res['msg'] = 'Token missing';
+            http_response_code(401);
+            echo json_encode($res);
+            exit;
+        }
+        
+        $bearer = explode(" ", $authHeader);
+        $author = isset($bearer[1]) ? $bearer[1] : '';
+        $is_jwt_valid = is_jwt_valid($author);
+        $data_auth = json_decode($is_jwt_valid, 1);
+        
+        if ($data_auth['status'] === 'Success') {
+            $mobile = $data_auth['payload']['mobile'];
+            $user = $firebase->get('users/' . $mobile);
+            
+            if ($user != null) {
+                // Ensure recent results are present (capped at 10)
+                k3_ensure_recent_results($firebase, $typeId, 10);
+                
+                $fbTypeKey = 'k3_t' . $typeId;
+                $allResults = $firebase->get('game_results/' . $fbTypeKey) ?: [];
+                
+                // Sort descending by periodId
+                krsort($allResults);
+                
+                $offset = ($pageNo - 1) * $pageSize;
+                $sliced = array_slice($allResults, $offset, $pageSize, true);
+                
+                $list = [];
+                foreach ($sliced as $pId => $row) {
+                    $list[] = [
+                        'issueNumber' => (string)$pId,
+                        'gameType' => isset($row['gameType']) ? (int)$row['gameType'] : 0,
+                        'sumCount' => isset($row['sumCount']) ? (int)$row['sumCount'] : 0,
+                        'premium' => isset($row['premium']) ? (string)$row['premium'] : ''
+                    ];
+                }
+                
+                $totalCount = count($allResults);
+                $totalPage = ceil($totalCount / $pageSize);
+                
+                $data = [
+                    'list' => empty($list) ? null : $list,
+                    'pageNo' => $pageNo,
+                    'totalPage' => $totalPage,
+                    'totalCount' => $totalCount
+                ];
+                
+                $res = [
+                    'code' => 0,
+                    'msg' => 'Succeed',
+                    'msgCode' => 0,
+                    'serviceNowTime' => $shnunc,
+                    'data' => $data
+                ];
+                http_response_code(200);
+                echo json_encode($res);
+            } else {
+                $res['code'] = 4;
+                $res['msg'] = 'No operation permission';
+                http_response_code(401);
+                echo json_encode($res);
+            }
+        } else {
+            $res['code'] = 4;
+            $res['msg'] = 'No operation permission';
+            http_response_code(401);
+            echo json_encode($res);
+        }
+    } else {
+        $res['code'] = 7;
+        $res['msg'] = 'Param is Invalid';
+        http_response_code(200);
+        echo json_encode($res);
+    }
+} else {
+    http_response_code(405);
+    echo json_encode($res);
+}
 ?>

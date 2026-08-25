@@ -9,7 +9,7 @@ header('vary: Origin');
 
 include "../../conn.php";
 include "../../functions2.php";
-include "../../d5_helper.php";
+include "../../trx_helper.php";
 global $firebase;
 
 $shnunc = date("Y-m-d H:i:s");
@@ -46,23 +46,49 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
             $user = $firebase->get('users/' . $mobile);
             
             if ($user != null) {
-                $period = d5_get_current_period($typeId);
+                // Ensure recent results are present (generate if missing)
+                $results = trx_ensure_recent_results($firebase, $typeId, 1);
                 
-                $data = [
-                    'issueNumber' => (string)$period['periodId'],
-                    'startTime' => $period['startTime'],
-                    'endTime' => $period['endTime'],
-                    'serviceTime' => $period['serviceTime'],
-                    'intervalM' => ($typeId == 5) ? 1 : (($typeId == 6) ? 3 : (($typeId == 7) ? 5 : 10))
-                ];
+                $fbTypeKey = 'trx_t' . $typeId;
+                $latest = null;
                 
-                $res = [
-                    'code' => 0,
-                    'msg' => 'Succeed',
-                    'msgCode' => 0,
-                    'serviceNowTime' => $shnunc,
-                    'data' => $data
-                ];
+                if (!empty($results)) {
+                    $latest = $results[0];
+                } else {
+                    $allResults = $firebase->get('game_results/' . $fbTypeKey) ?: [];
+                    if (!empty($allResults)) {
+                        krsort($allResults);
+                        $latest = reset($allResults);
+                    }
+                }
+                
+                if ($latest != null) {
+                    $data = [
+                        'issueNumber' => (string)$latest['periodId'],
+                        'number' => isset($latest['number']) ? (int)$latest['number'] : 0,
+                        'colour' => isset($latest['color']) ? (string)$latest['color'] : '',
+                        'premium' => isset($latest['premium']) ? (string)$latest['premium'] : '',
+                        'blockID' => isset($latest['blockID']) ? (string)$latest['blockID'] : '',
+                        'blockNumber' => isset($latest['blockNumber']) ? (int)$latest['blockNumber'] : 0,
+                        'blockTime' => isset($latest['blockTime']) ? (string)$latest['blockTime'] : ''
+                    ];
+                    
+                    $res = [
+                        'code' => 0,
+                        'msg' => 'Succeed',
+                        'msgCode' => 0,
+                        'serviceNowTime' => $shnunc,
+                        'data' => $data
+                    ];
+                } else {
+                    $res = [
+                        'code' => 1,
+                        'msg' => 'No results found',
+                        'msgCode' => 0,
+                        'serviceNowTime' => $shnunc,
+                        'data' => null
+                    ];
+                }
                 http_response_code(200);
                 echo json_encode($res);
             } else {
