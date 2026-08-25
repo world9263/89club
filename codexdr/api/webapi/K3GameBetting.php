@@ -100,7 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                         'createdAt' => date('Y-m-d H:i:s')
                     ];
                     
-                    $firebase->push('game_bets/' . $fbTypeKey . '/' . $issuenumber, $betData);
+                    $push_id = uniqid();
+                    $firebase->set('game_bets/' . $fbTypeKey . '/' . $issuenumber . '/' . $push_id, $betData);
                     
                     $res = [
                         'code' => 0,
