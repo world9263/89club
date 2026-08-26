@@ -14,19 +14,19 @@ function respondJson($data, $httpCode = 200) {
 }
 
 if ($firebase == null) {
-    respondJson(["error" => "Firebase DB connection failed"], 500);
+    respondJson(["success" => false, "error" => "Firebase DB connection failed"]);
 }
 
 $action = $_GET['action'] ?? '';
 $userId = $_GET['userId'] ?? '';
 
 if (empty($userId)) {
-    respondJson(["error" => "Missing userId"], 400);
+    respondJson(["success" => false, "error" => "Missing userId"]);
 }
 
 $user = $firebase->get('users/' . $userId);
 if ($user == null) {
-    respondJson(["error" => "User not found"], 404);
+    respondJson(["success" => false, "error" => "User not found"]);
 }
 
 date_default_timezone_set("Asia/Kolkata");
@@ -146,16 +146,16 @@ switch ($action) {
         $panelId = $data['panelId'] ?? 'panel1';
 
         if ($amount < 10 || $amount > 10000) {
-            respondJson(["error" => "Invalid bet amount"], 400);
+            respondJson(["success" => false, "error" => "Invalid bet amount"]);
         }
 
         if ($state['status'] !== 'betting') {
-            respondJson(["error" => "Betting phase has ended for this round"], 400);
+            respondJson(["success" => false, "error" => "Betting phase has ended for this round"]);
         }
 
         $balance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
         if ($balance < $amount) {
-            respondJson(["error" => "Insufficient balance"], 400);
+            respondJson(["success" => false, "error" => "Insufficient balance"]);
         }
 
         // Deduct balance
@@ -187,7 +187,7 @@ switch ($action) {
         $clientMultiplier = isset($data['multiplier']) ? (float)$data['multiplier'] : 0.0;
 
         if ($state['status'] !== 'flying') {
-            respondJson(["error" => "Round has not started flying or has already crashed"], 400);
+            respondJson(["success" => false, "error" => "Round has not started flying or has already crashed"]);
         }
 
         // Calculate server multiplier at this exact moment
@@ -196,22 +196,22 @@ switch ($action) {
 
         // Check if plane has already crashed
         if ($serverMultiplier >= $crashMultiplier) {
-            respondJson(["error" => "Plane has already crashed"], 400);
+            respondJson(["success" => false, "error" => "Plane has already crashed"]);
         }
 
         // Check if the client cashed out after the crash
         if ($clientMultiplier >= $crashMultiplier) {
-            respondJson(["error" => "Cashed out after crash"], 400);
+            respondJson(["success" => false, "error" => "Cashed out after crash"]);
         }
 
         // Get the active bet
         $bet = $firebase->get("aviator_bets/{$roundId}/{$userId}_{$panelId}");
         if ($bet == null) {
-            respondJson(["error" => "Active bet not found"], 404);
+            respondJson(["success" => false, "error" => "Active bet not found"]);
         }
 
         if ($bet['status'] !== 'pending') {
-            respondJson(["error" => "Bet already settled"], 400);
+            respondJson(["success" => false, "error" => "Bet already settled"]);
         }
 
         // Use the smaller of server/client multipliers to prevent injection cheating
@@ -238,7 +238,7 @@ switch ($action) {
         break;
 
     default:
-        respondJson(["error" => "Invalid action"], 400);
+        respondJson(["success" => false, "error" => "Invalid action"]);
         break;
 }
 ?>

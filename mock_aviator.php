@@ -7,7 +7,17 @@ ini_set('display_errors', 1);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator</title>
+    <script>
+        (function() {
+            const originalWarn = console.warn;
+            console.warn = function(...args) {
+                if (args[0] && typeof args[0] === 'string' && args[0].indexOf('tailwindcss.com') !== -1) {
+                    return;
+                }
+                originalWarn.apply(console, args);
+            };
+        })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -357,11 +367,28 @@ ini_set('display_errors', 1);
             }, 1800);
         }
 
+        function showToast(message) {
+            let container = document.getElementById('floating-win-container');
+            let toast = document.createElement('div');
+            toast.className = 'px-4 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl border border-rose-500 shadow-lg animate-bounce flex items-center gap-1.5 transition-all duration-500 z-50';
+            toast.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${message}`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 3000);
+        }
+
         async function clickBetBtn(panelNum) {
             let state = panelState[panelNum];
             if (state.status === 'idle') {
                 if (currentBalance < state.betAmount) {
-                    alert("Insufficient Wallet Balance!");
+                    showToast("Insufficient Wallet Balance!");
                     return;
                 }
 
@@ -381,7 +408,7 @@ ini_set('display_errors', 1);
                         btn.className = 'col-span-5 h-16 rounded-xl btn-cancel text-white flex flex-col items-center justify-center tracking-wide transition-all';
                         document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Cancel';
                     } else {
-                        alert(data.error || "Wager placing failed");
+                        showToast(data.error || "Wager placing failed");
                     }
                 } catch(e) {
                     console.error(e);
@@ -437,7 +464,7 @@ ini_set('display_errors', 1);
                         currentBalance -= winAmount;
                         document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
                         resetPanelButton(panelNum);
-                        alert("Cashout failed: " + (data.error || "unknown error"));
+                        showToast("Cashout failed: " + (data.error || "unknown error"));
                     }
                 }).catch(err => {
                     console.error(err);
