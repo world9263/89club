@@ -32,7 +32,7 @@
 				$data['isShowLotteryDragon'] = true;
 				$data['isSplitLocalEWallet'] = true;
 				$data['jackportMaxReswadAmount'] = 500;
-				$data['projectName'] = '91 𝐂𝐋𝐔𝐁';
+				$data['projectName'] = '89 𝐂𝐋𝐔𝐁';
 				$data['projectLogo'] = 'https://89club-production.up.railway.app/logo.png';
 				$data['languages'] = 'en|hd';
 				$data['webIco'] = 'https://89club-production.up.railway.app/logo.png';

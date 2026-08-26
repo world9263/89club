@@ -67,14 +67,14 @@
 							$data['jumpType'] = 1;
 						}
 						else if($bannerId == 47){
-							$data['title'] = "91 𝐂𝐋𝐔𝐁 Support Funds\t";
+							$data['title'] = "89 𝐂𝐋𝐔𝐁 Support Funds\t";
 							$data['img'] = '<p><img src="https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/banner/vip8585.jpg" style="width: 658px;"><br></p>';
 							$data['img'] = '<h3 style="text-align: center; color: #000000;"><strong>Bonus Rules</strong></h3><div style="text-align: center;"></div><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"><strong>1. Support Fund is given only on the amount of recharge you loose</strong></h4><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"><strong>2. Contact your Tutor to claim support fund</h4><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"></h4>';
                             $data['coverUrl'] = 'https://ossimg.91admin123admin.com/91club/editor/editor_20241129214224thw2.jpg';
 							$data['jumpType'] = 1;
 						}
 						else if($bannerId == 66){
-							$data['title'] = "91 𝐂𝐋𝐔𝐁 RECRUITING AGENTS\t";
+							$data['title'] = "89 𝐂𝐋𝐔𝐁 RECRUITING AGENTS\t";
                             $data['img'] = '<h3 style="text-align: center; color: #000000;"><strong>Bonus Rules</strong></h3><div style="text-align: center;"></div><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"><strong>1. Contact your Official Tutor for more information</strong></h4><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"><strong>  </h4><h4 style="text-align: center; font-family: Arial, sans-serif; font-size: 14px; color: #ffcc00;"></h4>';
                           
 							$data['coverUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/banner/Banner_20240514165423npjh.png';
