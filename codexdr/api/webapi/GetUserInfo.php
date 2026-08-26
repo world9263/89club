@@ -83,7 +83,7 @@
 						
 						$data['sign'] = strtoupper(hash('sha256', $knbdstr));
 						
-						$data['amountofCode'] = 0.00;
+						$data['amountofCode'] = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.00;
 						$data['isWithdraw'] = null;
 						$data['message'] = null;
 						$data['withdrawCount'] = 0;

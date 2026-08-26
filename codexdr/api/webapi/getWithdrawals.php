@@ -102,21 +102,9 @@
 					$withdrawRemainingCount = max(0, $limit - $withdrawCount);
 					
 					// Wagering checks
-					$total_deposit = isset($user['total_deposit']) ? (float)$user['total_deposit'] : 0.0;
-					$total_bet = isset($user['total_bet']) ? (float)$user['total_bet'] : 0.0;
-					
-					if ($total_deposit == 0.0) {
-						$amountofCode = 0;
-						$wiwo = $currentBalance;
-					} else {
-						if ($total_bet >= $total_deposit) {
-							$amountofCode = 0;
-							$wiwo = $currentBalance;
-						} else {
-							$amountofCode = round($total_deposit - $total_bet, 2);
-							$wiwo = 0;
-						}
-					}
+					$requiredTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.00;
+					$amountofCode = $requiredTurnover;
+					$wiwo = max(0.0, round($currentBalance - $requiredTurnover, 2));
 					
 					$data["withdrawalsrule"]["withdrawCount"] = $withdrawCount;
 					$data["withdrawalsrule"]["withdrawRemainingCount"] = $withdrawRemainingCount;
@@ -126,7 +114,7 @@
 					$data["withdrawalsrule"]["minPrice"] = 110;
 					$data["withdrawalsrule"]["maxPrice"] = 50000;
 					$data["withdrawalsrule"]["amount"] = $currentBalance;
-					$data["withdrawalsrule"]["amountofCode"] = (int)$amountofCode;
+					$data["withdrawalsrule"]["amountofCode"] = $amountofCode;
 					$data["withdrawalsrule"]["canWithdrawAmount"] = $wiwo;
 					$data["withdrawalsrule"]["c2cUnitAmount"] = 0;
 					$data["withdrawalsrule"]["uRate"] = 93;
