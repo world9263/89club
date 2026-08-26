@@ -3,3 +3,7 @@
 .game-iframe .van-nav-bar { display: none !important; }
 .game-iframe { height: 100vh !important; }
 .game-iframe iframe { height: 100% !important; top: 0 !important; }
+
+.game-iframe > *:not(iframe) { display: none !important; }
+.game-iframe { height: 100vh !important; margin: 0 !important; padding: 0 !important; }
+.game-iframe iframe { height: 100% !important; width: 100% !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 9999 !important; }
