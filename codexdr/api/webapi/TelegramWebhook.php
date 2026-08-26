@@ -50,11 +50,13 @@ if (isset($update['callback_query'])) {
                     $currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
                     $newBalance = round($currentBalance + $amount, 2);
                     $currentTotalDeposit = isset($user['total_deposit']) ? (float)$user['total_deposit'] : 0.0;
+                    $currentTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.0;
                     
-                    // Update user balance, total deposits, and deposit status
+                    // Update user balance, total deposits, deposit status, and wagering requirement
                     $firebase->update('users/' . $userId, [
                         'motta' => $newBalance,
-                        'total_deposit' => $currentTotalDeposit + $amount
+                        'total_deposit' => $currentTotalDeposit + $amount,
+                        'required_turnover' => round($currentTurnover + $amount, 2)
                     ]);
                     $firebase->update('deposits/' . $requestId, ['status' => 'success']);
                     
