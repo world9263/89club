@@ -51,8 +51,10 @@ $shonupost = json_decode($shonubody, true);
 						        'wll_jdb' => 0.0
 						    ]);
 						    $data['amount'] = $total;
+						    $data['balance'] = $total;
 						} else {
 						    $data['amount'] = $motta;
+						    $data['balance'] = $motta;
 						}
 						
 						$res['data'] = $data;

@@ -79,33 +79,6 @@ $firebase->update('users/' . $userName, [
 ]);
 
 $handles = [];
-if ($cq9)      $handles[] = prepareWithdrawHandle("cq9",       $cq9,       $userName);
-if ($aio)      $handles[] = prepareWithdrawHandle("aio",       $aio,       $userName);
-if ($jdbpro)   $handles[] = prepareWithdrawHandle("spribe",    $jdbpro,    $userName);
-if ($evoslots) $handles[] = prepareWithdrawHandle("evoslots",  $evoslots,  $userName);
-if ($evo)      $handles[] = prepareWithdrawHandle("evo",       $evo,       $userName);
-if ($ninesgame) $handles[] = prepareWithdrawHandle("ninesgame", $ninesgame, $userName);
-
-if ($handles) {
-    $mh = curl_multi_init();
-    foreach ($handles as $ch) curl_multi_add_handle($mh, $ch);
-
-    $active = null;
-    do {
-        $mrc = curl_multi_exec($mh, $active);
-        if ($mrc === CURLM_OK) {
-            if (curl_multi_select($mh) === -1) usleep(100000);
-        } else {
-            break;
-        }
-    } while ($active);
-
-    foreach ($handles as $ch) {
-        curl_multi_remove_handle($mh, $ch);
-        curl_close($ch);
-    }
-    curl_multi_close($mh);
-}
 
 echo json_encode([
     "status"              => "success",

@@ -135,6 +135,8 @@
 					$list[] = ['vendorCode'=>'EVO_Slots',  'balance'=> $slotBal];
 
 					$data = [
+						'amount'              => (float)$balarr['motta'],
+						'balance'             => (float)$balarr['motta'],
 						'thidGameBalanceList' => $list,
 						'totalWithdraw'       => 0,
 						'totalRecharge'       => 0
