@@ -65,12 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                     $hasDeposited = false;
                     if (isset($user['has_deposited']) && $user['has_deposited'] == true) {
                         $hasDeposited = true;
+                    } else if (isset($user['total_deposit']) && (float)$user['total_deposit'] > 0) {
+                        $hasDeposited = true;
+                        $firebase->update('users/' . $mobile, ['has_deposited' => true]);
                     } else {
                         // Check if there is any approved deposit for this user in Firebase
                         $allDeposits = $firebase->get('deposits');
                         if ($allDeposits) {
                             foreach ($allDeposits as $dep) {
-                                if (isset($dep['userId']) && $dep['userId'] == $mobile && isset($dep['status']) && strtolower($dep['status']) == 'approved') {
+                                $status = strtolower($dep['status'] ?? '');
+                                if (isset($dep['userId']) && $dep['userId'] == $mobile && ($status == 'approved' || $status == 'success')) {
                                     $hasDeposited = true;
                                     // Cache this on the user profile so next check is instant
                                     $firebase->update('users/' . $mobile, ['has_deposited' => true]);
