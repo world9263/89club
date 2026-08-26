@@ -103,50 +103,14 @@
 					$uid       = (int)($data_auth['payload']['id'] ?? 0);
 					$balarr    = ['motta' => isset($user['motta']) ? $user['motta'] : 0, 'wll_jdb' => isset($user['wll_jdb']) ? $user['wll_jdb'] : 0, 'wll_jili' => isset($user['wll_jili']) ? $user['wll_jili'] : 0];
 
-					// CQ9 balance
-					$cq9_url  = "{$apibaseurl}cq9?action=balance"
-					          . "&userid={$uid}"
-					          . "&callbackurl=" . urlencode($cq9)
-					          . "&accessKey=allow";
-					$cq9_data = json_decode(http_get($cq9_url), true) ?: [];
-					$xd_cq9   = isset($cq9_data['balance']) ? (int)$cq9_data['balance'] : 0;
+					$xd_cq9   = 0;
+					$edbBalance = 0;
+					$AIOBalance = 0;
+					$spribebal   = 0;
+					$slotBal    = 0;
+					$ninesgameBal = 0;
 
-					// EVO (EDB) balance
-					$evo_url    = "{$apibaseurl}evo?action=balance&userid={$uid}";
-					$evo_data   = json_decode(http_get($evo_url), true) ?: [];
-					$edbBalance = (!empty($evo_data['success']) ? floatval($evo_data['balance']) : 0);
-
-					// AIO balance
-					$aio_url    = "{$apibaseurl}aio?action=balance"
-					           . "&callbackurl=" . urlencode($aio)
-					           . "&userid={$uid}";
-					$aio_data   = json_decode(http_get($aio_url), true) ?: [];
-					$AIOBalance = (!empty($aio_data['success']) ? floatval($aio_data['balance']) : 0);
-
-					// Spribe (JDB proxy) balance
-					$spr_url     = "{$apibaseurl}spribe?action=balance"
-					            . "&callbackurl=" . urlencode($jdbpro)
-					            . "&userid={$uid}";
-					$spr_data    = json_decode(http_get($spr_url), true) ?: [];
-					$spribebal   = (!empty($spr_data['success']) ? floatval($spr_data['balance']) : 0);
-
-					// EVO Slots balance
-					$slot_url   = "{$apibaseurl}evoslots?action=balance"
-					           . "&callbackurl=" . urlencode($evoslots)
-					           . "&userid={$uid}";
-					$slot_data  = json_decode(http_get($slot_url), true) ?: [];
-					$slotBal    = (!empty($slot_data['success']) ? floatval($slot_data['balance']) : 0);
-
-					// NinesGame (use http_get to ensure scheme)
-					$ninesgame_url = "{$apibaseurl}ninesgame?action=balance&userid={$uid}";
-					$ng_resp = http_get($ninesgame_url);
-					$ninesgameBal = is_numeric(trim($ng_resp)) ? (float)trim($ng_resp) : 0;
-
-					// All balance (separate var to avoid clobbering $spr_url)
-					$allbal_url  = "{$bal}?user={$uid}";
-					$allbal_data = json_decode(http_get($allbal_url), true) ?: [];
-					$spribebalwith = (!empty($allbal_data['success']) ? floatval($allbal_data['balance']) : 0);
-					// (use $spribebalwith if/where you actually need it)
+					$spribebalwith = 0;
 
 					// assemble list
 					$list = [];
