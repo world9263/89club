@@ -51,6 +51,7 @@ if($data_auth['status'] === 'Success') {
             'motta' => $user['motta'],
             'total_bet' => $currentTotalBet + $totalAmount
         ]);
+        deduct_turnover($mobile, $totalAmount);
         
         $betData = [
             'userId' => $mobile,

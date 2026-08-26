@@ -58,10 +58,14 @@
 									$sql2= mysqli_query($conn,"UPDATE `hodike_nirvahaka` SET `nombredutilisateurs` = '".$nombredutilisateurs."' WHERE `enserie` = '".$giftCode."'");
 									$crdt = date("Y-m-d H:i:m");
 									$sql= mysqli_query($conn,"INSERT INTO `hodike_balakedara` (`userkani`, `serial`, `price`,`shonu`) VALUES ('".$shonuid."','".$giftCode."','".$prix."','".$crdt."')");
-									$nabikarana = "UPDATE shonu_kaichila
-									SET motta = ROUND(motta + '".$prix."', 2)
-									WHERE balakedara = '".$shonuid."'";
-									$conn->query($nabikarana);
+									
+									// Update user balance in Firebase
+									$userMotta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
+									$newMotta = round($userMotta + $prix, 2);
+									$firebase->update('users/' . $mobile, ['motta' => $newMotta]);
+									
+									// Add wagering turnover requirement on gift code reward
+									add_turnover($mobile, $prix);
 									$data = null;
 									$res['data'] = $data;
 									$res['code'] = 0;

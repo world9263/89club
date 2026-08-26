@@ -377,4 +377,23 @@ function encryptor($action, $string) {
 	return $output;
 }
 
+function deduct_turnover($mobile, $betAmount) {
+    global $firebase;
+    $user = $firebase->get('users/' . $mobile);
+    if ($user && isset($user['required_turnover']) && $user['required_turnover'] > 0) {
+        $currentTurnover = (float)$user['required_turnover'];
+        $newTurnover = max(0.0, $currentTurnover - (float)$betAmount);
+        $firebase->update('users/' . $mobile, ['required_turnover' => round($newTurnover, 2)]);
+    }
+}
+
+function add_turnover($mobile, $amount) {
+    global $firebase;
+    $user = $firebase->get('users/' . $mobile);
+    if ($user) {
+        $currentTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.0;
+        $newTurnover = $currentTurnover + (float)$amount;
+        $firebase->update('users/' . $mobile, ['required_turnover' => round($newTurnover, 2)]);
+    }
+}
 ?>

@@ -67,8 +67,13 @@
 							$viprec = "INSERT INTO viprec (user_id, type, motta, created_at, lvl) VALUES ('$shonuid', '$taskId', '$balance', '$shnunc', '$lvl')";
                             $conn->query($viprec);
 
-							$nabikarana = "UPDATE shonu_kaichila SET motta = motta + $balance WHERE balakedara='$shonuid'";
-							$conn->query($nabikarana);
+							// Update user balance in Firebase
+							$userMotta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
+							$newMotta = round($userMotta + $balance, 2);
+							$firebase->update('users/' . $mobile, ['motta' => $newMotta]);
+							
+							// Add wagering turnover requirement on free credit
+							add_turnover($mobile, $balance);
 
 							$res = [
                                 'data' => [

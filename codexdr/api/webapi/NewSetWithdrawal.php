@@ -41,6 +41,37 @@
 					$currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
 					$isDemoUser = isset($user['is_demo']) ? (bool)$user['is_demo'] : false;
 					
+					// Enforce ₹200 approved deposit limit
+					$totalDeposit = 0.0;
+					$allDeposits = $firebase->get('deposits');
+					if ($allDeposits) {
+						foreach ($allDeposits as $dep) {
+							if (isset($dep['userId']) && $dep['userId'] == $mobile && isset($dep['status']) && strtolower($dep['status']) == 'approved') {
+								$totalDeposit += (float)$dep['amount'];
+							}
+						}
+					}
+					
+					if ($totalDeposit < 200) {
+						$res['code'] = 1;
+						$res['msg'] = 'You must deposit at least ₹200 before making a withdrawal.';
+						$res['msgCode'] = 150;
+						http_response_code(200);
+						echo json_encode($res);
+						exit;
+					}
+
+					// Enforce turnover wager check
+					$requiredTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.0;
+					if ($requiredTurnover > 0) {
+						$res['code'] = 1;
+						$res['msg'] = 'You must bet another ₹' . round($requiredTurnover, 2) . ' before making a withdrawal.';
+						$res['msgCode'] = 151;
+						http_response_code(200);
+						echo json_encode($res);
+						exit;
+					}
+					
 					// Validate amount
 					if ($amount >= 110 && $amount <= 50000 && $amount <= $currentBalance) {
 						// Deduct balance in Firebase

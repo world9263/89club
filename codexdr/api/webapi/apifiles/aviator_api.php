@@ -102,8 +102,9 @@ switch ($action) {
         }
 
         // Deduct balance
-        $newBalance = $balance - $amount;
+        $newBalance = round($balance - $amount, 2);
         $firebase->update('users/' . $userId, ['motta' => $newBalance]);
+        deduct_turnover($userId, $amount);
 
         // Record bet
         $betRecord = [

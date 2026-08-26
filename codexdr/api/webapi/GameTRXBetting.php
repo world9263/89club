@@ -75,6 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'GET') {
                         'motta' => $newBalance,
                         'total_bet' => $currentTotalBet + $totalamount
                     ]);
+                    deduct_turnover($mobile, $totalamount);
                     
                     $contractAmount = $totalamount * 0.98;
                     $fbTypeKey = 'trx_t' . $typeId;
