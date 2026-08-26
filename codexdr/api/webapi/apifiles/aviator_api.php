@@ -29,14 +29,9 @@ if ($user == null) {
     respondJson(["error" => "User not found"], 404);
 }
 
-// Deterministic round generation
 date_default_timezone_set("Asia/Kolkata");
 $now = microtime(true);
-$roundLength = 30; // 30 seconds per round
-$roundId = (int)floor($now / $roundLength);
-$elapsed = fmod($now, $roundLength);
 
-// Generate multiplier distribution
 function generateRandomMultiplier() {
     $rand = mt_rand(1, 1000) / 10;
     if ($rand < 15.0) return 1.0; // 15% instant crash
@@ -45,37 +40,99 @@ function generateRandomMultiplier() {
     return round(10.0 + (mt_rand(1, 100) / 100) * 90.0, 2); // 5% high crash (10 - 100)
 }
 
+// Fetch current state
+$state = $firebase->get('aviator_current_state');
+if ($state == null) {
+    $state = [
+        'roundId' => 100001,
+        'status' => 'betting',
+        'phaseStartTime' => $now,
+        'crashMultiplier' => generateRandomMultiplier(),
+        'history' => [1.25, 2.45, 1.05, 5.12, 1.88, 3.41, 1.02]
+    ];
+    $firebase->set('aviator_current_state', $state);
+}
+
+$phaseStartTime = (float)$state['phaseStartTime'];
+$elapsed = $now - $phaseStartTime;
+
+if ($elapsed > 60.0) {
+    // Reset to fresh betting round if inactive for over a minute
+    $state['status'] = 'betting';
+    $state['phaseStartTime'] = $now;
+    $state['crashMultiplier'] = generateRandomMultiplier();
+    $firebase->set('aviator_current_state', $state);
+    
+    $phaseStartTime = $now;
+    $elapsed = 0.0;
+} else {
+    // standard state machine ticking
+    $changed = false;
+    if ($state['status'] === 'betting') {
+        if ($elapsed >= 8.0) {
+            $state['status'] = 'flying';
+            $state['phaseStartTime'] = $now;
+            $changed = true;
+            
+            $phaseStartTime = $now;
+            $elapsed = 0.0;
+        }
+    } else if ($state['status'] === 'flying') {
+        $currentMultiplier = round(1.0 + pow($elapsed, 1.8) * 0.06, 2);
+        if ($currentMultiplier >= (float)$state['crashMultiplier']) {
+            $state['status'] = 'crashed';
+            $state['phaseStartTime'] = $now;
+            $changed = true;
+            
+            $phaseStartTime = $now;
+            $elapsed = 0.0;
+        }
+    } else if ($state['status'] === 'crashed') {
+        if ($elapsed >= 2.0) {
+            $state['roundId'] = (int)$state['roundId'] + 1;
+            $state['status'] = 'betting';
+            $state['phaseStartTime'] = $now;
+            
+            $history = $state['history'] ?? [];
+            array_unshift($history, (float)$state['crashMultiplier']);
+            $state['history'] = array_slice($history, 0, 15);
+            
+            $state['crashMultiplier'] = generateRandomMultiplier();
+            $changed = true;
+            
+            $phaseStartTime = $now;
+            $elapsed = 0.0;
+        }
+    }
+    
+    if ($changed) {
+        $firebase->set('aviator_current_state', $state);
+    }
+}
+
+$roundId = $state['roundId'];
+$crashMultiplier = (float)$state['crashMultiplier'];
+
+// Compute dynamic elapsed seconds for client
+$clientElapsed = 0.0;
+if ($state['status'] === 'betting') {
+    $clientElapsed = $now - $phaseStartTime;
+} else if ($state['status'] === 'flying') {
+    $clientElapsed = 8.0 + ($now - $phaseStartTime);
+} else if ($state['status'] === 'crashed') {
+    $flightTimeToCrash = pow(($crashMultiplier - 1.0) / 0.06, 1 / 1.8);
+    $clientElapsed = 8.0 + $flightTimeToCrash + ($now - $phaseStartTime);
+}
+
 switch ($action) {
     case 'get_state':
-        // Ensure crash multiplier exists for the current round
-        $roundData = $firebase->get("aviator_rounds/{$roundId}");
-        if ($roundData == null) {
-            $crashMultiplier = generateRandomMultiplier();
-            $roundData = [
-                "roundId" => $roundId,
-                "crashMultiplier" => $crashMultiplier,
-                "startTime" => $roundId * $roundLength + 8 // 8s betting phase
-            ];
-            $firebase->set("aviator_rounds/{$roundId}", $roundData);
-
-            // Add previous round outcome to history
-            $prevRoundId = $roundId - 1;
-            $prevRound = $firebase->get("aviator_rounds/{$prevRoundId}");
-            if ($prevRound != null) {
-                $history = $firebase->get("aviator_history") ?: [];
-                array_unshift($history, $prevRound['crashMultiplier']);
-                $history = array_slice($history, 0, 15);
-                $firebase->set("aviator_history", $history);
-            }
-        }
-
-        $history = $firebase->get("aviator_history") ?: [1.25, 2.45, 1.05, 5.12, 1.88, 3.41, 1.02];
+        $history = $state['history'] ?? [1.25, 2.45, 1.05, 5.12, 1.88, 3.41, 1.02];
         $bets = $firebase->get("aviator_bets/{$roundId}") ?: [];
 
         respondJson([
             "roundId" => $roundId,
-            "elapsed" => $elapsed,
-            "crashMultiplier" => $roundData['crashMultiplier'],
+            "elapsed" => $clientElapsed,
+            "crashMultiplier" => $crashMultiplier,
             "history" => $history,
             "bets" => $bets,
             "balance" => isset($user['motta']) ? (float)$user['motta'] : 0.0,
@@ -92,7 +149,7 @@ switch ($action) {
             respondJson(["error" => "Invalid bet amount"], 400);
         }
 
-        if ($elapsed >= 8) {
+        if ($state['status'] !== 'betting') {
             respondJson(["error" => "Betting phase has ended for this round"], 400);
         }
 
@@ -129,20 +186,12 @@ switch ($action) {
         $panelId = $data['panelId'] ?? 'panel1';
         $clientMultiplier = isset($data['multiplier']) ? (float)$data['multiplier'] : 0.0;
 
-        if ($elapsed < 8) {
-            respondJson(["error" => "Round has not started flying"], 400);
+        if ($state['status'] !== 'flying') {
+            respondJson(["error" => "Round has not started flying or has already crashed"], 400);
         }
 
-        // Fetch round details
-        $roundData = $firebase->get("aviator_rounds/{$roundId}");
-        if ($roundData == null) {
-            respondJson(["error" => "Round data not found"], 404);
-        }
-
-        $crashMultiplier = (float)$roundData['crashMultiplier'];
-        
         // Calculate server multiplier at this exact moment
-        $flightElapsed = $elapsed - 8;
+        $flightElapsed = $now - $phaseStartTime;
         $serverMultiplier = round(1.0 + pow($flightElapsed, 1.8) * 0.06, 2);
 
         // Check if plane has already crashed

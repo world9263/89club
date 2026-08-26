@@ -89,7 +89,8 @@ ini_set('display_errors', 1);
         
         <!-- HEADER -->
         <header class="flex items-center justify-between px-4 py-2 border-b border-[#1b1c24] bg-card shrink-0">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5">
+                <a href="/#/home" class="text-slate-400 hover:text-white text-lg pr-1.5"><i class="fa-solid fa-angle-left"></i></a>
                 <span class="text-rose-600 font-extrabold text-xl italic tracking-wider flex items-center gap-1">
                     <i class="fa-solid fa-paper-plane text-rose-500"></i> Aviator
                 </span>
@@ -279,12 +280,11 @@ ini_set('display_errors', 1);
         let currentMultiplier = 1.0;
         
         let localState = 'idle'; // 'betting', 'flying', 'crashed'
-        let serverTimeOffset = 0;
+        let clientElapsed = 0.0;
 
         // Smooth flight animation parameters
         let lastFrameTime = performance.now();
         let localFlightTime = 0.0;
-        let targetFlightTime = 0.0;
         
         let panelState = {
             1: { status: 'idle', betAmount: 100, mode: 'bet' },
@@ -451,20 +451,22 @@ ini_set('display_errors', 1);
                 let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=get_state&userId=${userId}`);
                 let data = await res.json();
                 
-                activeRoundId = data.roundId;
+                let serverElapsed = parseFloat(data.elapsed);
+                let serverRoundId = parseInt(data.roundId);
+                
+                // Smooth synchronizations
+                if (activeRoundId !== serverRoundId) {
+                    activeRoundId = serverRoundId;
+                    clientElapsed = serverElapsed;
+                } else {
+                    let diff = serverElapsed - clientElapsed;
+                    if (Math.abs(diff) > 0.5) {
+                        clientElapsed = serverElapsed;
+                    }
+                }
+
                 crashMultiplier = parseFloat(data.crashMultiplier);
                 currentBalance = parseFloat(data.balance);
-                
-                // Align client clock with server clock
-                let serverNow = parseFloat(data.serverTimeMs);
-                serverTimeOffset = serverNow - Date.now();
-
-                let elapsedSeconds = parseFloat(data.elapsed);
-                if (elapsedSeconds >= 8.0) {
-                    targetFlightTime = elapsedSeconds - 8.0;
-                } else {
-                    targetFlightTime = 0.0;
-                }
 
                 document.getElementById('label-round-id').innerText = activeRoundId;
                 document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
@@ -497,7 +499,7 @@ ini_set('display_errors', 1);
         }
 
         // Draw curved flight path and plane icon with rotating propeller rotor
-        function drawFlightCanvas(roundElapsedMs) {
+        function drawFlightCanvas() {
             ctx.clearRect(0, 0, width, height);
 
             let flightTime = localFlightTime;
@@ -696,15 +698,14 @@ ini_set('display_errors', 1);
             let deltaTime = (nowFrame - lastFrameTime) / 1000.0; // in seconds
             lastFrameTime = nowFrame;
 
-            let adjustedNow = Date.now() + serverTimeOffset;
-            let roundElapsedMs = adjustedNow % 30000;
+            // Increment client elapsed time locally
+            clientElapsed += deltaTime;
             
-            if (roundElapsedMs < 8000) {
+            if (clientElapsed < 8.0) {
                 // Betting phase
                 if (localState !== 'betting') {
                     localState = 'betting';
                     localFlightTime = 0.0;
-                    targetFlightTime = 0.0;
                     // Reset panels for the new round
                     for (let pNum = 1; pNum <= 2; pNum++) {
                         panelState[pNum].status = 'idle';
@@ -712,7 +713,8 @@ ini_set('display_errors', 1);
                         resetPanelButton(pNum);
                     }
                 }
-                let remaining = ((8000 - roundElapsedMs) / 1000).toFixed(1);
+                let remaining = (8.0 - clientElapsed).toFixed(1);
+                if (remaining < 0) remaining = 0.0;
                 document.getElementById('loading-overlay').classList.remove('opacity-0');
                 document.getElementById('loading-overlay').classList.remove('pointer-events-none');
                 document.getElementById('countdown-label').innerText = `Next Round In ${remaining}s`;
@@ -739,22 +741,7 @@ ini_set('display_errors', 1);
                 document.getElementById('loading-overlay').classList.add('opacity-0');
                 document.getElementById('loading-overlay').classList.add('pointer-events-none');
                 
-                // Let the flight timer tick forward locally at exactly 60fps
-                if (localState === 'betting') {
-                    // Just transitioned to flying
-                    localFlightTime = (roundElapsedMs - 8000) / 1000.0;
-                } else {
-                    localFlightTime += deltaTime;
-                }
-
-                // Smoothly nudge local flight time towards target server flight time to prevent drift without jumping
-                let drift = targetFlightTime - localFlightTime;
-                if (Math.abs(drift) > 0.5) {
-                    localFlightTime = targetFlightTime;
-                } else {
-                    localFlightTime += drift * 0.08; // gently interpolate 8% of the way each frame
-                }
-
+                localFlightTime = clientElapsed - 8.0;
                 let nextMultiplier = parseFloat((1.0 + Math.pow(localFlightTime, 1.8) * 0.06).toFixed(2));
 
                 if (nextMultiplier >= crashMultiplier) {
@@ -806,7 +793,7 @@ ini_set('display_errors', 1);
                 }
             }
 
-            drawFlightCanvas(roundElapsedMs);
+            drawFlightCanvas();
             requestAnimationFrame(animate);
         }
 

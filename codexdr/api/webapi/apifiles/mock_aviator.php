@@ -18,6 +18,10 @@ ini_set('display_errors', 1);
             user-select: none;
             overflow-x: hidden;
         }
+        input, select, textarea, button {
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+        }
         .main-container {
             max-width: 480px;
             margin: 0 auto;
@@ -32,9 +36,9 @@ ini_set('display_errors', 1);
         .bg-graph {
             background-color: #0d0e12;
             background-image: 
-                radial-gradient(circle at bottom left, rgba(225, 29, 72, 0.15) 0%, transparent 60%),
-                linear-gradient(rgba(26, 28, 36, 0.3) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(26, 28, 36, 0.3) 1px, transparent 1px);
+            radial-gradient(circle at bottom left, rgba(225, 29, 72, 0.15) 0%, transparent 60%),
+            linear-gradient(rgba(26, 28, 36, 0.3) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(26, 28, 36, 0.3) 1px, transparent 1px);
             background-size: 100% 100%, 20px 20px, 20px 20px;
         }
         .multi-badge {
@@ -85,7 +89,8 @@ ini_set('display_errors', 1);
         
         <!-- HEADER -->
         <header class="flex items-center justify-between px-4 py-2 border-b border-[#1b1c24] bg-card shrink-0">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5">
+                <a href="/#/home" class="text-slate-400 hover:text-white text-lg pr-1.5"><i class="fa-solid fa-angle-left"></i></a>
                 <span class="text-rose-600 font-extrabold text-xl italic tracking-wider flex items-center gap-1">
                     <i class="fa-solid fa-paper-plane text-rose-500"></i> Aviator
                 </span>
@@ -167,12 +172,12 @@ ini_set('display_errors', 1);
                 <!-- Auto Options (Hidden by default) -->
                 <div id="auto-settings-1" class="hidden flex items-center justify-between bg-[#0a0b0d] p-2 rounded-xl border border-[#1e2029] text-[10px]">
                     <div class="flex items-center gap-1.5">
-                        <input type="checkbox" id="chk-autobet-1" class="accent-rose-500">
-                        <label for="chk-autobet-1" class="font-bold text-slate-300">Auto Bet</label>
+                        <input type="checkbox" id="chk-autobet-1" class="w-4 h-4 accent-rose-500 cursor-pointer">
+                        <label for="chk-autobet-1" class="font-bold text-slate-300 cursor-pointer">Auto Bet</label>
                     </div>
                     <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
-                        <input type="checkbox" id="chk-autocashout-1" class="accent-rose-500">
-                        <label for="chk-autocashout-1" class="font-bold text-slate-300">Auto Cash Out</label>
+                        <input type="checkbox" id="chk-autocashout-1" class="w-4 h-4 accent-rose-500 cursor-pointer">
+                        <label for="chk-autocashout-1" class="font-bold text-slate-300 cursor-pointer">Auto Cash Out</label>
                         <input type="number" id="num-autocashout-1" value="2.00" step="0.1" min="1.01" class="w-12 bg-[#1c1d25] border border-slate-800 rounded px-1 text-center font-bold text-emerald-400 outline-none">
                     </div>
                 </div>
@@ -212,12 +217,12 @@ ini_set('display_errors', 1);
                 <!-- Auto Options (Hidden by default) -->
                 <div id="auto-settings-2" class="hidden flex items-center justify-between bg-[#0a0b0d] p-2 rounded-xl border border-[#1e2029] text-[10px]">
                     <div class="flex items-center gap-1.5">
-                        <input type="checkbox" id="chk-autobet-2" class="accent-rose-500">
-                        <label for="chk-autobet-2" class="font-bold text-slate-300">Auto Bet</label>
+                        <input type="checkbox" id="chk-autobet-2" class="w-4 h-4 accent-rose-500 cursor-pointer">
+                        <label for="chk-autobet-2" class="font-bold text-slate-300 cursor-pointer">Auto Bet</label>
                     </div>
                     <div class="flex items-center gap-1.5 border-l border-slate-800 pl-3">
-                        <input type="checkbox" id="chk-autocashout-2" class="accent-rose-500">
-                        <label for="chk-autocashout-2" class="font-bold text-slate-300">Auto Cash Out</label>
+                        <input type="checkbox" id="chk-autocashout-2" class="w-4 h-4 accent-rose-500 cursor-pointer">
+                        <label for="chk-autocashout-2" class="font-bold text-slate-300 cursor-pointer">Auto Cash Out</label>
                         <input type="number" id="num-autocashout-2" value="2.00" step="0.1" min="1.01" class="w-12 bg-[#1c1d25] border border-slate-800 rounded px-1 text-center font-bold text-emerald-400 outline-none">
                     </div>
                 </div>
@@ -275,7 +280,11 @@ ini_set('display_errors', 1);
         let currentMultiplier = 1.0;
         
         let localState = 'idle'; // 'betting', 'flying', 'crashed'
-        let serverTimeOffset = 0;
+        let clientElapsed = 0.0;
+
+        // Smooth flight animation parameters
+        let lastFrameTime = performance.now();
+        let localFlightTime = 0.0;
         
         let panelState = {
             1: { status: 'idle', betAmount: 100, mode: 'bet' },
@@ -357,7 +366,7 @@ ini_set('display_errors', 1);
                 }
 
                 try {
-                    let res = await fetch(`aviator_api.php?action=place_bet&userId=${userId}`, {
+                    let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=place_bet&userId=${userId}`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ amount: state.betAmount, panelId: `panel${panelNum}` })
@@ -379,7 +388,7 @@ ini_set('display_errors', 1);
                 }
             } else if (state.status === 'wagered' && localState === 'betting') {
                 try {
-                    let res = await fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
+                    let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=cashout&userId=${userId}`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: 1.0 })
@@ -415,7 +424,7 @@ ini_set('display_errors', 1);
                 showFloatingWinBadge(winAmount, cashoutMultiplier);
 
                 // Run fetch silently in the background
-                fetch(`aviator_api.php?action=cashout&userId=${userId}`, {
+                fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=cashout&userId=${userId}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: cashoutMultiplier })
@@ -439,16 +448,25 @@ ini_set('display_errors', 1);
         // Fetch state every 800ms
         async function updateState() {
             try {
-                let res = await fetch(`aviator_api.php?action=get_state&userId=${userId}`);
+                let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=get_state&userId=${userId}`);
                 let data = await res.json();
                 
-                activeRoundId = data.roundId;
+                let serverElapsed = parseFloat(data.elapsed);
+                let serverRoundId = parseInt(data.roundId);
+                
+                // Smooth synchronizations
+                if (activeRoundId !== serverRoundId) {
+                    activeRoundId = serverRoundId;
+                    clientElapsed = serverElapsed;
+                } else {
+                    let diff = serverElapsed - clientElapsed;
+                    if (Math.abs(diff) > 0.5) {
+                        clientElapsed = serverElapsed;
+                    }
+                }
+
                 crashMultiplier = parseFloat(data.crashMultiplier);
                 currentBalance = parseFloat(data.balance);
-                
-                // Align client clock with server clock
-                let serverNow = parseFloat(data.serverTimeMs);
-                serverTimeOffset = serverNow - Date.now();
 
                 document.getElementById('label-round-id').innerText = activeRoundId;
                 document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
@@ -481,10 +499,10 @@ ini_set('display_errors', 1);
         }
 
         // Draw curved flight path and plane icon with rotating propeller rotor
-        function drawFlightCanvas(roundElapsedMs) {
+        function drawFlightCanvas() {
             ctx.clearRect(0, 0, width, height);
 
-            let flightTime = (roundElapsedMs - 8000) / 1000;
+            let flightTime = localFlightTime;
             if (localState !== 'flying' || flightTime < 0) return;
 
             let ratio = Math.min(1.0, flightTime / 18);
@@ -676,13 +694,27 @@ ini_set('display_errors', 1);
 
         // 60fps Client-Side Animation and Multiplier Climbing
         function animate() {
-            let adjustedNow = Date.now() + serverTimeOffset;
-            let roundElapsedMs = adjustedNow % 30000;
+            let nowFrame = performance.now();
+            let deltaTime = (nowFrame - lastFrameTime) / 1000.0; // in seconds
+            lastFrameTime = nowFrame;
+
+            // Increment client elapsed time locally
+            clientElapsed += deltaTime;
             
-            if (roundElapsedMs < 8000) {
+            if (clientElapsed < 8.0) {
                 // Betting phase
-                localState = 'betting';
-                let remaining = ((8000 - roundElapsedMs) / 1000).toFixed(1);
+                if (localState !== 'betting') {
+                    localState = 'betting';
+                    localFlightTime = 0.0;
+                    // Reset panels for the new round
+                    for (let pNum = 1; pNum <= 2; pNum++) {
+                        panelState[pNum].status = 'idle';
+                        autoBetPlaced[pNum] = false;
+                        resetPanelButton(pNum);
+                    }
+                }
+                let remaining = (8.0 - clientElapsed).toFixed(1);
+                if (remaining < 0) remaining = 0.0;
                 document.getElementById('loading-overlay').classList.remove('opacity-0');
                 document.getElementById('loading-overlay').classList.remove('pointer-events-none');
                 document.getElementById('countdown-label').innerText = `Next Round In ${remaining}s`;
@@ -709,8 +741,8 @@ ini_set('display_errors', 1);
                 document.getElementById('loading-overlay').classList.add('opacity-0');
                 document.getElementById('loading-overlay').classList.add('pointer-events-none');
                 
-                let flightTime = (roundElapsedMs - 8000) / 1000;
-                let nextMultiplier = parseFloat((1.0 + Math.pow(flightTime, 1.8) * 0.06).toFixed(2));
+                localFlightTime = clientElapsed - 8.0;
+                let nextMultiplier = parseFloat((1.0 + Math.pow(localFlightTime, 1.8) * 0.06).toFixed(2));
 
                 if (nextMultiplier >= crashMultiplier) {
                     // Crashed!
@@ -761,7 +793,7 @@ ini_set('display_errors', 1);
                 }
             }
 
-            drawFlightCanvas(roundElapsedMs);
+            drawFlightCanvas();
             requestAnimationFrame(animate);
         }
 
