@@ -42,8 +42,42 @@
 				$data['defaultCurrentLanguage'] = 'en';
 				$data['registerMobile'] = '1';
 				$data['registerEmail'] = '0';
-				$data['areaPhoneLenList'][0]['area'] = '+91';
-				$data['areaPhoneLenList'][0]['len'] = '9-12';
+				$countries = [
+					['area' => '+91', 'len' => '9-12'],
+					['area' => '+1', 'len' => '10-15'],
+					['area' => '+44', 'len' => '10-15'],
+					['area' => '+880', 'len' => '10-15'],
+					['area' => '+92', 'len' => '10-15'],
+					['area' => '+977', 'len' => '10-15'],
+					['area' => '+94', 'len' => '9-12'],
+					['area' => '+971', 'len' => '9-12'],
+					['area' => '+966', 'len' => '9-12'],
+					['area' => '+974', 'len' => '8-12'],
+					['area' => '+968', 'len' => '8-12'],
+					['area' => '+965', 'len' => '8-12'],
+					['area' => '+973', 'len' => '8-12'],
+					['area' => '+65', 'len' => '8-12'],
+					['area' => '+60', 'len' => '9-12'],
+					['area' => '+66', 'len' => '9-12'],
+					['area' => '+62', 'len' => '9-13'],
+					['area' => '+84', 'len' => '9-11'],
+					['area' => '+63', 'len' => '10-12'],
+					['area' => '+61', 'len' => '9-11'],
+					['area' => '+64', 'len' => '8-11'],
+					['area' => '+49', 'len' => '10-13'],
+					['area' => '+33', 'len' => '9-11'],
+					['area' => '+39', 'len' => '10-12'],
+					['area' => '+34', 'len' => '9-11'],
+					['area' => '+7', 'len' => '10-12'],
+					['area' => '+55', 'len' => '10-13'],
+					['area' => '+27', 'len' => '9-11'],
+					['area' => '+852', 'len' => '8-11'],
+					['area' => '+853', 'len' => '8-11'],
+					['area' => '+886', 'len' => '9-11'],
+					['area' => '+81', 'len' => '10-12'],
+					['area' => '+82', 'len' => '9-11']
+				];
+				$data['areaPhoneLenList'] = $countries;
 			
 				$data['registerSms'] = '0';
 				$data['isOpenLoginChangeLanguage'] = '1';
