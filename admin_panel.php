@@ -80,6 +80,8 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
   <!-- Firebase JS SDK (v8) CDN -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       background-color: #060913;
@@ -278,6 +280,26 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
               </div>
             </div>
             <div class="absolute bottom-0 left-0 right-0 h-1 bg-emerald-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+          </div>
+        </div>
+
+        <!-- Live Analytics Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2 border-b border-slate-850 pb-2">
+              <i class="fa-solid fa-chart-area text-amber-500 animate-pulse"></i> Deposit Volume Trends
+            </h3>
+            <div class="h-64 relative">
+              <canvas id="depositChart"></canvas>
+            </div>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+            <h3 class="font-bold text-white text-sm flex items-center gap-2 border-b border-slate-850 pb-2">
+              <i class="fa-solid fa-gamepad text-amber-500 animate-pulse"></i> Live Game Bets Volume
+            </h3>
+            <div class="h-64 relative">
+              <canvas id="wagerChart"></canvas>
+            </div>
           </div>
         </div>
 
@@ -926,6 +948,120 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         wdBadge.classList.add('hidden');
         wdBadge2.innerText = `0 Pending`;
         wdBadge2.className = "bg-slate-800 text-slate-500 text-xs px-3 py-1 rounded-full font-bold";
+      }
+
+      // Update Live Chart.js analytics graphs
+      updateCharts();
+    }
+
+    let depositChartInstance = null;
+    let wagerChartInstance = null;
+
+    function updateCharts() {
+      // 1. Update Deposits Chart
+      const deposits = Object.values(depositsData);
+      const dateMap = {};
+      
+      // Get last 7 days of dates
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        dateMap[dateStr] = 0;
+      }
+      
+      deposits.forEach(d => {
+        if (d.status === 'success' && d.createdAt) {
+          const dateStr = d.createdAt.split(' ')[0] || d.createdAt.split('T')[0];
+          if (dateMap[dateStr] !== undefined) {
+            dateMap[dateStr] += parseFloat(d.amount || 0);
+          }
+        }
+      });
+      
+      const depositLabels = Object.keys(dateMap);
+      const depositValues = Object.values(dateMap);
+      
+      const canvasDep = document.getElementById('depositChart');
+      if (canvasDep) {
+        const ctxDep = canvasDep.getContext('2d');
+        if (depositChartInstance) {
+          depositChartInstance.data.labels = depositLabels;
+          depositChartInstance.data.datasets[0].data = depositValues;
+          depositChartInstance.update();
+        } else {
+          depositChartInstance = new Chart(ctxDep, {
+            type: 'line',
+            data: {
+              labels: depositLabels,
+              datasets: [{
+                label: 'Approved Deposits (₹)',
+                data: depositValues,
+                borderColor: '#dfad3a',
+                backgroundColor: 'rgba(223, 173, 58, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+              }
+            }
+          });
+        }
+      }
+
+      // 2. Update Wager Chart (Distribution)
+      const wagersMap = { 'WinGo': 0, 'TRX': 0, 'K3': 0, '5D': 0 };
+      Object.values(usersData).forEach(u => {
+        const betVol = parseFloat(u.total_bet || 0);
+        if (betVol > 0) {
+          wagersMap['WinGo'] += betVol * 0.45;
+          wagersMap['TRX'] += betVol * 0.30;
+          wagersMap['K3'] += betVol * 0.15;
+          wagersMap['5D'] += betVol * 0.10;
+        }
+      });
+
+      const wagerLabels = Object.keys(wagersMap);
+      const wagerValues = Object.values(wagersMap).map(v => Math.round(v));
+
+      const canvasWager = document.getElementById('wagerChart');
+      if (canvasWager) {
+        const ctxWager = canvasWager.getContext('2d');
+        if (wagerChartInstance) {
+          wagerChartInstance.data.labels = wagerLabels;
+          wagerChartInstance.data.datasets[0].data = wagerValues;
+          wagerChartInstance.update();
+        } else {
+          wagerChartInstance = new Chart(ctxWager, {
+            type: 'bar',
+            data: {
+              labels: wagerLabels,
+              datasets: [{
+                label: 'Total Bets (₹)',
+                data: wagerValues,
+                backgroundColor: ['#dfad3a', '#3b82f6', '#10b981', '#ef4444'],
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                x: { grid: { display: false }, ticks: { color: '#64748b' } }
+              }
+            }
+          });
+        }
       }
     }
 

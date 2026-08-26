@@ -82,7 +82,126 @@ echo '
 
 	        <div id="app"></div>
 		
-	</body>
+	'; ?>
+<!-- Option 3 & Option 5: Real-time Deposit status & Skeleton loader style enhancements -->
+<style>
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.loading-shimmer {
+  background: linear-gradient(90deg, #15161d 25%, #242631 50%, #15161d 75%) !important;
+  background-size: 200% 100% !important;
+  animation: shimmer 1.5s infinite linear !important;
+}
+.custom-deposit-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000;
+  background: #0f1016;
+  border: 1px solid #dfad3a;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5), 0 0 15px rgba(223,173,58,0.2);
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  color: #fff;
+  font-family: sans-serif;
+  animation: slideUpToast 0.4s ease-out;
+  transition: all 0.3s ease;
+}
+@keyframes slideUpToast {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+</style>
+<script>
+(function() {
+    console.log("Deposit tracking and shimmer helper online");
+    
+    // Inject deposit status checker
+    let pendingDepositTimer = null;
+
+    function checkPendingDeposits() {
+        const token = localStorage.getItem('token') || localStorage.getItem('Authorization');
+        if (!token) return;
+
+        fetch('/codexdr/api/webapi/GetRechargeRecord.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+                pageNo: 1,
+                pageSize: 5,
+                state: 2, // pending status
+                random: Math.random(),
+                signature: 'dummy',
+                timestamp: Date.now(),
+                endDate: '',
+                startDate: '',
+                payId: '',
+                payTypeId: '',
+                language: 'en'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.code === 0 && data.data && data.data.list && data.data.list.length > 0) {
+                const pending = data.data.list[0];
+                showPendingToast(pending.price, pending.addTime, pending.rechargeNumber);
+            } else {
+                dismissPendingToast();
+            }
+        })
+        .catch(err => console.error("Error checking deposits:", err));
+    }
+
+    function showPendingToast(amount, time, id) {
+        let toast = document.getElementById('custom-pending-dep-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'custom-pending-dep-toast';
+            toast.className = 'custom-deposit-toast';
+            document.body.appendChild(toast);
+        }
+        
+        toast.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(223,173,58,0.1); color: #dfad3a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid rgba(223,173,58,0.2);">
+                    <i class="fa-solid fa-clock-rotate-left text-lg" style="animation: pulse 1.5s infinite;"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <h4 style="margin: 0; font-size: 14px; font-weight: bold; color: #fff; display: flex; align-items: center; gap: 6px;">
+                        Deposit Pending
+                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #dfad3a; animation: ping 1.5s infinite;"></span>
+                    </h4>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">Your deposit of <strong style="color: #dfad3a;">₹${amount}</strong> is under review by admin.</p>
+                    <p style="margin: 4px 0 0 0; font-size: 10px; color: #64748b; font-family: monospace;">${time}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function dismissPendingToast() {
+        const toast = document.getElementById('custom-pending-dep-toast');
+        if (toast) {
+            toast.style.transform = 'translateY(50px)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                if (toast) toast.remove();
+            }, 300);
+        }
+    }
+
+    // Start polling every 10 seconds
+    setInterval(checkPendingDeposits, 10000);
+    setTimeout(checkPendingDeposits, 3000); // initial trigger
+})();
+</script>
+<?php echo '</body>
 </html>';
 ?>
 

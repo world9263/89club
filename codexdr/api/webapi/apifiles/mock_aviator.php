@@ -195,9 +195,9 @@ ini_set('display_errors', 1);
                 <div class="grid grid-cols-12 gap-2 items-center">
                     <!-- Bet Control -->
                     <div class="col-span-7 flex flex-col space-y-1.5">
-                        <div class="flex items-center justify-between bg-[#0a0b0d] rounded-xl p-1.5 border border-[#1f2129]">
+                        <div class="flex items-center justify-between bg-[#0a0b0d] rounded-xl p-1.5 border border-[#1f212a]">
                             <button onclick="adjustWager(1, -10)" class="w-7 h-7 rounded-lg bg-[#1c1d25] hover:bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm">-</button>
-                            <input type="number" id="input-wager-1" value="100" class="w-16 bg-transparent text-center text-sm font-black text-white outline-none">
+                            <input type="number" id="input-wager-1" value="100" oninput="updateWagerManual(1)" class="w-20 bg-transparent text-center text-sm font-black text-white outline-none">
                             <button onclick="adjustWager(1, 10)" class="w-7 h-7 rounded-lg bg-[#1c1d25] hover:bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm">+</button>
                         </div>
                         <div class="grid grid-cols-4 gap-1">
@@ -240,9 +240,9 @@ ini_set('display_errors', 1);
                 <div class="grid grid-cols-12 gap-2 items-center">
                     <!-- Bet Control -->
                     <div class="col-span-7 flex flex-col space-y-1.5">
-                        <div class="flex items-center justify-between bg-[#0a0b0d] rounded-xl p-1.5 border border-[#1f2129]">
+                        <div class="flex items-center justify-between bg-[#0a0b0d] rounded-xl p-1.5 border border-[#1f212a]">
                             <button onclick="adjustWager(2, -10)" class="w-7 h-7 rounded-lg bg-[#1c1d25] hover:bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm">-</button>
-                            <input type="number" id="input-wager-2" value="100" class="w-16 bg-transparent text-center text-sm font-black text-white outline-none">
+                            <input type="number" id="input-wager-2" value="100" oninput="updateWagerManual(2)" class="w-20 bg-transparent text-center text-sm font-black text-white outline-none">
                             <button onclick="adjustWager(2, 10)" class="w-7 h-7 rounded-lg bg-[#1c1d25] hover:bg-slate-800 text-slate-300 font-bold flex items-center justify-center text-sm">+</button>
                         </div>
                         <div class="grid grid-cols-4 gap-1">
@@ -340,6 +340,20 @@ ini_set('display_errors', 1);
             document.getElementById(`input-wager-${panelNum}`).value = val;
             document.getElementById(`btn-wager-label-${panelNum}`).innerText = val.toFixed(2) + ' INR';
             panelState[panelNum].betAmount = val;
+        }
+
+        function updateWagerManual(panelNum) {
+            let input = document.getElementById(`input-wager-${panelNum}`);
+            let val = parseInt(input.value) || 0;
+            
+            // Clamp wager amount between 10 and 10000
+            if (val > 10000) {
+                val = 10000;
+                input.value = val;
+            }
+            
+            panelState[panelNum].betAmount = val;
+            document.getElementById(`btn-wager-label-${panelNum}`).innerText = val.toFixed(2) + ' INR';
         }
 
         function resetPanelButton(panelNum) {
