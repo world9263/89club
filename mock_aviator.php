@@ -392,51 +392,78 @@ ini_set('display_errors', 1);
                     return;
                 }
 
-                try {
-                    let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=place_bet&userId=${userId}`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ amount: state.betAmount, panelId: `panel${panelNum}` })
-                    });
-                    let data = await res.json();
+                // OPTIMISTIC BETTING (Instant Client Snappy!)
+                state.status = 'wagered';
+                currentBalance = parseFloat((currentBalance - state.betAmount).toFixed(2));
+                document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                
+                let btn = document.getElementById(`btn-bet-${panelNum}`);
+                btn.className = 'col-span-5 h-16 rounded-xl btn-cancel text-white flex flex-col items-center justify-center tracking-wide transition-all';
+                document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Cancel';
+
+                // Send request silently in background
+                fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=place_bet&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ amount: state.betAmount, panelId: `panel${panelNum}` })
+                }).then(res => res.json()).then(data => {
                     if (data.success) {
-                        state.status = 'wagered';
+                        // Synced successfully, update real balance from server
                         currentBalance = parseFloat(data.balance);
                         document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
-                        
+                    } else {
+                        // Revert optimistic bet
+                        state.status = 'idle';
+                        currentBalance = parseFloat((currentBalance + state.betAmount).toFixed(2));
+                        document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                        resetPanelButton(panelNum);
+                        showToast(data.error || "Wager placing failed");
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    // Revert optimistic bet on network error
+                    state.status = 'idle';
+                    currentBalance = parseFloat((currentBalance + state.betAmount).toFixed(2));
+                    document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                    resetPanelButton(panelNum);
+                    showToast("Network connection error");
+                });
+            } else if (state.status === 'wagered' && localState === 'betting') {
+                // OPTIMISTIC CANCEL (Instant Client Snappy!)
+                state.status = 'idle';
+                currentBalance = parseFloat((currentBalance + state.betAmount).toFixed(2));
+                document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                resetPanelButton(panelNum);
+
+                // Send request silently in background
+                fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=cashout&userId=${userId}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: 1.0 })
+                }).then(res => res.json()).then(data => {
+                    if (data.success) {
+                        currentBalance = parseFloat(data.balance);
+                        document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
+                    } else {
+                        // Revert cancel if failed
+                        state.status = 'wagered';
+                        currentBalance = parseFloat((currentBalance - state.betAmount).toFixed(2));
+                        document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
                         let btn = document.getElementById(`btn-bet-${panelNum}`);
                         btn.className = 'col-span-5 h-16 rounded-xl btn-cancel text-white flex flex-col items-center justify-center tracking-wide transition-all';
                         document.getElementById(`btn-bet-label-${panelNum}`).innerText = 'Cancel';
-                    } else {
-                        showToast(data.error || "Wager placing failed");
+                        showToast(data.error || "Failed to cancel bet");
                     }
-                } catch(e) {
-                    console.error(e);
-                }
-            } else if (state.status === 'wagered' && localState === 'betting') {
-                try {
-                    let res = await fetch(`codexdr/api/webapi/apifiles/aviator_api.php?action=cashout&userId=${userId}`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ panelId: `panel${panelNum}`, multiplier: 1.0 })
-                    });
-                    let data = await res.json();
-                    if (data.success) {
-                        state.status = 'idle';
-                        currentBalance = parseFloat(data.balance);
-                        document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);
-                        resetPanelButton(panelNum);
-                    }
-                } catch (e) {
-                    console.error(e);
-                }
+                }).catch(err => {
+                    console.error(err);
+                });
             } else if (state.status === 'wagered' && localState === 'flying') {
                 // INSTANT OPTIMISTIC CASHOUT (100% Client Snappy!)
                 let cashoutMultiplier = currentMultiplier;
                 let betAmount = state.betAmount;
                 let winAmount = betAmount * cashoutMultiplier;
                 
-                // Immediately settle balance locally
+                // Immediately Settle Settle balance locally
                 state.status = 'idle';
                 currentBalance += winAmount;
                 document.getElementById('header-balance').innerText = '₹' + currentBalance.toFixed(2);

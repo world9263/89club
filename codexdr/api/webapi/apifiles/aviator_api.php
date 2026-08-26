@@ -34,10 +34,9 @@ $now = microtime(true);
 
 function generateRandomMultiplier() {
     $rand = mt_rand(1, 1000) / 10;
-    if ($rand < 15.0) return 1.0; // 15% instant crash
-    if ($rand < 75.0) return round(1.0 + (mt_rand(1, 100) / 100) * 1.5, 2); // 60% low crash (1.0 - 2.5)
-    if ($rand < 95.0) return round(2.5 + (mt_rand(1, 100) / 100) * 7.5, 2); // 20% medium crash (2.5 - 10)
-    return round(10.0 + (mt_rand(1, 100) / 100) * 90.0, 2); // 5% high crash (10 - 100)
+    if ($rand < 60.0) return round(1.50 + (mt_rand(0, 100) / 100) * 1.0, 2); // 60% low crash (1.50 - 2.50)
+    if ($rand < 90.0) return round(2.50 + (mt_rand(0, 100) / 100) * 7.5, 2); // 30% medium crash (2.50 - 10.0)
+    return round(10.00 + (mt_rand(0, 100) / 100) * 90.0, 2); // 10% high crash (10.0 - 100.0)
 }
 
 // Fetch current state
