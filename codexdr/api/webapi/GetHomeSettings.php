@@ -33,10 +33,10 @@
 				$data['isSplitLocalEWallet'] = true;
 				$data['jackportMaxReswadAmount'] = 500;
 				$data['projectName'] = '89 𝐂𝐋𝐔𝐁';
-				$data['projectLogo'] = 'https://89club.sbs/logo.png';
+				$data['projectLogo'] = '/logo.png';
 				$data['languages'] = 'en|hd';
-				$data['webIco'] = 'https://89club.sbs/logo.png';
-				$data['headLogo'] = 'https://89club.sbs/logo.png';
+				$data['webIco'] = '/logo.png';
+				$data['headLogo'] = '/logo.png';
 				$data['dollarSign'] = '₹';
 				$data['upperOrLower'] = '0';
 				$data['defaultCurrentLanguage'] = 'en';
@@ -94,7 +94,7 @@
 				$data['isOpenTurntable'] = true;
 				$data['isPartnerReward'] = true;
 				$data['isSelfCustomerService'] = true;
-				$data['webSiteUrl'] = 'https://89club.sbs';
+				$data['webSiteUrl'] = '/';
 				$data['isOpenFacebookEvent'] = true;
 				$data['isOpenRegisterPhoneFirstZeroSwitch'] = false;
 				$data['eventRegionConfigList'] = null;

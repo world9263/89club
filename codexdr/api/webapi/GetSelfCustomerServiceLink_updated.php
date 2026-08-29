@@ -1,4 +1,4 @@
 <?php
-header("Location: https://89club.sbs/support");
+header("Location: /support");
 exit();
 ?>
