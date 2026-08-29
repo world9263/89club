@@ -51,8 +51,8 @@
 							$data['typelist'][0]['payTypeID'] = 0;
 							$data['typelist'][0]['payName'] = 'Nagad';
 							$data['typelist'][0]['paySysName'] = 'Nagad';
-							$data['typelist'][0]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
-							$data['typelist'][0]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
+							$data['typelist'][0]['payNameUrl'] = 'https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/200px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png';
+							$data['typelist'][0]['payNameUrl2'] = 'https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/200px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png';
 							$data['typelist'][0]['minPrice'] = 300;
 							$data['typelist'][0]['maxPrice'] = 50000;
 							$data['typelist'][0]['scope'] = '300|500|1000|5000|10000|50000';
@@ -66,8 +66,8 @@
 							$data['typelist'][1]['payTypeID'] = 0;
 							$data['typelist'][1]['payName'] = 'bKash';
 							$data['typelist'][1]['paySysName'] = 'bKash';
-							$data['typelist'][1]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
-							$data['typelist'][1]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
+							$data['typelist'][1]['payNameUrl'] = 'https://upload.wikimedia.org/wikipedia/en/thumb/6/68/BKash_logo.svg/200px-BKash_logo.svg.png';
+							$data['typelist'][1]['payNameUrl2'] = 'https://upload.wikimedia.org/wikipedia/en/thumb/6/68/BKash_logo.svg/200px-BKash_logo.svg.png';
 							$data['typelist'][1]['minPrice'] = 100;
 							$data['typelist'][1]['maxPrice'] = 50000;
 							$data['typelist'][1]['scope'] = '100|500|1000|5000|10000|50000';
