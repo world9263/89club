@@ -55,26 +55,26 @@ echo '
 		
 		<link rel="manifest" />
 		<title>91 𝐂𝐋𝐔𝐁</title>
-		<script type="module" crossorigin src="/assets/js/index-004d14f7.js"></script>
-		<link rel="modulepreload" crossorigin href="/assets/js/modules-5f93e3cf.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/native/index-c115c6dd.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/en-25215ed9.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/rus-27766a5d.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/vi-467382d2.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/id-96ca25ef.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/hd-369843ed.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/tha-4d141d15.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/md-c7b7e59b.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/bra-daf3a0e0.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/my-ed62f2d5.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/bdt-334d56e6.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/zh-0da868fd.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/pak-4b88abf3.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/ar-3304320e.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/page-activity-4d14cf2d.js">
-		<link rel="stylesheet" href="/assets/css/modules-8abe0886.css">
-		<link rel="stylesheet" href="/assets/css/page-activity-371f81e4.css">
-		<link rel="stylesheet" href="/assets/css/index-69746354.css">
+		<script type="module" crossorigin src="/assets/js/index-004d14f7.js?v=90"></script>
+		<link rel="modulepreload" crossorigin href="/assets/js/modules-5f93e3cf.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/native/index-c115c6dd.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/en-25215ed9.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/rus-27766a5d.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/vi-467382d2.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/id-96ca25ef.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/hd-369843ed.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/tha-4d141d15.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/md-c7b7e59b.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/bra-daf3a0e0.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/my-ed62f2d5.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/bdt-334d56e6.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/zh-0da868fd.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/pak-4b88abf3.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/ar-3304320e.js?v=90">
+		<link rel="modulepreload" crossorigin href="/assets/js/page-activity-4d14cf2d.js?v=90">
+		<link rel="stylesheet" href="/assets/css/modules-8abe0886.css?v=90">
+		<link rel="stylesheet" href="/assets/css/page-activity-371f81e4.css?v=90">
+		<link rel="stylesheet" href="/assets/css/index-69746354.css?v=90">
 	</head>
 
 	<body>
