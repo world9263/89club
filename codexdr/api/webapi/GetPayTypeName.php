@@ -39,6 +39,12 @@
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
 						$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+						if (!$is_bdt) {
+							$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+							if ($cf_country === 'BD') {
+								$is_bdt = true;
+							}
+						}
 						if ($is_bdt) {
 							// Nagad
 							$data['typelist'][0]['payID'] = 2;

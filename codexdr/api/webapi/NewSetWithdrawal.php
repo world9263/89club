@@ -46,6 +46,12 @@
 					$min_dep_required = ($min_dep_setting !== null) ? (float)$min_dep_setting : 250.0;
 
 					$is_bdt_user = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+					if (!$is_bdt_user) {
+						$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+						if ($cf_country === 'BD') {
+							$is_bdt_user = true;
+						}
+					}
 					$curr_symbol = $is_bdt_user ? '৳' : '₹';
 
 					$totalDeposit = 0.0;

@@ -36,6 +36,12 @@
 			}
 		}
 	}
+	if (!$is_bdt) {
+		$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+		if ($cf_country === 'BD') {
+			$is_bdt = true;
+		}
+	}
 	
 	if ($is_bdt) {
 		if ($payid == 2) {
