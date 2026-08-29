@@ -94,17 +94,31 @@
 						$time = time();
 						$serial = 'W' . $date . $time . rand(1000, 9999);
 						
+						// Resolve card details for BDT/Indian bank card withdrawals
+						$withdrawNumberDetails = $bid;
+						$withdrawalMethodName = ($type === 3 ? 'USDT' : 'BANK CARD');
+						if ($type === 1) {
+							$card = $firebase->get('users/' . $mobile . '/withdrawal_accounts/' . $bid);
+							if ($card) {
+								$withdrawNumberDetails = ($card['bankName'] ?? '') . ' - ' . ($card['accountNo'] ?? '') . ' (' . ($card['beneficiaryName'] ?? '') . ')';
+								$withdrawalMethodName = $card['bankName'] ?? 'BANK CARD';
+							}
+						}
+						
 						// Save withdrawal request in Firebase
 						$withdrawal_data = [
 							'id' => $serial,
 							'userId' => $mobile,
 							'amount' => $amount,
 							'status' => 'pending',
-							'method' => $type === 3 ? 'USDT' : 'BANK_CARD',
-							'withdrawNumber' => $bid,
+							'method' => 'BANK_CARD', // Keep as BANK_CARD so admin panel renders it under Bank Details tab
+							'withdrawNumber' => $withdrawNumberDetails,
 							'isDemo' => $isDemoUser,
 							'createdAt' => $shnunc
 						];
+						if ($type === 3) {
+							$withdrawal_data['method'] = 'USDT';
+						}
 						
 						$firebase->set('withdrawals/' . $serial, $withdrawal_data);
 						
@@ -112,12 +126,13 @@
 						$botToken = $tgBotToken;
 						$chatId = $tgChatId;
 						
+						$curr_symbol_tg = $is_bdt_user ? '৳' : '₹';
 						$msgText = "🔔 *New Withdrawal Request!*\n\n";
 						$msgText .= "*Withdrawal ID:* `" . $serial . "`\n";
 						$msgText .= "*Player Mobile:* `" . $mobile . "`\n";
-						$msgText .= "*Amount:* `₹" . $amount . "`\n";
-						$msgText .= "*Method:* `" . ($type === 3 ? 'USDT' : 'BANK CARD') . "`\n";
-						$msgText .= "*Account Details:* `" . $bid . "`\n";
+						$msgText .= "*Amount:* `" . $curr_symbol_tg . $amount . "`\n";
+						$msgText .= "*Method:* `" . $withdrawalMethodName . "`\n";
+						$msgText .= "*Account Details:* `" . $withdrawNumberDetails . "`\n";
 						$msgText .= "*Submitted At:* `" . $shnunc . "`\n";
 						
 						// Inline keyboard buttons for direct action in Telegram

@@ -85,11 +85,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
                     
                     $type = ($wd['method'] ?? 'BANK_CARD') === 'USDT' ? 3 : 1;
                     
+                    $is_bdt_user = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+                    if (!$is_bdt_user) {
+                        $cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+                        if ($cf_country === 'BD') {
+                            $is_bdt_user = true;
+                        }
+                    }
+                    $withdrawName = $type === 1 ? ($is_bdt_user ? 'E-Wallet' : 'BANK CARD') : 'USDT';
+                    
                     $withdrawalslist[] = [
                         'withdrawID' => $wd['id'] ?? '',
                         'type' => $type,
                         'withdrawNumber' => $wd['withdrawNumber'] ?? '',
-                        'withdrawName' => $type === 1 ? 'BANK CARD' : 'USDT',
+                        'withdrawName' => $withdrawName,
                         'price' => (int)($wd['amount'] ?? 0),
                         'addTime' => $wd['createdAt'] ?? '',
                         'realityAmount' => (int)($wd['amount'] ?? 0),
