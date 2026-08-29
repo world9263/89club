@@ -45,7 +45,7 @@ echo '
 				});
 			})();
 		</script>
-		<script src="/app.config.js?v=1736792980338"></script>
+		<script src="/app.config.js?v='; ?> <?php echo time(); ?> <?php echo '"></script>
 
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/favico.ico" />
@@ -55,8 +55,8 @@ echo '
 		
 		<link rel="manifest" />
 		<title>91 𝐂𝐋𝐔𝐁</title>
-		<script type="module" crossorigin src="/assets/js/index-004d14f7.js"></script>
-		<link rel="modulepreload" crossorigin href="/assets/js/modules-5f93e3cf.js">
+		<script type="module" crossorigin src="/assets/js/index-004d14f7.js?v='; ?> <?php echo time(); ?> <?php echo '"></script>
+		<link rel="modulepreload" crossorigin href="/assets/js/modules-5f93e3cf.js?v='; ?> <?php echo time(); ?> <?php echo '">
 		<link rel="modulepreload" crossorigin href="/assets/js/native/index-c115c6dd.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/en-25215ed9.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/rus-27766a5d.js">
@@ -71,7 +71,7 @@ echo '
 		<link rel="modulepreload" crossorigin href="/assets/js/zh-0da868fd.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/pak-4b88abf3.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/ar-3304320e.js">
-		<link rel="modulepreload" crossorigin href="/assets/js/page-activity-4d14cf2d.js">
+		<link rel="modulepreload" crossorigin href="/assets/js/page-activity-4d14cf2d.js?v='; ?> <?php echo time(); ?> <?php echo '">
 		<link rel="stylesheet" href="/assets/css/modules-8abe0886.css">
 		<link rel="stylesheet" href="/assets/css/page-activity-371f81e4.css">
 		<link rel="stylesheet" href="/assets/css/index-69746354.css">
