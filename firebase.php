@@ -22,6 +22,10 @@ if (file_exists(__DIR__ . '/.env')) {
     }
 }
 
+if (file_exists(__DIR__ . '/config.php')) {
+    include_once __DIR__ . '/config.php';
+}
+
 // Global Config Variables
 $tgBotToken = getenv('TELEGRAM_BOT_TOKEN') ?: (isset($_ENV['TELEGRAM_BOT_TOKEN']) ? $_ENV['TELEGRAM_BOT_TOKEN'] : '8690061817:AAHl73PLbjwBV2hkE37seE6aE_YV7uzuz8A');
 $tgChatId = getenv('TELEGRAM_CHAT_ID') ?: (isset($_ENV['TELEGRAM_CHAT_ID']) ? $_ENV['TELEGRAM_CHAT_ID'] : '7606730935');
@@ -57,6 +61,9 @@ class FirebaseClient {
         if (empty($this->dbUrl)) {
             // Fallback: try $_ENV
             $this->dbUrl = rtrim(isset($_ENV['FIREBASE_URL']) ? $_ENV['FIREBASE_URL'] : '', '/');
+        }
+        if (empty($this->dbUrl) && defined('FIREBASE_URL')) {
+            $this->dbUrl = rtrim(FIREBASE_URL, '/');
         }
     }
 
