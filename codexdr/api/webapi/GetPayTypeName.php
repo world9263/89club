@@ -38,64 +38,109 @@
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
-						$data['typelist'][0]['payID'] = 2;
-						$data['typelist'][0]['payTypeID'] = 0;
-						$data['typelist'][0]['payName'] = 'Wake UP-APP';
-						$data['typelist'][0]['paySysName'] = 'Online Pay';
-						$data['typelist'][0]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160846bfy7.png';
-						$data['typelist'][0]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon2_20240324160846gdbv.png';
-						$data['typelist'][0]['minPrice'] = 0;
-						$data['typelist'][0]['maxPrice'] = 0;
-						$data['typelist'][0]['scope'] = null;
-						$data['typelist'][0]['typeName'] = 'Wake UP-APP';
-						$data['typelist'][0]['typeNameCode'] = 0;
-						$data['typelist'][0]['maxRechargeRifts'] = 0.00;
-						$data['typelist'][0]['sort'] = 9; 
-						  
-						$data['typelist'][1]['payID'] = 1;
-						$data['typelist'][1]['payTypeID'] = 0;
-						$data['typelist'][1]['payName'] = 'UPI-QRpay';
-						$data['typelist'][1]['paySysName'] = 'Online Pay';
-						$data['typelist'][1]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
-						$data['typelist'][1]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
-						$data['typelist'][1]['minPrice'] = 0;
-						$data['typelist'][1]['maxPrice'] = 0;
-						$data['typelist'][1]['scope'] = null;
-						$data['typelist'][1]['typeName'] = 'UPI-QRpay';
-						$data['typelist'][1]['typeNameCode'] = 0;
-						$data['typelist'][1]['maxRechargeRifts'] = 0.00;
-						$data['typelist'][1]['sort'] = 9;
-						
-						
-						$data['typelist'][2]['payID'] = 13;
-						$data['typelist'][2]['payTypeID'] = 0;
-						$data['typelist'][2]['payName'] = 'UPI-PayTM';
-						$data['typelist'][2]['paySysName'] = 'USDT';
-						$data['typelist'][2]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
-						$data['typelist'][2]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
-						$data['typelist'][2]['minPrice'] = 0;
-						$data['typelist'][2]['maxPrice'] = 0;
-						$data['typelist'][2]['scope'] = null;
-						$data['typelist'][2]['typeName'] = 'UPI-PayTM';
-						$data['typelist'][2]['typeNameCode'] = 9205;
-						$data['typelist'][2]['maxRechargeRifts'] = 0.00;
-						$data['typelist'][2]['sort'] = 5;
-                      
-                      
-                        $data['typelist'][3]['payID'] = 11;
-                        $data['typelist'][3]['payTypeID'] = 0;
-						$data['typelist'][3]['payName'] = 'USDT';
-						$data['typelist'][3]['paySysName'] = 'USDT';
-						$data['typelist'][3]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
-						$data['typelist'][3]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
-						$data['typelist'][3]['minPrice'] = 0;
-						$data['typelist'][3]['maxPrice'] = 0;
-						$data['typelist'][3]['scope'] = null;
-						$data['typelist'][3]['typeName'] = 'USDT';
-						$data['typelist'][3]['typeNameCode'] = 9205;
-						$data['typelist'][3]['maxRechargeRifts'] = 0.02;
-						$data['typelist'][3]['sort'] = 5;
+						$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+						if ($is_bdt) {
+							// Nagad
+							$data['typelist'][0]['payID'] = 2;
+							$data['typelist'][0]['payTypeID'] = 0;
+							$data['typelist'][0]['payName'] = 'Nagad';
+							$data['typelist'][0]['paySysName'] = 'Nagad';
+							$data['typelist'][0]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
+							$data['typelist'][0]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
+							$data['typelist'][0]['minPrice'] = 300;
+							$data['typelist'][0]['maxPrice'] = 50000;
+							$data['typelist'][0]['scope'] = '300|500|1000|5000|10000|50000';
+							$data['typelist'][0]['typeName'] = 'Nagad';
+							$data['typelist'][0]['typeNameCode'] = 0;
+							$data['typelist'][0]['maxRechargeRifts'] = 0.00;
+							$data['typelist'][0]['sort'] = 9;
 
+							// bKash
+							$data['typelist'][1]['payID'] = 1;
+							$data['typelist'][1]['payTypeID'] = 0;
+							$data['typelist'][1]['payName'] = 'bKash';
+							$data['typelist'][1]['paySysName'] = 'bKash';
+							$data['typelist'][1]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
+							$data['typelist'][1]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
+							$data['typelist'][1]['minPrice'] = 100;
+							$data['typelist'][1]['maxPrice'] = 50000;
+							$data['typelist'][1]['scope'] = '100|500|1000|5000|10000|50000';
+							$data['typelist'][1]['typeName'] = 'bKash';
+							$data['typelist'][1]['typeNameCode'] = 0;
+							$data['typelist'][1]['maxRechargeRifts'] = 0.00;
+							$data['typelist'][1]['sort'] = 8;
+
+							// USDT
+							$data['typelist'][2]['payID'] = 11;
+							$data['typelist'][2]['payTypeID'] = 0;
+							$data['typelist'][2]['payName'] = 'USDT';
+							$data['typelist'][2]['paySysName'] = 'USDT';
+							$data['typelist'][2]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
+							$data['typelist'][2]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
+							$data['typelist'][2]['minPrice'] = 10;
+							$data['typelist'][2]['maxPrice'] = 50000;
+							$data['typelist'][2]['scope'] = '10|50|100|500|1000|5000';
+							$data['typelist'][2]['typeName'] = 'USDT';
+							$data['typelist'][2]['typeNameCode'] = 9205;
+							$data['typelist'][2]['maxRechargeRifts'] = 0.02;
+							$data['typelist'][2]['sort'] = 7;
+						} else {
+							$data['typelist'][0]['payID'] = 2;
+							$data['typelist'][0]['payTypeID'] = 0;
+							$data['typelist'][0]['payName'] = 'Wake UP-APP';
+							$data['typelist'][0]['paySysName'] = 'Online Pay';
+							$data['typelist'][0]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160846bfy7.png';
+							$data['typelist'][0]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon2_20240324160846gdbv.png';
+							$data['typelist'][0]['minPrice'] = 0;
+							$data['typelist'][0]['maxPrice'] = 0;
+							$data['typelist'][0]['scope'] = null;
+							$data['typelist'][0]['typeName'] = 'Wake UP-APP';
+							$data['typelist'][0]['typeNameCode'] = 0;
+							$data['typelist'][0]['maxRechargeRifts'] = 0.00;
+							$data['typelist'][0]['sort'] = 9; 
+							  
+							$data['typelist'][1]['payID'] = 1;
+							$data['typelist'][1]['payTypeID'] = 0;
+							$data['typelist'][1]['payName'] = 'UPI-QRpay';
+							$data['typelist'][1]['paySysName'] = 'Online Pay';
+							$data['typelist'][1]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
+							$data['typelist'][1]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240324160932wef3.png';
+							$data['typelist'][1]['minPrice'] = 0;
+							$data['typelist'][1]['maxPrice'] = 0;
+							$data['typelist'][1]['scope'] = null;
+							$data['typelist'][1]['typeName'] = 'UPI-QRpay';
+							$data['typelist'][1]['typeNameCode'] = 0;
+							$data['typelist'][1]['maxRechargeRifts'] = 0.00;
+							$data['typelist'][1]['sort'] = 9;
+							
+							$data['typelist'][2]['payID'] = 13;
+							$data['typelist'][2]['payTypeID'] = 0;
+							$data['typelist'][2]['payName'] = 'UPI-PayTM';
+							$data['typelist'][2]['paySysName'] = 'USDT';
+							$data['typelist'][2]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
+							$data['typelist'][2]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20241001160501fwkx.png';
+							$data['typelist'][2]['minPrice'] = 0;
+							$data['typelist'][2]['maxPrice'] = 0;
+							$data['typelist'][2]['scope'] = null;
+							$data['typelist'][2]['typeName'] = 'UPI-PayTM';
+							$data['typelist'][2]['typeNameCode'] = 9205;
+							$data['typelist'][2]['maxRechargeRifts'] = 0.00;
+							$data['typelist'][2]['sort'] = 5;
+						  
+							$data['typelist'][3]['payID'] = 11;
+							$data['typelist'][3]['payTypeID'] = 0;
+							$data['typelist'][3]['payName'] = 'USDT';
+							$data['typelist'][3]['paySysName'] = 'USDT';
+							$data['typelist'][3]['payNameUrl'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
+							$data['typelist'][3]['payNameUrl2'] = 'https://pub-628304d7b25d454abf303bfafba6a2e0.r2.dev/ALADDINN/payNameIcon/payNameIcon_20240323192848q2ac.png';
+							$data['typelist'][3]['minPrice'] = 0;
+							$data['typelist'][3]['maxPrice'] = 0;
+							$data['typelist'][3]['scope'] = null;
+							$data['typelist'][3]['typeName'] = 'USDT';
+							$data['typelist'][3]['typeNameCode'] = 9205;
+							$data['typelist'][3]['maxRechargeRifts'] = 0.02;
+							$data['typelist'][3]['sort'] = 5;
+						}
                         
 						
 						$res['data'] = $data;

@@ -27,6 +27,25 @@
 			$shonustr = '{"language":'.$language.',"random":"'.$random.'"}';
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
+				$is_bdt = false;
+				$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+				if (!empty($authHeader)) {
+					$bearer = explode(" ", $authHeader);
+					$author = isset($bearer[1]) ? $bearer[1] : '';
+					include_once "../../functions2.php";
+					$is_jwt_valid = is_jwt_valid($author);
+					$data_auth = json_decode($is_jwt_valid, true);
+					if (isset($data_auth['status']) && $data_auth['status'] === 'Success') {
+						$mobile = $data_auth['payload']['mobile'];
+						if (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0) {
+							$is_bdt = true;
+						}
+					}
+				}
+				if (!$is_bdt && isset($language) && ($language === 'bdt' || $language === '"bdt"')) {
+					$is_bdt = true;
+				}
+
 				$data['isShowAppDownloadUp'] = true;
 				$data['isShowAppDownloadDown'] = true;
 				$data['isShowLotteryDragon'] = true;
@@ -34,12 +53,12 @@
 				$data['jackportMaxReswadAmount'] = 500;
 				$data['projectName'] = '89 𝐂𝐋𝐔𝐁';
 				$data['projectLogo'] = '/logo.png';
-				$data['languages'] = 'en|hd';
+				$data['languages'] = 'en|hd|bdt';
 				$data['webIco'] = '/logo.png';
 				$data['headLogo'] = '/logo.png';
-				$data['dollarSign'] = '₹';
+				$data['dollarSign'] = $is_bdt ? '৳' : '₹';
 				$data['upperOrLower'] = '0';
-				$data['defaultCurrentLanguage'] = 'en';
+				$data['defaultCurrentLanguage'] = $is_bdt ? 'bdt' : 'en';
 				$data['registerMobile'] = '1';
 				$data['registerEmail'] = '0';
 				$countries = [

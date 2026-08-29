@@ -41,20 +41,26 @@
 					$currentBalance = isset($user['motta']) ? (float)$user['motta'] : 0.0;
 					$isDemoUser = isset($user['is_demo']) ? (bool)$user['is_demo'] : false;
 					
-					// Enforce ₹200 approved deposit limit
+					// Enforce dynamic approved deposit limit from admin settings
+					$min_dep_setting = $firebase->get('system_settings/min_deposit_for_withdraw');
+					$min_dep_required = ($min_dep_setting !== null) ? (float)$min_dep_setting : 250.0;
+
+					$is_bdt_user = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+					$curr_symbol = $is_bdt_user ? '৳' : '₹';
+
 					$totalDeposit = 0.0;
 					$allDeposits = $firebase->get('deposits');
 					if ($allDeposits) {
 						foreach ($allDeposits as $dep) {
-							if (isset($dep['userId']) && $dep['userId'] == $mobile && isset($dep['status']) && strtolower($dep['status']) == 'approved') {
+							if (isset($dep['userId']) && $dep['userId'] == $mobile && isset($dep['status']) && (strtolower($dep['status']) == 'approved' || strtolower($dep['status']) == 'success')) {
 								$totalDeposit += (float)$dep['amount'];
 							}
 						}
 					}
 					
-					if ($totalDeposit < 200) {
+					if ($totalDeposit < $min_dep_required) {
 						$res['code'] = 1;
-						$res['msg'] = 'You must deposit at least ₹200 before making a withdrawal.';
+						$res['msg'] = 'You must deposit at least ' . $curr_symbol . $min_dep_required . ' before making a withdrawal.';
 						$res['msgCode'] = 150;
 						http_response_code(200);
 						echo json_encode($res);
@@ -65,7 +71,7 @@
 					$requiredTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.0;
 					if ($requiredTurnover > 0) {
 						$res['code'] = 1;
-						$res['msg'] = 'You must bet another ₹' . round($requiredTurnover, 2) . ' before making a withdrawal.';
+						$res['msg'] = 'You must bet another ' . $curr_symbol . round($requiredTurnover, 2) . ' before making a withdrawal.';
 						$res['msgCode'] = 151;
 						http_response_code(200);
 						echo json_encode($res);

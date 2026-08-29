@@ -697,6 +697,14 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">USDT Conversion Rate (INR per 1 USDT)</label>
                 <input type="number" step="0.01" id="setting-usdt-rate" placeholder="90" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Active bKash Wallet Number (Bangladesh BDT)</label>
+                <input type="text" id="setting-bkash-wallet" placeholder="01354743800" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Active Nagad Wallet Number (Bangladesh BDT)</label>
+                <input type="text" id="setting-nagad-wallet" placeholder="01942136883" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+              </div>
               <button onclick="savePaymentSettings()" class="bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-yellow-500/10">
                 Save Payment Settings
               </button>
@@ -714,6 +722,12 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Default Signup Wallet Balance</label>
                 <input type="number" step="0.01" id="setting-signup-balance" placeholder="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
                 <span class="text-[10px] text-slate-500 mt-1 block">New registered players will start with this balance.</span>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Min Deposit Required to Withdraw</label>
+                <input type="number" step="1" id="setting-min-deposit-withdraw" placeholder="250" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                <span class="text-[10px] text-slate-500 mt-1 block">Players must have deposited at least this much before withdrawing.</span>
               </div>
 
               <div>
@@ -1108,10 +1122,13 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           actionButtons = `<div class="text-center">${statusBadge}</div>`;
         }
 
+        const isBd = d.method === 'BKASH' || d.method === 'NAGAD' || d.userId.startsWith('880') || d.userId.startsWith('+880');
+        const symbol = isBd ? '৳' : '₹';
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-900/40 transition-colors">
             <td class="px-6 py-4 font-bold text-white select-all">${d.userId}</td>
-            <td class="px-6 py-4 font-semibold text-white">₹${parseFloat(d.amount).toFixed(2)}</td>
+            <td class="px-6 py-4 font-semibold text-white">${symbol}${parseFloat(d.amount).toFixed(2)}</td>
             <td class="px-6 py-4 text-slate-400 select-all font-mono text-xs">${d.utr || 'N/A'}</td>
             <td class="px-6 py-4 text-slate-400">${d.method || 'UPI'}</td>
             <td class="px-6 py-4">${screenshotLink}</td>
@@ -1170,10 +1187,13 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           actionButtons = `<div class="text-center">${statusBadge}</div>`;
         }
 
+        const isBd = w.userId.startsWith('880') || w.userId.startsWith('+880');
+        const symbol = isBd ? '৳' : '₹';
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-900/40 transition-colors">
             <td class="px-6 py-4 font-bold text-white select-all">${w.userId}</td>
-            <td class="px-6 py-4 font-semibold text-white">₹${parseFloat(w.amount).toFixed(2)}</td>
+            <td class="px-6 py-4 font-semibold text-white">${symbol}${parseFloat(w.amount).toFixed(2)}</td>
             <td class="px-6 py-4 text-xs font-semibold text-slate-400">${w.method || 'BANK'}</td>
             <td class="px-6 py-4">${detailsLabel}</td>
             <td class="px-6 py-4 text-xs text-slate-500">${w.createdAt || 'N/A'}</td>
@@ -1217,6 +1237,9 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           : `<button onclick="toggleUserDemo('${u.mobile}', true)" class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded transition-colors w-24">Set Demo</button>`;
 
         const avatarUrl = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.mobile}`;
+        const isBd = u.mobile.startsWith('880') || u.mobile.startsWith('+880');
+        const symbol = isBd ? '৳' : '₹';
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-900/40 transition-colors">
             <td class="px-6 py-4 font-bold text-white select-all">
@@ -1225,9 +1248,9 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <span>${u.mobile}</span>
               </div>
             </td>
-            <td class="px-6 py-4 font-black text-emerald-400">₹${parseFloat(u.motta || 0).toFixed(2)}</td>
-            <td class="px-6 py-4 text-slate-400">₹${parseFloat(u.total_deposit || 0).toFixed(2)}</td>
-            <td class="px-6 py-4 text-slate-400">₹${parseFloat(u.total_bet || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 font-black text-emerald-400">${symbol}${parseFloat(u.motta || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-slate-400">${symbol}${parseFloat(u.total_deposit || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-slate-400">${symbol}${parseFloat(u.total_bet || 0).toFixed(2)}</td>
             <td class="px-6 py-4">${typeBadge}</td>
             <td class="px-6 py-4">${statusBadge}</td>
             <td class="px-6 py-4 text-center">
@@ -1262,16 +1285,21 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
     function updateSettingsUI() {
       const upi = settingsData.deposit_settings?.upi || {};
       const usdt = settingsData.deposit_settings?.usdt || {};
+      const bkash = settingsData.deposit_settings?.bkash || {};
+      const nagad = settingsData.deposit_settings?.nagad || {};
 
       document.getElementById('setting-upi-id').value = upi.upi_id || '';
       document.getElementById('setting-upi-qr').value = upi.qr_url || '';
       document.getElementById('setting-usdt-address').value = usdt.usdt_address || '';
       document.getElementById('setting-usdt-rate').value = settingsData.system_settings?.usdt_rate || '90';
+      document.getElementById('setting-bkash-wallet').value = bkash.wallet_no || '';
+      document.getElementById('setting-nagad-wallet').value = nagad.wallet_no || '';
     }
 
     function updatePlatformSettingsUI() {
       const system = settingsData.system_settings || {};
       document.getElementById('setting-signup-balance').value = system.default_signup_balance || '0';
+      document.getElementById('setting-min-deposit-withdraw').value = system.min_deposit_for_withdraw || '250';
       document.getElementById('setting-maintenance').checked = system.maintenance === true || system.maintenance === 'true';
     }
 
@@ -1487,6 +1515,8 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const upiQr = document.getElementById('setting-upi-qr').value.trim();
       const usdtAddress = document.getElementById('setting-usdt-address').value.trim();
       const usdtRate = parseFloat(document.getElementById('setting-usdt-rate').value.trim());
+      const bkashWallet = document.getElementById('setting-bkash-wallet').value.trim();
+      const nagadWallet = document.getElementById('setting-nagad-wallet').value.trim();
 
       if (isNaN(usdtRate) || usdtRate <= 0) return;
 
@@ -1495,20 +1525,27 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       updates['deposit_settings/upi/qr_url'] = upiQr;
       updates['deposit_settings/usdt/usdt_address'] = usdtAddress;
       updates['system_settings/usdt_rate'] = usdtRate;
+      updates['deposit_settings/bkash/wallet_no'] = bkashWallet;
+      updates['deposit_settings/nagad/wallet_no'] = nagadWallet;
 
-      db.ref().update(updates);
+      db.ref().update(updates).then(() => {
+        alert('Payment settings saved successfully!');
+      });
     }
 
     // 10. SAVE PLATFORM SETTINGS
     function savePlatformSettings() {
       const signupBal = parseFloat(document.getElementById('setting-signup-balance').value.trim());
+      const minDepositWithdraw = parseFloat(document.getElementById('setting-min-deposit-withdraw').value.trim());
       const newAdminPassword = document.getElementById('setting-admin-password').value.trim();
       const maintenanceVal = document.getElementById('setting-maintenance').checked;
 
       if (isNaN(signupBal) || signupBal < 0) return;
+      if (isNaN(minDepositWithdraw) || minDepositWithdraw < 0) return;
 
       const updates = {};
       updates['system_settings/default_signup_balance'] = signupBal;
+      updates['system_settings/min_deposit_for_withdraw'] = minDepositWithdraw;
       updates['system_settings/maintenance'] = maintenanceVal;
       
       if (newAdminPassword.length > 0) {

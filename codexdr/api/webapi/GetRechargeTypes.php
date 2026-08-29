@@ -1,5 +1,6 @@
 <?php 
 	include "../../conn.php";
+	include "../../functions2.php";
 	global $firebase;
 	
 	header('Content-Type: application/json; charset=utf-8');
@@ -20,62 +21,189 @@
 	$sites = '';
 	$data = ["rechargetypelist" => []];
 	
-	if ($payid == 2 || $payid == 1 || $payid == 13) {
-		// UPI Channel
-		$data["rechargetypelist"][0] = [
-			"payTypeID" => 1023,
-			"payID" => $payid,
-			"payName" => "Manual UPI / QR",
-			"paySysName" => "ManualUPI",
-			"miniPrice" => 200,
-			"maxPrice" => 50000,
-			"scope" => "200|500|1000|5000|10000|50000",
-			"paySendUrl" => $sites . "/pay/manual_deposit.php?method=upi&tyid=1023",
-			"parameters" => "",
-			"startTime" => "00:00",
-			"endTime" => "24:00",
-			"rechargeRifts" => 0.00,
-			"c2cUnitAmount" => null,
-			"quickConfig" => "",
-			"quickConfigList" => [
-				["rechargeAmount" => 200.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 500.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 10000.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 50000.0, "giftAmount" => 0.0],
-			],
-			"random" => 0.8192,
-			"sort" => 90000
-		];
-	} elseif ($payid == 11) {
-		// USDT Channel
-		$data["rechargetypelist"][0] = [
-			"payTypeID" => 2123,
-			"payID" => 11,
-			"payName" => "Manual USDT (TRC-20)",
-			"paySysName" => "ManualUSDT",
-			"miniPrice" => 10,
-			"maxPrice" => 50000,
-			"scope" => "10|50|100|500|1000|5000",
-			"paySendUrl" => $sites . "/pay/manual_deposit.php?method=usdt&tyid=2123",
-			"parameters" => "",
-			"startTime" => "00:00",
-			"endTime" => "24:00",
-			"rechargeRifts" => 0.00,
-			"c2cUnitAmount" => null,
-			"quickConfig" => "",
-			"quickConfigList" => [
-				["rechargeAmount" => 10.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 50.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 100.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 500.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
-				["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
-			],
-			"random" => 0.7584,
-			"sort" => 95000
-		];
+	// Detect BDT split
+	$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
+	$is_bdt = false;
+	if (!empty($authHeader)) {
+		$bearer = explode(' ', $authHeader);
+		$author = isset($bearer[1]) ? $bearer[1] : '';
+		$is_jwt_valid = is_jwt_valid($author);
+		$data_auth = json_decode($is_jwt_valid, 1);
+		if (isset($data_auth['status']) && $data_auth['status'] === 'Success') {
+			$mobile = $data_auth['payload']['mobile'];
+			if (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0) {
+				$is_bdt = true;
+			}
+		}
+	}
+	
+	if ($is_bdt) {
+		if ($payid == 2) {
+			// Nagad Channels (matching tab index)
+			$channels = [
+				"RolezPayPS-Nagad Balance:300 - 50K",
+				"OpPay-Nagad Balance:100 - 50K",
+				"GoPayPS-Nagad Balance:100 - 10K",
+				"PopoPay-Nagad Balance:500 - 50K",
+				"StarPago-Nagad Balance:1000 - 10K",
+				"KaroPay-Nagad Balance:100 - 30K"
+			];
+			$minPrices = [300, 100, 100, 500, 1000, 100];
+			
+			foreach ($channels as $idx => $chanName) {
+				$data["rechargetypelist"][$idx] = [
+					"payTypeID" => 1024 + $idx,
+					"payID" => $payid,
+					"payName" => $chanName,
+					"paySysName" => "Nagad",
+					"miniPrice" => $minPrices[$idx],
+					"maxPrice" => 50000,
+					"scope" => "300|500|1000|5000|10000|50000",
+					"paySendUrl" => $sites . "/pay/manual_deposit.php?method=nagad&tyid=" . (1024 + $idx),
+					"parameters" => "",
+					"startTime" => "00:00",
+					"endTime" => "24:00",
+					"rechargeRifts" => 0.00,
+					"c2cUnitAmount" => null,
+					"quickConfig" => "",
+					"quickConfigList" => [
+						["rechargeAmount" => 300.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 500.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 10000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 50000.0, "giftAmount" => 0.0],
+					],
+					"random" => 0.8100 + ($idx / 100.0),
+					"sort" => 90000 - $idx
+				];
+			}
+		} elseif ($payid == 1) {
+			// bKash Channels
+			$channels = [
+				"RolezPayPS-BKASH Balance:300 - 50K",
+				"OpPay-BKASH Balance:100 - 50K",
+				"GoPayPS-BKASH Balance:100 - 10K",
+				"PopoPay-BKASH Balance:500 - 50K",
+				"StarPago-BKASH Balance:1000 - 10K",
+				"KaroPay-BKASH Balance:100 - 30K"
+			];
+			$minPrices = [300, 100, 100, 500, 1000, 100];
+			
+			foreach ($channels as $idx => $chanName) {
+				$data["rechargetypelist"][$idx] = [
+					"payTypeID" => 1030 + $idx,
+					"payID" => $payid,
+					"payName" => $chanName,
+					"paySysName" => "bKash",
+					"miniPrice" => $minPrices[$idx],
+					"maxPrice" => 50000,
+					"scope" => "100|500|1000|5000|10000|50000",
+					"paySendUrl" => $sites . "/pay/manual_deposit.php?method=bkash&tyid=" . (1030 + $idx),
+					"parameters" => "",
+					"startTime" => "00:00",
+					"endTime" => "24:00",
+					"rechargeRifts" => 0.00,
+					"c2cUnitAmount" => null,
+					"quickConfig" => "",
+					"quickConfigList" => [
+						["rechargeAmount" => 100.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 500.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 10000.0, "giftAmount" => 0.0],
+						["rechargeAmount" => 50000.0, "giftAmount" => 0.0],
+					],
+					"random" => 0.7100 + ($idx / 100.0),
+					"sort" => 80000 - $idx
+				];
+			}
+		} elseif ($payid == 11) {
+			// USDT Channel
+			$data["rechargetypelist"][0] = [
+				"payTypeID" => 2123,
+				"payID" => 11,
+				"payName" => "Manual USDT (TRC-20)",
+				"paySysName" => "ManualUSDT",
+				"miniPrice" => 10,
+				"maxPrice" => 50000,
+				"scope" => "10|50|100|500|1000|5000",
+				"paySendUrl" => $sites . "/pay/manual_deposit.php?method=usdt&tyid=2123",
+				"parameters" => "",
+				"startTime" => "00:00",
+				"endTime" => "24:00",
+				"rechargeRifts" => 0.02,
+				"c2cUnitAmount" => null,
+				"quickConfig" => "",
+				"quickConfigList" => [
+					["rechargeAmount" => 10.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 50.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 100.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 500.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
+				],
+				"random" => 0.7584,
+				"sort" => 95000
+			];
+		}
+	} else {
+		// India Version (UPI / USDT)
+		if ($payid == 2 || $payid == 1 || $payid == 13) {
+			$data["rechargetypelist"][0] = [
+				"payTypeID" => 1023,
+				"payID" => $payid,
+				"payName" => "Manual UPI / QR",
+				"paySysName" => "ManualUPI",
+				"miniPrice" => 200,
+				"maxPrice" => 50000,
+				"scope" => "200|500|1000|5000|10000|50000",
+				"paySendUrl" => $sites . "/pay/manual_deposit.php?method=upi&tyid=1023",
+				"parameters" => "",
+				"startTime" => "00:00",
+				"endTime" => "24:00",
+				"rechargeRifts" => 0.00,
+				"c2cUnitAmount" => null,
+				"quickConfig" => "",
+				"quickConfigList" => [
+					["rechargeAmount" => 200.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 500.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 10000.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 50000.0, "giftAmount" => 0.0],
+				],
+				"random" => 0.8192,
+				"sort" => 90000
+			];
+		} elseif ($payid == 11) {
+			$data["rechargetypelist"][0] = [
+				"payTypeID" => 2123,
+				"payID" => 11,
+				"payName" => "Manual USDT (TRC-20)",
+				"paySysName" => "ManualUSDT",
+				"miniPrice" => 10,
+				"maxPrice" => 50000,
+				"scope" => "10|50|100|500|1000|5000",
+				"paySendUrl" => $sites . "/pay/manual_deposit.php?method=usdt&tyid=2123",
+				"parameters" => "",
+				"startTime" => "00:00",
+				"endTime" => "24:00",
+				"rechargeRifts" => 0.00,
+				"c2cUnitAmount" => null,
+				"quickConfig" => "",
+				"quickConfigList" => [
+					["rechargeAmount" => 10.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 50.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 100.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 500.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 1000.0, "giftAmount" => 0.0],
+					["rechargeAmount" => 5000.0, "giftAmount" => 0.0],
+				],
+				"random" => 0.7584,
+				"sort" => 95000
+			];
+		}
 	}
 	
 	$data['banklist'] = null;

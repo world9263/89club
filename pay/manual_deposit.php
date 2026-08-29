@@ -6,16 +6,21 @@ global $firebase;
 // Read query params from redirect
 $amount = isset($_GET['amount']) ? htmlspecialchars($_GET['amount']) : '0';
 $uid = isset($_GET['uid']) ? htmlspecialchars($_GET['uid']) : '';
-$method = isset($_GET['method']) ? htmlspecialchars($_GET['method']) : 'upi';
+$method = isset($_GET['method']) ? strtolower(htmlspecialchars($_GET['method'])) : 'upi';
 
 // Fetch current deposit settings from Firebase
 $deposit_settings = $firebase->get('deposit_settings');
 $upi_id = isset($deposit_settings['upi']['upi_id']) ? $deposit_settings['upi']['upi_id'] : 'yourupi@ybl';
-$qr_url = isset($deposit_settings['upi']['qr_url']) ? $deposit_settings['upi']['qr_url'] : 'https://89club.sbs/pay/wepay.png';
+$qr_url = isset($deposit_settings['upi']['qr_url']) ? $deposit_settings['upi']['qr_url'] : '/pay/wepay.png';
 $usdt_address = isset($deposit_settings['usdt']['usdt_address']) ? $deposit_settings['usdt']['usdt_address'] : 'T9yD14Nj9yXsw1cqSk299m91yXsw1c99m9';
+$bkash_wallet = isset($deposit_settings['bkash']['wallet_no']) ? $deposit_settings['bkash']['wallet_no'] : '01354743800';
+$nagad_wallet = isset($deposit_settings['nagad']['wallet_no']) ? $deposit_settings['nagad']['wallet_no'] : '01942136883';
 
 $success_msg = "";
 $error_msg = "";
+
+$is_bd = (strpos($uid, '880') === 0 || strpos($uid, '+880') === 0 || $method === 'bkash' || $method === 'nagad');
+$currency = $is_bd ? "৳" : "₹";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $utr = isset($_POST['utr']) ? trim(htmlspecialchars($_POST['utr'])) : '';
@@ -24,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payMethod = isset($_POST['method']) ? trim(htmlspecialchars($_POST['method'])) : 'upi';
     
     if (empty($utr)) {
-        $error_msg = "Please enter your UTR / Transaction ID!";
+        $error_msg = "Please enter your Transaction ID / UTR!";
     } else {
         // Handle screenshot upload
         $screenshot_url = "";
@@ -45,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target_file = $target_dir . $new_file_name;
                 
                 if (move_uploaded_file($file_tmp, $target_file)) {
-                    $screenshot_url = "https://89club.sbs/pay/assets/screenshots/" . $new_file_name;
+                    $screenshot_url = "/pay/assets/screenshots/" . $new_file_name;
                 }
             }
         }
@@ -73,12 +78,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $msgText = "🔔 *New Deposit Request!*\n\n";
         $msgText .= "*Deposit ID:* `" . $depositId . "`\n";
         $msgText .= "*Player Mobile:* `" . $userId . "`\n";
-        $msgText .= "*Amount:* `₹" . $payAmount . "`\n";
+        $msgText .= "*Amount:* `" . $currency . $payAmount . "`\n";
         $msgText .= "*Method:* `" . strtoupper($payMethod) . "`\n";
         $msgText .= "*UTR / Transaction ID:* `" . $utr . "`\n";
         $msgText .= "*Submitted At:* `" . date('Y-m-d H:i:s') . "`\n";
         if (!empty($screenshot_url)) {
-            $msgText .= "\n🖼 [Click here to view Screenshot](" . $screenshot_url . ")";
+            // Reconstruct absolute URL for telegram preview
+            $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+            $absolute_screenshot = $protocol . "://" . $_SERVER['HTTP_HOST'] . $screenshot_url;
+            $msgText .= "\n🖼 [Click here to view Screenshot](" . $absolute_screenshot . ")";
         } else {
             $msgText .= "\n🖼 *Screenshot:* Not Uploaded";
         }
@@ -102,7 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $tgUrl);
+        $curl_url = $tgUrl;
+        curl_setopt($ch, CURLOPT_URL, $curl_url);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -493,6 +502,161 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: bold;
             box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
         }
+
+        /* custom Nagad Theme styles */
+        .nagad-theme {
+            background-color: #f58e20;
+            color: white;
+            padding: 20px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(245, 142, 32, 0.15);
+        }
+        .nagad-white-card {
+            background-color: white;
+            color: #1f2937;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        .nagad-white-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .nagad-white-card-row:last-child {
+            border-bottom: none;
+        }
+        .nagad-white-card-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .nagad-white-card-value {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nagad-submit-btn {
+            background-color: #e55325;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* custom bKash Theme styles */
+        .bkash-theme-header {
+            background-color: #005c30;
+            color: white;
+            padding: 14px 18px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .bkash-alert-pink {
+            color: #d11266;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        .bkash-magenta-btn {
+            background-color: #d11266;
+            color: white;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+        .bkash-circle {
+            background-color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d11266;
+            font-weight: 900;
+            font-size: 10px;
+        }
+        .bkash-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+        .bkash-sublabel {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        .bkash-number-box {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        .bkash-number-val {
+            font-size: 16px;
+            font-weight: bold;
+            color: #111827;
+            letter-spacing: 0.5px;
+        }
+        .bkash-input-trx-label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 6px;
+        }
+        .bkash-confirm-btn {
+            background-color: #ffffff;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .bkash-confirm-btn.active {
+            background-color: #d11266;
+            color: white;
+            border-color: #d11266;
+        }
+        .bkash-alert-warning {
+            color: #d11266;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 14px;
+            margin-bottom: 14px;
+        }
     </style>
 </head>
 <body>
@@ -504,29 +668,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php echo $success_msg; ?>
             </div>
             <div class="back-btn-container">
-                <a href="https://89club.sbs/#/main">Go Back to App</a>
+                <a href="/#/main">Go Back to App</a>
             </div>
         </div>
     <?php else: ?>
         
-        <!-- Header Amount & Timer -->
-        <div class="amount-header">
-            <div class="amount-title">
-                <?php if ($method === 'usdt'): ?>
-                    $<?php echo number_format((float)$amount, 2); ?>
-                <?php else: ?>
-                    ₹<?php echo number_format((float)$amount, 2); ?>
-                <?php endif; ?>
-                <span onclick="copyValue('<?php echo $amount; ?>')" style="color: #6b7280;">
-                    <!-- Copy Icon SVG -->
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                    </svg>
-                </span>
+        <?php if ($method !== 'bkash' && $method !== 'nagad'): ?>
+            <!-- Header Amount & Timer (Default/USDT/UPI) -->
+            <div class="amount-header">
+                <div class="amount-title">
+                    <?php if ($method === 'usdt'): ?>
+                        $<?php echo number_format((float)$amount, 2); ?>
+                    <?php else: ?>
+                        ₹<?php echo number_format((float)$amount, 2); ?>
+                    <?php endif; ?>
+                    <span onclick="copyValue('<?php echo $amount; ?>')" style="color: #6b7280;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </span>
+                </div>
+                <div class="timer" id="countdown">15:00</div>
             </div>
-            <div class="timer" id="countdown">15:00</div>
-        </div>
+        <?php endif; ?>
 
         <?php if (!empty($error_msg)): ?>
             <div class="alert alert-danger">
@@ -540,7 +705,116 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="hidden" name="amount" value="<?php echo $amount; ?>">
             <input type="hidden" name="method" value="<?php echo $method; ?>">
 
-            <?php if ($method === 'usdt'): ?>
+            <?php if ($method === 'nagad'): ?>
+                <!-- NAGAD BENGALI LAYOUT -->
+                <div style="text-align: center; margin-bottom: 12px;">
+                    <h2 style="font-size: 28px; font-weight: 800; margin: 0; color: #111827;">Payment</h2>
+                    <span style="font-size: 13px; color: #6b7280; font-weight: bold;"><?php echo date('n/j/Y, g:i:s A'); ?></span>
+                </div>
+                
+                <div class="nagad-theme">
+                    <div style="font-size: 14px; font-weight: bold; line-height: 1.6; text-align: left;">
+                        অনুগ্রহ করে একই পরিমাণ স্থানান্তর করুন এবং ব্যর্থ এড়াতে সঠিক trxID পূরণ করুন
+                    </div>
+                    <div style="font-size: 14px; font-weight: bold; line-height: 1.6; text-align: left; margin-top: 14px;">
+                        এই নাগদ এজেন্ট অ্যাকাউন্টে অর্থ প্রদান করতে <strong>ক্যাশআউট</strong> ব্যবহার করুন
+                    </div>
+                    
+                    <div class="nagad-white-card">
+                        <div class="nagad-white-card-row">
+                            <span class="nagad-white-card-label">ওয়ালেট</span>
+                            <span class="nagad-white-card-value" style="color: #e55325;">
+                                <img src="https://logologogo.github.io/logos/nagad.png" style="height: 18px; display:none;" onerror="this.style.display='none'"> 
+                                Nagad
+                            </span>
+                        </div>
+                        <div class="nagad-white-card-row">
+                            <span class="nagad-white-card-label">সংখ্যা</span>
+                            <span class="nagad-white-card-value" style="color: #1e40af; font-family: monospace;">
+                                <?php echo $nagad_wallet; ?>
+                                <span onclick="copyValue('<?php echo $nagad_wallet; ?>')" style="cursor: pointer; color: #6b7280; display: inline-flex; align-items: center;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </span>
+                            </span>
+                        </div>
+                        <div class="nagad-white-card-row">
+                            <span class="nagad-white-card-label">পরিমাণ</span>
+                            <span class="nagad-white-card-value" style="color: #15803d;">
+                                ৳<?php echo number_format((float)$amount, 2); ?>
+                                <span onclick="copyValue('<?php echo $amount; ?>')" style="cursor: pointer; color: #6b7280; display: inline-flex; align-items: center;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                    </svg>
+                                </span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px; text-align: left;">
+                        সম্পূর্ণ করতে দয়া করে TxnID লিখুন
+                    </div>
+                    
+                    <div class="input-wrapper" style="border-radius: 8px; margin-bottom: 10px;">
+                        <input type="text" id="utr" name="utr" class="utr-input" placeholder="এখানে TxID লিখুন" required autocomplete="off">
+                        <button type="button" class="paste-btn" style="border-radius: 6px;" onclick="pasteClipboard()">Paste</button>
+                    </div>
+                    
+                    <button type="submit" id="nagad-submit" class="nagad-submit-btn" style="opacity: 0.6; cursor: not-allowed;" disabled>জমা দিন</button>
+                </div>
+
+            <?php elseif ($method === 'bkash'): ?>
+                <!-- BKASH BENGALI LAYOUT -->
+                <div class="bkash-theme-header">
+                    <span>BDT <?php echo number_format((float)$amount, 2); ?></span>
+                    <span style="background-color: white; color: #005c30; padding: 2px 6px; border-radius: 4px; font-size: 11px;">PAY SERVICE</span>
+                    <span style="font-size: 11px;">পাঠান করবেন না</span>
+                </div>
+                
+                <div class="bkash-alert-pink">
+                    আপনি যদি টাকার পরিমাণ পরিবর্তন করেন (BDT <?php echo number_format((float)$amount, 2); ?>), আপনি ক্রেডিট পেতে সক্ষম হবেন না।
+                </div>
+
+                <div class="bkash-magenta-btn">
+                    <span class="bkash-circle">bKash</span>
+                    <span>BKASH Deposit</span>
+                </div>
+
+                <div class="bkash-label">Wallet No *</div>
+                <div class="bkash-sublabel">এই BKASH নাম্বারে শুধুমাত্র <strong>সেন্ড মানি</strong> গ্রহণ করা হয়</div>
+                
+                <div class="bkash-number-box">
+                    <span class="bkash-number-val" id="bkash-num"><?php echo $bkash_wallet; ?></span>
+                    <span onclick="copyValue('<?php echo $bkash_wallet; ?>')" style="cursor: pointer; color: #6b7280; display: inline-flex; align-items: center;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                    </span>
+                </div>
+
+                <div class="bkash-input-trx-label">সেন্ট মানির TrxID নাম্বারটি লিখুন(প্রয়োজন)</div>
+                
+                <div class="input-wrapper" style="border-radius: 6px; border: 1px solid #d1d5db; margin-bottom: 20px;">
+                    <input type="text" id="utr" name="utr" class="utr-input" placeholder="TrxID অবশ্যই পূরণ করতে হবে" required autocomplete="off">
+                </div>
+
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button type="submit" id="bkash-submit" class="bkash-confirm-btn" disabled>নিশ্চিত</button>
+                </div>
+
+                <div class="bkash-alert-warning">
+                    সতর্কতা: লেনদেন আইডি সঠিকভাবে পূরণ করতে হবে, অন্যথায় স্কোর ব্যর্থ হবে! !
+                </div>
+                
+                <div style="font-size: 11px; color: #6b7280; line-height: 1.6; text-align: left; margin-bottom: 20px;">
+                    अनुग्रह करे নিশ্চিত হয়ে নিন যে আপনি BKASH deposit ওয়ালেট নাম্বারে সেন্ড মানি করছেন। এই নাম্বারের অন্য কোন ওয়ালেট থেকে টাকা পাঠাবেন না।
+                </div>
+
+            <?php elseif ($method === 'usdt'): ?>
                 <!-- USDT Layout -->
                 <div class="section-headline">Choose payment channel</div>
                 <div class="payment-methods-grid">
@@ -553,7 +827,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="section-headline">Scan QR to pay</div>
                 <div class="qr-card">
                     <div class="qr-wrapper">
-                        <!-- Use same QR Code for TRC20 if available, or fall back -->
                         <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?php echo urlencode($usdt_address); ?>" alt="USDT QR Code">
                     </div>
                     <div class="qr-instructions">
@@ -581,12 +854,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <!-- UPI Layout -->
                 <div class="section-headline">Choose a payment method to pay</div>
                 <div class="payment-methods-grid">
-                    <!-- Paytm Wake Up -->
                     <div class="method-btn paytm" onclick="wakeUpApp('paytm')">
                         <div class="method-title">Paytm</div>
                         <div class="method-sub">Wake up support</div>
                     </div>
-                    <!-- PhonePe Wake Up -->
                     <div class="method-btn phonepe" onclick="wakeUpApp('phonepe')">
                         <div class="method-title">PhonePe</div>
                         <div class="method-sub">Wake up support</div>
@@ -634,6 +905,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php if ($method === 'usdt'): ?>
                         <li>Do not pay for the same wallet address repeatedly!</li>
                         <li>Always ensure the network is TRC-20 (TRON).</li>
+                    <?php elseif ($method === 'bkash' || $method === 'nagad'): ?>
+                        <li>Do not make duplicate submissions for the same TrxID!</li>
+                        <li>Always verify the wallet number before transferring funds.</li>
                     <?php else: ?>
                         <li>Do not pay for the same link repeatedly!</li>
                         <li>Paytm is wake up support!</li>
@@ -643,8 +917,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Sticky Bottom Actions -->
             <div class="bottom-actions">
-                <button type="button" class="btn-cancel" onclick="window.location.href='https://89club.sbs/#/main'">Cancel</button>
-                <button type="submit" id="submit-btn" class="btn-submit-action" disabled>Submit (UTR not entered)</button>
+                <button type="button" class="btn-cancel" onclick="window.location.href='/#/main'">Cancel</button>
+                <?php if ($method === 'nagad' || $method === 'bkash'): ?>
+                    <!-- Hidden backup submit button so standard form submission still triggers validateUTRInput -->
+                    <button type="submit" id="submit-btn" style="display:none;"></button>
+                <?php else: ?>
+                    <button type="submit" id="submit-btn" class="btn-submit-action" disabled>Submit (UTR not entered)</button>
+                <?php endif; ?>
             </div>
         </form>
     <?php endif; ?>
@@ -682,7 +961,10 @@ function startTimer() {
         minutes = minutes < 10 ? "0" + minutes : minutes;
         seconds = seconds < 10 ? "0" + seconds : seconds;
         
-        document.getElementById("countdown").innerText = minutes + ":" + seconds;
+        var countdownEl = document.getElementById("countdown");
+        if (countdownEl) {
+            countdownEl.innerText = minutes + ":" + seconds;
+        }
         
         timeRemaining--;
         
@@ -691,14 +973,12 @@ function startTimer() {
             localStorage.removeItem(timerKey);
             localStorage.removeItem(startTimeKey);
             alert("Payment timer expired! Please initiate a new deposit if needed.");
-            window.location.href = "https://89club.sbs/#/main";
+            window.location.href = "/#/main";
         }
     }, 1000);
 }
 
-if (document.getElementById("countdown")) {
-    startTimer();
-}
+startTimer();
 
 // Clipboard copying utility
 function copyValue(val) {
@@ -720,8 +1000,10 @@ function copyValue(val) {
 function pasteClipboard() {
     navigator.clipboard.readText().then(function(text) {
         var input = document.getElementById("utr");
-        input.value = text.trim();
-        validateUTRInput();
+        if (input) {
+            input.value = text.trim();
+            validateUTRInput();
+        }
     }).catch(function(err) {
         alert("Could not read from clipboard. Please enter manually.");
     });
@@ -739,13 +1021,11 @@ function wakeUpApp(app) {
     var deepLink = "upi://pay?pa=" + encodeURIComponent(upiId) + "&pn=Merchant&am=" + encodeURIComponent(amount) + "&cu=INR&tn=" + encodeURIComponent(note);
     
     if (app === 'paytm') {
-        // Paytm target deep link
         window.location.href = "paytmmp://cashier?pa=" + encodeURIComponent(upiId) + "&am=" + encodeURIComponent(amount);
         setTimeout(function() {
             window.location.href = deepLink;
         }, 1000);
     } else if (app === 'phonepe') {
-        // PhonePe target deep link
         window.location.href = "phonepe://pay?pa=" + encodeURIComponent(upiId) + "&am=" + encodeURIComponent(amount);
         setTimeout(function() {
             window.location.href = deepLink;
@@ -758,36 +1038,63 @@ function wakeUpApp(app) {
 // Input validation to enable/disable Submit button dynamically
 var utrInput = document.getElementById("utr");
 var submitBtn = document.getElementById("submit-btn");
+var nagadSubmit = document.getElementById("nagad-submit");
+var bkashSubmit = document.getElementById("bkash-submit");
 
 function validateUTRInput() {
-    if (!utrInput || !submitBtn) return;
+    if (!utrInput) return;
     
     var utrValue = utrInput.value.trim();
-    var isMethodUsdt = "<?php echo $method; ?>" === "usdt";
+    var method = "<?php echo $method; ?>";
     
-    // For UPI, validate that it has exactly 12 digits. For USDT, just ensure it's not empty and has a reasonable length.
     var isValid = false;
-    if (isMethodUsdt) {
-        isValid = utrValue.length >= 10; // TxID are usually longer hash strings
+    if (method === "usdt" || method === "bkash" || method === "nagad") {
+        isValid = utrValue.length >= 8; // TxID/TrxID are usually hashes or numbers of reasonable length
     } else {
         // Match exactly 12 digits
         isValid = /^\d{12}$/.test(utrValue);
     }
     
-    if (isValid) {
-        submitBtn.disabled = false;
-        submitBtn.classList.add("active");
-        submitBtn.innerText = "Submit";
-        submitBtn.style.cursor = "pointer";
-    } else {
-        submitBtn.disabled = true;
-        submitBtn.classList.remove("active");
-        if (isMethodUsdt) {
-            submitBtn.innerText = "Submit (TxID not entered)";
+    if (nagadSubmit) {
+        if (isValid) {
+            nagadSubmit.disabled = false;
+            nagadSubmit.style.opacity = "1";
+            nagadSubmit.style.cursor = "pointer";
         } else {
-            submitBtn.innerText = "Submit (UTR not entered)";
+            nagadSubmit.disabled = true;
+            nagadSubmit.style.opacity = "0.6";
+            nagadSubmit.style.cursor = "not-allowed";
         }
-        submitBtn.style.cursor = "not-allowed";
+    }
+
+    if (bkashSubmit) {
+        if (isValid) {
+            bkashSubmit.disabled = false;
+            bkashSubmit.classList.add("active");
+            bkashSubmit.style.cursor = "pointer";
+        } else {
+            bkashSubmit.disabled = true;
+            bkashSubmit.classList.remove("active");
+            bkashSubmit.style.cursor = "not-allowed";
+        }
+    }
+    
+    if (submitBtn) {
+        if (isValid) {
+            submitBtn.disabled = false;
+            submitBtn.classList.add("active");
+            submitBtn.innerText = "Submit";
+            submitBtn.style.cursor = "pointer";
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove("active");
+            if (method === "usdt") {
+                submitBtn.innerText = "Submit (TxID not entered)";
+            } else {
+                submitBtn.innerText = "Submit (UTR not entered)";
+            }
+            submitBtn.style.cursor = "not-allowed";
+        }
     }
 }
 
