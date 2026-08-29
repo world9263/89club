@@ -1,5 +1,5 @@
 window.CONFIG = Object.freeze({
-    "VITE_API_URL": "https://89club-production.up.railway.app/codexdr",
+    "VITE_API_URL": "/codexdr",
     "VITE_BASE_LANGUAGE": "en",
     "VITE_BASE_DOLLARSIGN": "₹",
     "VITE_BASE_AREACODE": "+91",

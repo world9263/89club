@@ -52,7 +52,7 @@ if ($demoResult->num_rows > 0) {
     $conn->query($updateQuery);
 
     // Redirect to recharge history
-    header('Location: https://89club-production.up.railway.app/#/main');
+    header('Location: https://89club.sbs/#/main');
     exit;
 }
 
@@ -101,7 +101,7 @@ $res = [
 		
 		$urlarr = explode (",", $urlInfo);
 		$theirurl = $urlarr[0];
-		$myurl = 'https://89club-production.up.railway.app/#/wallet/RechargeHistory';
+		$myurl = 'https://89club.sbs/#/wallet/RechargeHistory';
 		
 		if($myurl){
 ?>

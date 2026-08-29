@@ -17,7 +17,7 @@
 	$shonupost = json_decode($shonubody, true);
 	$payid = isset($shonupost['payid']) ? (int)$shonupost['payid'] : 2;
 	
-	$sites = 'https://89club-production.up.railway.app';
+	$sites = 'https://89club.sbs';
 	$data = ["rechargetypelist" => []];
 	
 	if ($payid == 2 || $payid == 1 || $payid == 13) {

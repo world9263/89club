@@ -41,31 +41,31 @@
 					if($user != null){
                         $data["list"][0]["bannerTitle"] = "First Deposit Bonus";
                         $data["list"][0]["bannerID"] = 71;
-                        $data["list"][0]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/1.png";
+                        $data["list"][0]["bannerUrl"] = "https://89club.sbs/Banners/1.png";
                         $data["list"][0]["jumpType"] = 2;
                         $data["list"][0]["contents"] = "/activity/FirstRecharge";
                         
                         $data["list"][1]["bannerTitle"] = "Invitation Bonus";
                         $data["list"][1]["bannerID"] = 62;
-                        $data["list"][1]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/2.png";
+                        $data["list"][1]["bannerUrl"] = "https://89club.sbs/Banners/2.png";
                         $data["list"][1]["jumpType"] = 2;
                         $data["list"][1]["contents"] = "/main/InvitationBonus";
                         
                         $data["list"][2]["bannerTitle"] = "Win Streak 2X Price Happy Hour";
                         $data["list"][2]["bannerID"] = 53;
-                        $data["list"][2]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/6.png";
+                        $data["list"][2]["bannerUrl"] = "https://89club.sbs/Banners/6.png";
                         $data["list"][2]["jumpType"] = 1;
                         $data["list"][2]["contents"] = "";
                         
                         $data["list"][3]["bannerTitle"] = "Lucky Spin To Win Iphone 16 Pro Max";
                         $data["list"][3]["bannerID"] = 59;
-                        $data["list"][3]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/4.png";
+                        $data["list"][3]["bannerUrl"] = "https://89club.sbs/Banners/4.png";
                         $data["list"][3]["jumpType"] = 2;
                         $data["list"][3]["contents"] = "/activity/Turntable";
                         
                         $data["list"][4]["bannerTitle"] = "Daily Bonus Until 1 CRORE";
                         $data["list"][4]["bannerID"] = 69;
-                        $data["list"][4]["bannerUrl"] = "https://89club-production.up.railway.app/Banners/5.png";
+                        $data["list"][4]["bannerUrl"] = "https://89club.sbs/Banners/5.png";
                         $data["list"][4]["jumpType"] = 1;
                         $data["list"][4]["contents"] = "";
 

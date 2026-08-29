@@ -1,6 +1,6 @@
 <script>
 	if (!localStorage.getItem('userInfo')) {
-		window.location.href = 'https://89club-production.up.railway.app/#/login';
+		window.location.href = 'https://89club.sbs/#/login';
 	}
 	else{
 		let alldet = localStorage.getItem('userInfo');
@@ -18,7 +18,7 @@
 		.then(response => response.json())
 		.then(data => {
 			if(data.res != '1'){
-				window.location.href = 'https://89club-production.up.railway.app/';
+				window.location.href = 'https://89club.sbs/';
 			}
 			else{
 				let date = new Date();
@@ -28,7 +28,7 @@
 			}
 		})
 		.catch(error => {
-			window.location.href = 'https://89club-production.up.railway.app/';
+			window.location.href = 'https://89club.sbs/';
 		});
 	}
 </script>

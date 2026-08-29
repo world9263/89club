@@ -11,7 +11,7 @@ $method = isset($_GET['method']) ? htmlspecialchars($_GET['method']) : 'upi';
 // Fetch current deposit settings from Firebase
 $deposit_settings = $firebase->get('deposit_settings');
 $upi_id = isset($deposit_settings['upi']['upi_id']) ? $deposit_settings['upi']['upi_id'] : 'yourupi@ybl';
-$qr_url = isset($deposit_settings['upi']['qr_url']) ? $deposit_settings['upi']['qr_url'] : 'https://89club-production.up.railway.app/pay/wepay.png';
+$qr_url = isset($deposit_settings['upi']['qr_url']) ? $deposit_settings['upi']['qr_url'] : 'https://89club.sbs/pay/wepay.png';
 $usdt_address = isset($deposit_settings['usdt']['usdt_address']) ? $deposit_settings['usdt']['usdt_address'] : 'T9yD14Nj9yXsw1cqSk299m91yXsw1c99m9';
 
 $success_msg = "";
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $target_file = $target_dir . $new_file_name;
                 
                 if (move_uploaded_file($file_tmp, $target_file)) {
-                    $screenshot_url = "https://89club-production.up.railway.app/pay/assets/screenshots/" . $new_file_name;
+                    $screenshot_url = "https://89club.sbs/pay/assets/screenshots/" . $new_file_name;
                 }
             }
         }
@@ -504,7 +504,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php echo $success_msg; ?>
             </div>
             <div class="back-btn-container">
-                <a href="https://89club-production.up.railway.app/#/main">Go Back to App</a>
+                <a href="https://89club.sbs/#/main">Go Back to App</a>
             </div>
         </div>
     <?php else: ?>
@@ -643,7 +643,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <!-- Sticky Bottom Actions -->
             <div class="bottom-actions">
-                <button type="button" class="btn-cancel" onclick="window.location.href='https://89club-production.up.railway.app/#/main'">Cancel</button>
+                <button type="button" class="btn-cancel" onclick="window.location.href='https://89club.sbs/#/main'">Cancel</button>
                 <button type="submit" id="submit-btn" class="btn-submit-action" disabled>Submit (UTR not entered)</button>
             </div>
         </form>
@@ -691,7 +691,7 @@ function startTimer() {
             localStorage.removeItem(timerKey);
             localStorage.removeItem(startTimeKey);
             alert("Payment timer expired! Please initiate a new deposit if needed.");
-            window.location.href = "https://89club-production.up.railway.app/#/main";
+            window.location.href = "https://89club.sbs/#/main";
         }
     }, 1000);
 }

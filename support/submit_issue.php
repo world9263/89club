@@ -277,14 +277,14 @@ if ($conn->query($query)) {
             <h1>Issue Submitted Successfully!</h1>
             <p>Thank you for submitting your issue. Our team will review it shortly.</p>
             <div class="countdown">Redirecting in <span id="countdown">10</span> seconds...</div>
-            <a href="https://89club-production.up.railway.app/" class="btn">Return Home Now</a>
+            <a href="https://89club.sbs/" class="btn">Return Home Now</a>
         </div>
 
         <script>
             // Countdown timer
             let seconds = 10;
             const countdownElement = document.getElementById("countdown");
-            const homeUrl = "https://89club-production.up.railway.app/";
+            const homeUrl = "https://89club.sbs/";
             
             const countdownInterval = setInterval(() => {
                 seconds--;

@@ -5,43 +5,43 @@ echo "Cron started at: " . date('Y-m-d H:i:s') . PHP_EOL;
 // Define tasks and their execution intervals
 $tasks = [
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_aidudi.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_aidudi.php',
         'interval' => '* * * * *', // Every minute
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_aidudi_funf.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_aidudi_funf.php',
         'interval' => '*/5 * * * *', // Every 5 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_funf.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_funf.php',
         'interval' => '*/5 * * * *', // Every 5 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_kemuru_drei.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_kemuru_drei.php',
         'interval' => '*/3 * * * *', // Every 3 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_kemuru_funf.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_kemuru_funf.php',
         'interval' => '*/5 * * * *', // Every 5 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_kemuru_zehn.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_kemuru_zehn.php',
         'interval' => '* * * * *', // Every 10 minutes
     ], 
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_aidudi_drei.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_aidudi_drei.php',
         'interval' => '*/3 * * * *', // Every 3 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa.php',
+        'url' => 'https://89club.sbs/niyamitakelasa.php',
         'interval' => '* * * * *', // Every minute
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_kemuru.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_kemuru.php',
         'interval' => '*/5 * * * *', // Every 5 minutes
     ],
     [
-        'url' => 'https://89club-production.up.railway.app/niyamitakelasa_drei.php',
+        'url' => 'https://89club.sbs/niyamitakelasa_drei.php',
         'interval' => '*/3 * * * *', // Every 3 minutes
     ],
 ];

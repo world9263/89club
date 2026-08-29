@@ -63,7 +63,7 @@
 						or other legal entity on behalf of which such individual is accessing or using the Service, as applicable.</font></p></li><li style="box-sizing: 
 						inherit; background-repeat: no-repeat; padding: 0px; margin: 0px;"><p style="box-sizing: inherit; margin-bottom: 16px; background-repeat: 
 						no-repeat; padding: 0px;"><font color="#000" style=""><span style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px; 
-						font-weight: bolder;">Company</span>(referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to<a href="https://89club-production.up.railway.app" 
+						font-weight: bolder;">Company</span>(referred to as either "the Company", "We", "Us" or "Our" in this Agreement) refers to<a href="https://89club.sbs" 
 						target="_blank">89 𝐂𝐋𝐔𝐁 Game</a>.</font></p></li><li style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px;"><font color="#000" 
 						style=""><span style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px; font-weight: bolder;">Affiliate</span>
 						means an entity that controls, is controlled by or is under common control with a party, where "control" means ownership of 50% or more of the shares, 
@@ -72,7 +72,7 @@
 						padding: 0px; margin: 0px; font-weight: bolder;">Account</span>means a unique account created for You to access our Service or parts of our Service.</font>
 						</li><li style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px;"><font color="#000" style="">
 						<span style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px; font-weight: bolder;">Website</span>
-						refers to<a href="https://89club-production.up.railway.app" target="_blank">89 𝐂𝐋𝐔𝐁 Game</a>, accessible from<a href="https://89club-production.up.railway.app" 
+						refers to<a href="https://89club.sbs" target="_blank">89 𝐂𝐋𝐔𝐁 Game</a>, accessible from<a href="https://89club.sbs" 
 						target="_blank">89 𝐂𝐋𝐔𝐁 Game</a></font></li><li style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px;">
 						<font color="#000" style=""><span style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px; font-weight: bolder;">
 						Service</span>refers to the Website.</font></li><li style="box-sizing: inherit; background-repeat: no-repeat; padding: 0px; margin: 0px;">';

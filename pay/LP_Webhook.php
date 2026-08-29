@@ -1,6 +1,6 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    header('Location: https://89club-production.up.railway.app/#/wallet/RechargeHistory');
+    header('Location: https://89club.sbs/#/wallet/RechargeHistory');
     exit;
 }
 

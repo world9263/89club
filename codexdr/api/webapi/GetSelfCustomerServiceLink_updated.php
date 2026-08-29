@@ -1,4 +1,4 @@
 <?php
-header("Location: https://89club-production.up.railway.app/support");
+header("Location: https://89club.sbs/support");
 exit();
 ?>
