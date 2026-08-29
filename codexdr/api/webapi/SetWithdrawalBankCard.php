@@ -23,15 +23,15 @@
 	$shonupost = json_decode($shonubody, true);
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
-		if (isset($shonupost['accountno']) && isset($shonupost['bankid']) && isset($shonupost['beneficiaryname']) && isset($shonupost['codeType']) && isset($shonupost['email']) && isset($shonupost['ifsccode']) && isset($shonupost['language']) && isset($shonupost['mobileno']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
+		if (isset($shonupost['accountno']) && isset($shonupost['bankid']) && isset($shonupost['beneficiaryname'])) {
 			$accountno = htmlspecialchars($shonupost['accountno']);
 			$bankid = htmlspecialchars($shonupost['bankid']);
 			$beneficiaryname = htmlspecialchars($shonupost['beneficiaryname']);
-			$codeType = htmlspecialchars($shonupost['codeType']);
-			$email = htmlspecialchars($shonupost['email']);
-			$ifsccode = htmlspecialchars($shonupost['ifsccode']);
-			$language = htmlspecialchars($shonupost['language']);
-			$mobileno = htmlspecialchars($shonupost['mobileno']);			
+			$codeType = htmlspecialchars($shonupost['codeType'] ?? '');
+			$email = htmlspecialchars($shonupost['email'] ?? '');
+			$ifsccode = htmlspecialchars($shonupost['ifsccode'] ?? '');
+			$language = htmlspecialchars($shonupost['language'] ?? 'en');
+			$mobileno = htmlspecialchars($shonupost['mobileno'] ?? '');			
 			
 			$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
 			$author = $bearer[1] ?? '';				
@@ -41,36 +41,46 @@
 				$mobile = $data_auth['payload']['mobile'];
 				$user = $firebase->get('users/' . $mobile);
 				if($user != null){
-					// Fetch Bank List using curl
-					$url = 'https://api.skywin786.in/api/webapi/GetBankList';
-					$payld = array(
-						'language' => 0,							
-						'random' => 'bbfdf080be3d4529aee34c148e0ad9f8',
-						'signature' => 'FD7919EAADBA695B1C123E396B9786A2',
-						'timestamp' => 1718516163,
-						'withdrawid' => 1
-					);
-					$jsonData = json_encode($payld);
-					$ch = curl_init($url);
-					curl_setopt($ch, CURLOPT_POST, 1);
-					curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
-					curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-					curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-						'Content-Type: application/json',
-						'Content-Length: ' . strlen($jsonData),
-						'Authorization: ' . $_SERVER['HTTP_AUTHORIZATION']
-					));
-					$response = curl_exec($ch);
-					curl_close($ch);
-					
 					$bankName = 'Bank Card';
-					if ($response) {
-						$rcvdt = json_decode($response, true);
-						$banklist = $rcvdt['data']['banklist'] ?? [];
-						foreach ($banklist as $bank) {
-							if (isset($bank["bankID"]) && $bank["bankID"] == $bankid) {
-								$bankName = $bank['bankName'];
-								break;
+					if ($bankid == 1001) {
+						$bankName = 'BKASH';
+					} elseif ($bankid == 1002) {
+						$bankName = 'NAGAD';
+					} elseif ($bankid == 1003) {
+						$bankName = 'ROCKET';
+					} elseif ($bankid == 1004) {
+						$bankName = 'UPAY';
+					} else {
+						// Fetch Bank List using curl
+						$url = 'https://api.skywin786.in/api/webapi/GetBankList';
+						$payld = array(
+							'language' => 0,							
+							'random' => 'bbfdf080be3d4529aee34c148e0ad9f8',
+							'signature' => 'FD7919EAADBA695B1C123E396B9786A2',
+							'timestamp' => 1718516163,
+							'withdrawid' => 1
+						);
+						$jsonData = json_encode($payld);
+						$ch = curl_init($url);
+						curl_setopt($ch, CURLOPT_POST, 1);
+						curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+						curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+						curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+							'Content-Type: application/json',
+							'Content-Length: ' . strlen($jsonData),
+							'Authorization: ' . $_SERVER['HTTP_AUTHORIZATION']
+						));
+						$response = curl_exec($ch);
+						curl_close($ch);
+						
+						if ($response) {
+							$rcvdt = json_decode($response, true);
+							$banklist = $rcvdt['data']['banklist'] ?? [];
+							foreach ($banklist as $bank) {
+								if (isset($bank["bankID"]) && $bank["bankID"] == $bankid) {
+									$bankName = $bank['bankName'];
+									break;
+								}
 							}
 						}
 					}

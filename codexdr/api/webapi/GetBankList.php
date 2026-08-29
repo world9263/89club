@@ -39,7 +39,54 @@
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
+						$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+						if (!$is_bdt) {
+							$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+							if ($cf_country === 'BD') {
+								$is_bdt = true;
+							}
+						}
+						
 						http_response_code(200);
+						if($withdrawid == 1 && $is_bdt){
+							echo '
+								{
+								  "data": {
+									"banklist": [
+									  {
+										"bankID": 1001,
+										"bankLogo": "https://apiimages.skywin786.in/BDGWin",
+										"bankName": "BKASH",
+										"reserved": "1"
+									  },
+									  {
+										"bankID": 1002,
+										"bankLogo": "https://apiimages.skywin786.in/BDGWin",
+										"bankName": "NAGAD",
+										"reserved": "1"
+									  },
+									  {
+										"bankID": 1003,
+										"bankLogo": "https://apiimages.skywin786.in/BDGWin",
+										"bankName": "ROCKET",
+										"reserved": "1"
+									  },
+									  {
+										"bankID": 1004,
+										"bankLogo": "https://apiimages.skywin786.in/BDGWin",
+										"bankName": "UPAY",
+										"reserved": "1"
+									  }
+									]
+								  },
+								  "code": 0,
+								  "msg": "Succeed",
+								  "msgCode": 0,
+								  "serviceNowTime": "' . $shnunc . '"
+								}
+							';
+							exit;
+						}
 						if($withdrawid == 1){
 							echo '
 								{

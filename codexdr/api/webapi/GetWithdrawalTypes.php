@@ -48,8 +48,16 @@
 						}
 					}
 					
+					$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
+					if (!$is_bdt) {
+						$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+						if ($cf_country === 'BD') {
+							$is_bdt = true;
+						}
+					}
+					
 					$data['withdrawlist'][0]['withdrawID'] = 1;
-					$data['withdrawlist'][0]['name'] = 'BANK CARD';
+					$data['withdrawlist'][0]['name'] = $is_bdt ? 'E-Wallet' : 'BANK CARD';
 					$data['withdrawlist'][0]['isAdd'] = $hasBank;
 					$data['withdrawlist'][0]['withBeforeImgUrl'] = 'https://ossimg.bdg123456.com/BDGWin/payNameIcon/WithBeforeImgIcon_202403161624569ini.png';
 					$data['withdrawlist'][0]['withAfterImgUrl'] = 'https://ossimg.bdg123456.com/BDGWin/payNameIcon/WithBeforeImgIcon2_20240316162456if4s.png';
