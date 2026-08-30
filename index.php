@@ -55,7 +55,7 @@ echo '
 		
 		<link rel="manifest" />
 		<title>91 𝐂𝐋𝐔𝐁</title>
-		<script type="module" crossorigin src="/assets/js/index-004d14f7.js?v=91"></script>
+		<script type="module" crossorigin src="/assets/js/index-004d14f7.js?v=92"></script>
 		<link rel="modulepreload" crossorigin href="/assets/js/modules-5f93e3cf.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/native/index-c115c6dd.js">
 		<link rel="modulepreload" crossorigin href="/assets/js/en-25215ed9.js">
