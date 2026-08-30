@@ -1,5 +1,5 @@
 # Sensitive credentials - NEVER push to GitHub
-config.php
+/config.php
 
 # System files
 .DS_Store
