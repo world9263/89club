@@ -154,7 +154,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
             <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> Offline
           </span>
         </h1>
-        <p class="text-xs text-slate-500 select-all" id="connectedDbLabel">Loading Database Configuration...</p>
+        <p class="text-xs text-slate-500 select-all hidden" id="connectedDbLabel">Loading Database Configuration...</p>
       </div>
     </div>
     
@@ -697,11 +697,11 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">USDT Conversion Rate (INR per 1 USDT)</label>
                 <input type="number" step="0.01" id="setting-usdt-rate" placeholder="90" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
-              <div>
+              <div class="hidden">
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Active bKash Wallet Number (Bangladesh BDT)</label>
                 <input type="text" id="setting-bkash-wallet" placeholder="01354743800" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
-              <div>
+              <div class="hidden">
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Active Nagad Wallet Number (Bangladesh BDT)</label>
                 <input type="text" id="setting-nagad-wallet" placeholder="01942136883" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
@@ -744,7 +744,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Change Admin Panel Password</label>
-                <input type="password" id="setting-admin-password" placeholder="New dashboard login password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                <input type="text" id="setting-admin-password" placeholder="New dashboard login password" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
                 <span class="text-[10px] text-slate-500 mt-1 block">Leave empty to keep your current password.</span>
               </div>
               
@@ -873,6 +873,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
       db.ref('system_settings').on('value', snap => {
         settingsData.system_settings = snap.val() || {};
+        updateSettingsUI();
         updatePlatformSettingsUI();
       });
 
@@ -1293,6 +1294,58 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       updateUsersTable();
     }
 
+
+    // Custom Toast Notification System
+    function showToast(message) {
+      let container = document.getElementById('custom-toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'custom-toast-container';
+        container.style.position = 'fixed';
+        container.style.bottom = '20px';
+        container.style.right = '20px';
+        container.style.zIndex = '99999';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.gap = '10px';
+        document.body.appendChild(container);
+      }
+      
+      const toast = document.createElement('div');
+      toast.style.background = '#0f172a';
+      toast.style.color = '#e2e8f0';
+      toast.style.border = '1px solid #eab308';
+      toast.style.borderRadius = '12px';
+      toast.style.padding = '12px 24px';
+      toast.style.fontFamily = 'sans-serif';
+      toast.style.fontSize = '14px';
+      toast.style.fontWeight = 'bold';
+      toast.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.3)';
+      toast.style.display = 'flex';
+      toast.style.alignItems = 'center';
+      toast.style.gap = '8px';
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(20px)';
+      toast.style.transition = 'all 0.3s ease';
+      
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-yellow-500"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateY(0)';
+      }, 50);
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }
+    
+
     // Populate Settings UI
     function updateSettingsUI() {
       const upi = settingsData.deposit_settings?.upi || {};
@@ -1550,7 +1603,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       updates['system_settings/gateway_secret_key'] = gatewaySecretKey;
 
       db.ref().update(updates).then(() => {
-        alert('Payment settings saved successfully!');
+        showToast('Changed successfully!');
       });
     }
 
