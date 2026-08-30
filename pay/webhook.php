@@ -66,7 +66,7 @@ $deposit = $firebase->get('deposits/' . $mchOrderNo);
 if ($deposit) {
     $status = isset($deposit['status']) ? $deposit['status'] : 'pending';
     
-    if ($status === 'pending') {
+    if ($status === 'initiated') {
         $userId = $deposit['userId'];
         $amount = (float)$deposit['amount'];
         
@@ -83,7 +83,7 @@ if ($deposit) {
             
             // Update deposit status to success in Firebase
             $firebase->update('deposits/' . $mchOrderNo, [
-                'status' => 'success',
+                'status' => 'request on gateway',
                 'updatedAt' => date('Y-m-d H:i:s')
             ]);
             

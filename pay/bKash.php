@@ -110,7 +110,7 @@ if ($responseData && isset($responseData['respCode']) && $responseData['respCode
         'userId' => $uid,
         'amount' => (float)$ramt,
         'method' => $goods_name,
-        'status' => 'pending',
+        'status' => 'initiated',
         'createdAt' => $createdate
     ];
     $firebase->set('deposits/' . $serial, $deposit_data);

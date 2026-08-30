@@ -941,6 +941,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
       let pendingDeposits = 0;
       Object.values(depositsData).forEach(d => {
+        if (d.status === 'initiated') return;
         if (d.status === 'pending') pendingDeposits++;
       });
       document.getElementById('stat-pending-deposits').innerText = pendingDeposits;
@@ -1097,7 +1098,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const tbody = document.getElementById('deposit-requests-table-body');
       tbody.innerHTML = '';
 
-      const sortedDeposits = Object.entries(depositsData).map(([id, d]) => ({ id, ...d }));
+      const sortedDeposits = Object.entries(depositsData).map(([id, d]) => ({ id, ...d })).filter(d => d.status !== 'initiated');
       sortedDeposits.sort((a, b) => {
         if (a.status === 'pending' && b.status !== 'pending') return -1;
         if (a.status !== 'pending' && b.status === 'pending') return 1;

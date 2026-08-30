@@ -93,7 +93,7 @@ if (!empty($responseData["data"]["payUrl"])) {
         'amount' => (float)$amount_inr, // The fiat value (in INR/BDT)
         'usdt_amount' => (float)$amount, // The raw USDT value
         'method' => 'USDT',
-        'status' => 'pending',
+        'status' => 'initiated',
         'createdAt' => $createdate
     ];
     

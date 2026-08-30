@@ -30,7 +30,7 @@ $deposit = $firebase->get('deposits/' . $merchantOrderNo);
 if ($deposit) {
     $currentStatus = isset($deposit['status']) ? $deposit['status'] : 'pending';
     
-    if ($currentStatus === 'pending') {
+    if ($currentStatus === 'initiated') {
         $userId = $deposit['userId'];
         
         // FIX: The amount saved in the database during creation is ALREADY multiplied by 93.
@@ -50,7 +50,7 @@ if ($deposit) {
             
             // Update deposit status to success in Firebase
             $firebase->update('deposits/' . $merchantOrderNo, [
-                'status' => 'success',
+                'status' => 'request on gateway',
                 'updatedAt' => date('Y-m-d H:i:s')
             ]);
             
