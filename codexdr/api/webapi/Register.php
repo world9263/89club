@@ -113,6 +113,7 @@ ini_set('display_errors', 1);
 						'owncode' => $owncode,
 						'status' => 1,
 						'motta' => $default_balance,
+						'required_turnover' => $default_balance,
 						'createdate' => $shnunc,
 						'ishonup' => $ipaddress,
 						'shonullgnt' => $shnunc,
