@@ -706,8 +706,8 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <input type="text" id="setting-nagad-wallet" placeholder="01942136883" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">XSBDWIN Gateway API URL</label>
-                <input type="text" id="setting-gateway-api-url" placeholder="https://xsbdwin.online/api/pay.php" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">XSBDWIN Gateway Base URL</label>
+                <input type="text" id="setting-gateway-base-url" placeholder="https://xswallet.cyou/api" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 transition-colors">
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">XSBDWIN Gateway App ID</label>
@@ -1306,7 +1306,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       document.getElementById('setting-usdt-rate').value = settingsData.system_settings?.usdt_rate || '90';
       document.getElementById('setting-bkash-wallet').value = bkash.wallet_no || '';
       document.getElementById('setting-nagad-wallet').value = nagad.wallet_no || '';
-      document.getElementById('setting-gateway-api-url').value = settingsData.system_settings?.gateway_api_url || '';
+      document.getElementById('setting-gateway-base-url').value = settingsData.system_settings?.gateway_base_url || '';
       document.getElementById('setting-gateway-app-id').value = settingsData.system_settings?.gateway_app_id || '';
       document.getElementById('setting-gateway-secret-key').value = settingsData.system_settings?.gateway_secret_key || '';
     }
@@ -1532,7 +1532,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const usdtRate = parseFloat(document.getElementById('setting-usdt-rate').value.trim());
       const bkashWallet = document.getElementById('setting-bkash-wallet').value.trim();
       const nagadWallet = document.getElementById('setting-nagad-wallet').value.trim();
-      const gatewayApiUrl = document.getElementById('setting-gateway-api-url').value.trim();
+      const gatewayBaseUrl = document.getElementById('setting-gateway-base-url').value.trim();
       const gatewayAppId = document.getElementById('setting-gateway-app-id').value.trim();
       const gatewaySecretKey = document.getElementById('setting-gateway-secret-key').value.trim();
 
@@ -1545,7 +1545,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       updates['system_settings/usdt_rate'] = usdtRate;
       updates['deposit_settings/bkash/wallet_no'] = bkashWallet;
       updates['deposit_settings/nagad/wallet_no'] = nagadWallet;
-      updates['system_settings/gateway_api_url'] = gatewayApiUrl;
+      updates['system_settings/gateway_base_url'] = gatewayBaseUrl;
       updates['system_settings/gateway_app_id'] = gatewayAppId;
       updates['system_settings/gateway_secret_key'] = gatewaySecretKey;
 

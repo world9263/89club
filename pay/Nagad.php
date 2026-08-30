@@ -7,7 +7,8 @@ $config = require 'config.php';
 $system_settings = $firebase->get('system_settings');
 $app_id = isset($system_settings['gateway_app_id']) && !empty($system_settings['gateway_app_id']) ? $system_settings['gateway_app_id'] : $config['xsbdwin']['app_id'];
 $secretKey = isset($system_settings['gateway_secret_key']) && !empty($system_settings['gateway_secret_key']) ? $system_settings['gateway_secret_key'] : $config['xsbdwin']['secret_key'];
-$apiUrl = isset($system_settings['gateway_api_url']) && !empty($system_settings['gateway_api_url']) ? $system_settings['gateway_api_url'] : $config['xsbdwin']['api_url'];
+$base_url = isset($system_settings['gateway_base_url']) && !empty($system_settings['gateway_base_url']) ? rtrim($system_settings['gateway_base_url'], '/') : $config['xsbdwin']['base_url'];
+$apiUrl = $base_url . '/pay.php';
 
 $ramt = isset($_GET['amount']) ? htmlspecialchars($_GET['amount']) : '0';
 $payTypeID = isset($_GET['tyid']) ? htmlspecialchars($_GET['tyid']) : '0';
