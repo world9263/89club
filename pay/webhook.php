@@ -66,7 +66,7 @@ $deposit = $firebase->get('deposits/' . $mchOrderNo);
 if ($deposit) {
     $status = isset($deposit['status']) ? $deposit['status'] : 'pending';
     
-    if ($status === 'initiated') {
+    if ($status === 'pending') {
         $userId = $deposit['userId'];
         $amount = (float)$deposit['amount'];
         

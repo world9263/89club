@@ -941,7 +941,6 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
 
       let pendingDeposits = 0;
       Object.values(depositsData).forEach(d => {
-        if (d.status === 'initiated') return;
         if (d.status === 'pending') pendingDeposits++;
       });
       document.getElementById('stat-pending-deposits').innerText = pendingDeposits;
@@ -1098,7 +1097,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const tbody = document.getElementById('deposit-requests-table-body');
       tbody.innerHTML = '';
 
-      const sortedDeposits = Object.entries(depositsData).map(([id, d]) => ({ id, ...d })).filter(d => d.status !== 'initiated');
+      const sortedDeposits = Object.entries(depositsData).map(([id, d]) => ({ id, ...d }));
       sortedDeposits.sort((a, b) => {
         if (a.status === 'pending' && b.status !== 'pending') return -1;
         if (a.status !== 'pending' && b.status === 'pending') return 1;
@@ -1114,7 +1113,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         let statusBadge = '';
         if (d.status === 'pending') {
           statusBadge = `<span class="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Pending</span>`;
-        } else if (d.status === 'success') {
+        } else if (d.status === 'success' || d.status === 'request success') {
           statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Approved</span>`;
         } else if (d.status === 'request on gateway') {
           statusBadge = `<span class="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block text-slate-300">Request on Gateway</span>`;

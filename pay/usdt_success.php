@@ -30,7 +30,7 @@ $deposit = $firebase->get('deposits/' . $merchantOrderNo);
 if ($deposit) {
     $currentStatus = isset($deposit['status']) ? $deposit['status'] : 'pending';
     
-    if ($currentStatus === 'initiated') {
+    if ($currentStatus === 'pending') {
         $userId = $deposit['userId'];
         
         // FIX: The amount saved in the database during creation is ALREADY multiplied by 93.
