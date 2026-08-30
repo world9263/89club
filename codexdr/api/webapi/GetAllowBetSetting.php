@@ -22,13 +22,43 @@ if($data_auth['status'] === 'Success') {
     $mobile = $data_auth['payload']['mobile'];
     $user = $firebase->get('users/' . $mobile);
     if($user != null) {
+        
+        // Count successful deposits from Firebase
+        $deposits = $firebase->get('deposits');
+        $userRechargeTimes = 0;
+        $userRechargeAmount = 0.0;
+        
+        if ($deposits) {
+            foreach ($deposits as $dep) {
+                $is_user_dep = isset($dep['userId']) && (
+                    $dep['userId'] == $mobile || 
+                    $dep['userId'] == '91' . $mobile || 
+                    $dep['userId'] == '880' . $mobile ||
+                    $dep['userId'] == '+91' . $mobile || 
+                    $dep['userId'] == '+880' . $mobile
+                );
+                $is_success = isset($dep['status']) && ($dep['status'] === 'success' || $dep['status'] === 'request success');
+                
+                if ($is_user_dep && $is_success) {
+                    $userRechargeTimes++;
+                    $userRechargeAmount += (float)($dep['amount'] ?? 0.0);
+                }
+            }
+        }
+        
+        $canDirectToGame = ($userRechargeTimes > 0);
+        
         echo json_encode([
             'code' => 0,
             'msg' => 'Succeed',
             'msgCode' => 0,
             'serviceNowTime' => date('Y-m-d H:i:s'),
             'data' => [
-                'canDirectToGame' => true
+                'allowNoRechargeGame' => '0',
+                'lowestRechargeAmountToGame' => 0,
+                'userRechargeTimes' => $userRechargeTimes,
+                'userRechargeAmount' => $userRechargeAmount,
+                'canDirectToGame' => $canDirectToGame
             ]
         ]);
         exit;
