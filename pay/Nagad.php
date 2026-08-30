@@ -61,7 +61,7 @@ $params = [
     'pay_type'       => $pay_type,
     'goods_name'     => $goods_name,
     'notify_url'     => 'https://' . $_SERVER['HTTP_HOST'] . '/pay/webhook.php',
-    'page_url'       => 'https://' . $_SERVER['HTTP_HOST'] . '/#/wallet/RechargeHistory',
+    'page_url'       => 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php?order_id=' . $serial,
     'mch_return_msg' => 'Order_' . $uid,
     'order_date'     => $createdate
 ];
@@ -114,6 +114,7 @@ if ($responseData && isset($responseData['respCode']) && $responseData['respCode
         'createdAt' => $createdate
     ];
     $firebase->set('deposits/' . $serial, $deposit_data);
+    setcookie('last_initiated_order', $serial, time() + 3600, '/');
     
     // Redirect user to payment checkout page
     header('Location: ' . $responseData['payInfo']);

@@ -40,7 +40,7 @@ $orderid = 'USDT_' . time() . rand(1000, 9999);
 $createdate = date('Y-m-d H:i:s');
 
 $notifyUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/pay/usdt_success.php';
-$redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/#/wallet/RechargeHistory';
+$redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php?order_id=' . $orderid;
 $fiatCurrency = "USD";
 $amount_inr = $usdt_rate * $amount;
 
@@ -98,6 +98,7 @@ if (!empty($responseData["data"]["payUrl"])) {
     ];
     
     $firebase->set('deposits/' . $orderid, $deposit_data);
+    setcookie('last_initiated_order', $orderid, time() + 3600, '/');
     
     // Redirect to UPAY checkout page
     header("Location: $payment_url");
