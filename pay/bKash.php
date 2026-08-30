@@ -116,6 +116,6 @@ if ($responseData && isset($responseData['respCode']) && $responseData['respCode
     header('Location: ' . $responseData['payInfo']);
     exit;
 } else {
-    echo "Error: Unable to process payment. " . (isset($responseData['tradeMsg']) ? $responseData['tradeMsg'] : 'Gateway response error.');
+    echo "Error: Unable to process payment. " . (isset($responseData['tradeMsg']) ? $responseData['tradeMsg'] : 'Gateway response error.') . " Raw Response: " . htmlspecialchars($response);
 }
 ?>

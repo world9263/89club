@@ -3,8 +3,8 @@
 return [
     'xsbdwin' => [
         'base_url' => 'https://xswallet.cyou/api',
-        'secret_key' => 'f4445014c07a8b4a9e9d62234c80d128',
-        'app_id' => 'GP_SUB_43366914',
+        'secret_key' => '32f2e4607777494febcce5ba4fb4157e',
+        'app_id' => 'GP_SUB_41588957',
         'name' => 'bdgwin16'
     ],
     'upay' => [
