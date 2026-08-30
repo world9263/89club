@@ -40,7 +40,7 @@ $orderid = 'USDT_' . time() . rand(1000, 9999);
 $createdate = date('Y-m-d H:i:s');
 
 $notifyUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/pay/usdt_success.php';
-$redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php?order_id=' . $orderid;
+$redirectUrl = 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php';
 $fiatCurrency = "USD";
 $amount_inr = $usdt_rate * $amount;
 

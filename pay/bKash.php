@@ -61,7 +61,7 @@ $params = [
     'pay_type'       => $pay_type,
     'goods_name'     => $goods_name,
     'notify_url'     => 'https://' . $_SERVER['HTTP_HOST'] . '/pay/webhook.php',
-    'page_url'       => 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php?order_id=' . $serial,
+    'page_url'       => 'https://' . $_SERVER['HTTP_HOST'] . '/pay/return.php',
     'mch_return_msg' => 'Order_' . $uid,
     'order_date'     => $createdate
 ];
