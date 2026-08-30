@@ -1116,6 +1116,8 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           statusBadge = `<span class="bg-yellow-500/10 text-yellow-500 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Pending</span>`;
         } else if (d.status === 'success') {
           statusBadge = `<span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Approved</span>`;
+        } else if (d.status === 'request on gateway') {
+          statusBadge = `<span class="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block text-slate-300">Request on Gateway</span>`;
         } else {
           statusBadge = `<span class="bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Rejected</span>`;
         }
