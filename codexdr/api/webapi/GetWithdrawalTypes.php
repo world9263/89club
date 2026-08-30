@@ -48,12 +48,10 @@
 						}
 					}
 					
-					$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
-					if (!$is_bdt) {
-						$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
-						if ($cf_country === 'BD') {
-							$is_bdt = true;
-						}
+					$is_bdt = false;
+					$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+					if ($cf_country === 'BD') {
+						$is_bdt = true;
 					}
 					
 					$data['withdrawlist'][0]['withdrawID'] = 1;

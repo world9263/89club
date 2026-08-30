@@ -21,26 +21,10 @@
 	$sites = '';
 	$data = ["rechargetypelist" => []];
 	
-	// Detect BDT split
-	$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
 	$is_bdt = false;
-	if (!empty($authHeader)) {
-		$bearer = explode(' ', $authHeader);
-		$author = isset($bearer[1]) ? $bearer[1] : '';
-		$is_jwt_valid = is_jwt_valid($author);
-		$data_auth = json_decode($is_jwt_valid, 1);
-		if (isset($data_auth['status']) && $data_auth['status'] === 'Success') {
-			$mobile = $data_auth['payload']['mobile'];
-			if (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0) {
-				$is_bdt = true;
-			}
-		}
-	}
-	if (!$is_bdt) {
-		$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
-		if ($cf_country === 'BD') {
-			$is_bdt = true;
-		}
+	$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+	if ($cf_country === 'BD') {
+		$is_bdt = true;
 	}
 	
 	if ($is_bdt) {

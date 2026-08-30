@@ -28,28 +28,12 @@
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
 				$is_bdt = false;
-				$authHeader = isset($_SERVER['HTTP_AUTHORIZATION']) ? $_SERVER['HTTP_AUTHORIZATION'] : '';
-				if (!empty($authHeader)) {
-					$bearer = explode(" ", $authHeader);
-					$author = isset($bearer[1]) ? $bearer[1] : '';
-					include_once "../../functions2.php";
-					$is_jwt_valid = is_jwt_valid($author);
-					$data_auth = json_decode($is_jwt_valid, true);
-					if (isset($data_auth['status']) && $data_auth['status'] === 'Success') {
-						$mobile = $data_auth['payload']['mobile'];
-						if (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0) {
-							$is_bdt = true;
-						}
-					}
+				$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+				if ($cf_country === 'BD') {
+					$is_bdt = true;
 				}
 				if (!$is_bdt && isset($language) && ($language === 'bdt' || $language === '"bdt"')) {
 					$is_bdt = true;
-				}
-				if (!$is_bdt) {
-					$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
-					if ($cf_country === 'BD') {
-						$is_bdt = true;
-					}
 				}
 
 				$data['isShowAppDownloadUp'] = true;

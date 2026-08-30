@@ -35,6 +35,10 @@ if($data_auth['status'] === 'Success') {
             // determine typeId from char at index 12 (assuming standard structure)
             $typeId = substr($issuenumber, 12, 1);
             
+            // Map typeId back for helper to trigger generation/settlement
+            $typeIdForHelper = ($typeId == 5) ? 4 : (int)$typeId;
+            wingo_ensure_recent_results($firebase, $typeIdForHelper, 5);
+            
             $result = $firebase->get('game_results/wingo_t' . $typeId . '/' . $issuenumber);
             $bets = $firebase->get('game_bets/wingo_t' . $typeId . '/' . $issuenumber);
             

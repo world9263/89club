@@ -38,12 +38,10 @@
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
-						$is_bdt = (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0);
-						if (!$is_bdt) {
-							$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
-							if ($cf_country === 'BD') {
-								$is_bdt = true;
-							}
+						$is_bdt = false;
+						$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+						if ($cf_country === 'BD') {
+							$is_bdt = true;
 						}
 						if ($is_bdt) {
 							// Nagad
@@ -51,8 +49,8 @@
 							$data['typelist'][0]['payTypeID'] = 0;
 							$data['typelist'][0]['payName'] = 'Nagad';
 							$data['typelist'][0]['paySysName'] = 'Nagad';
-							$data['typelist'][0]['payNameUrl'] = 'https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/200px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png';
-							$data['typelist'][0]['payNameUrl2'] = 'https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/200px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png';
+							$data['typelist'][0]['payNameUrl'] = '/images/nagad.png';
+							$data['typelist'][0]['payNameUrl2'] = '/images/nagad.png';
 							$data['typelist'][0]['minPrice'] = 300;
 							$data['typelist'][0]['maxPrice'] = 50000;
 							$data['typelist'][0]['scope'] = '300|500|1000|5000|10000|50000';
@@ -66,8 +64,8 @@
 							$data['typelist'][1]['payTypeID'] = 0;
 							$data['typelist'][1]['payName'] = 'bKash';
 							$data['typelist'][1]['paySysName'] = 'bKash';
-							$data['typelist'][1]['payNameUrl'] = 'https://upload.wikimedia.org/wikipedia/en/thumb/6/68/BKash_logo.svg/200px-BKash_logo.svg.png';
-							$data['typelist'][1]['payNameUrl2'] = 'https://upload.wikimedia.org/wikipedia/en/thumb/6/68/BKash_logo.svg/200px-BKash_logo.svg.png';
+							$data['typelist'][1]['payNameUrl'] = '/images/bkash.png';
+							$data['typelist'][1]['payNameUrl2'] = '/images/bkash.png';
 							$data['typelist'][1]['minPrice'] = 100;
 							$data['typelist'][1]['maxPrice'] = 50000;
 							$data['typelist'][1]['scope'] = '100|500|1000|5000|10000|50000';
