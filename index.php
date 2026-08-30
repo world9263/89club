@@ -124,6 +124,7 @@ echo '
     let pendingDepositTimer = null;
 
     function checkPendingDeposits() {
+        return; // Disabled by user request
         const token = localStorage.getItem('token') || localStorage.getItem('Authorization');
         if (!token) return;
 
