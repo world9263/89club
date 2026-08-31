@@ -24,19 +24,11 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['language']) && isset($shonupost['pageNo']) && isset($shonupost['pageSize']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			//$endDate = $shonupost['endDate'];
 			$language = $shonupost['language'];
-			$pageNo = $shonupost['pageNo'];
-			$pageSize = $shonupost['pageSize'];			
+			$pageNo = (int)$shonupost['pageNo'];
+			$pageSize = (int)$shonupost['pageSize'];			
 			$random = $shonupost['random'];
 			$signature = $shonupost['signature'];
-			//$startDate = $shonupost['startDate'];
-			/*if($endDate == '' && $startDate == ''){
-				$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'"}';	
-			}
-			else{
-				$shonustr = '{"endDate":"'.$endDate.'","language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'","startDate":"'.$startDate.'"}';	
-			}*/
 			$shonustr = '{"language":'.$language.',"pageNo":'.$pageNo.',"pageSize":'.$pageSize.',"random":"'.$random.'"}';	
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
@@ -48,27 +40,40 @@
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
-						$samatolana = ($pageNo - 1) * 10;
 						$shonuid = $data_auth['payload']['id'];
 						
-						$checkuser = mysqli_query($conn,"SELECT `price`, `shonu` from `hodike_balakedara` where `userkani`='".$shonuid."'");
-						$checkuserrow = mysqli_num_rows($checkuser);
+						// FIREBASE: Fetch user redemption logs
+						$user_redemptions = $firebase->get('user_redemptions/' . $mobile);
 						
-						if($checkuserrow >= 1){
-							$bobby = 0;
-							while($bobby < $checkuserrow){
-								$checkuserarr = mysqli_fetch_array($checkuser);
-								$data['list'][$bobby]['addTime'] = $checkuserarr['shonu'];
-								$data['list'][$bobby]['amount'] = (int)$checkuserarr['price'];;
-								$data['pageNo'] = (int)$pageNo;
-								$data['totalPage'] = ceil($checkuserrow/$pageSize);
-								$data['totalCount'] = $checkuserrow;
-								$bobby++;
-							}							
-						}
-						else{
+						$data = [];
+						if ($user_redemptions) {
+							$list = [];
+							foreach ($user_redemptions as $pushId => $item) {
+								$list[] = [
+									'addTime' => $item['redeemed_at'] ?? 'N/A',
+									'amount' => (int)($item['amount'] ?? 0)
+								];
+							}
+							
+							// Sort descending by time
+							usort($list, function($a, $b) {
+								return strcmp($b['addTime'], $a['addTime']);
+							});
+							
+							$totalCount = count($list);
+							$totalPage = ceil($totalCount / $pageSize);
+							
+							// Paginate manually
+							$offset = ($pageNo - 1) * $pageSize;
+							$paginatedList = array_slice($list, $offset, $pageSize);
+							
+							$data['list'] = $paginatedList;
+							$data['pageNo'] = $pageNo;
+							$data['totalPage'] = (int)$totalPage;
+							$data['totalCount'] = (int)$totalCount;
+						} else {
 							$data['list'] = [];
-							$data['pageNo'] = (int)$pageNo;
+							$data['pageNo'] = $pageNo;
 							$data['totalPage'] = 0;
 							$data['totalCount'] = 0;
 						}

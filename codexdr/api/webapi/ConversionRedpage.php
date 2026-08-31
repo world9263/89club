@@ -62,10 +62,17 @@
 										'redeemed_count' => $new_redeemed_count
 									]);
 									
-									// Save redemption log in Firebase
+									// Save redemption log in Firebase (per code duplicate checker)
 									$crdt = date("Y-m-d H:i:s");
 									$firebase->set('gift_redemptions/' . $giftCode . '/' . $mobile, [
 										'userId' => $mobile,
+										'amount' => $prix,
+										'redeemed_at' => $crdt
+									]);
+									
+									// Save redemption in user's personal log (for fast history queries!)
+									$firebase->push('user_redemptions/' . $mobile, [
+										'code' => $giftCode,
 										'amount' => $prix,
 										'redeemed_at' => $crdt
 									]);
@@ -114,7 +121,7 @@
 							$data = null;
 							$res['data'] = $data;
 							$res['code'] = 1;
-							$res['msg'] = 'Redemption code error';
+							$res['msg'] = 'Invalid code';
 							$res['msgCode'] = 230;
 							http_response_code(200);
 							echo json_encode($res);
