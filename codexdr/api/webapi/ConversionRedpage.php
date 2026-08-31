@@ -32,14 +32,14 @@
 			$shonusign = strtoupper(md5($shonustr));
 			if(true){
 				$bearer = explode(" ", $_SERVER['HTTP_AUTHORIZATION']);
-				$author = $bearer[1];				
+				$author = $bearer[1] ?? '';				
 				$is_jwt_valid = is_jwt_valid($author);
 				$data_auth = json_decode($is_jwt_valid, 1);
-				if($data_auth['status'] === 'Success') {
+				if(isset($data_auth['status']) && $data_auth['status'] === 'Success') {
 					$mobile = $data_auth['payload']['mobile'];
 					$user = $firebase->get('users/' . $mobile);
 					if($user != null){
-						$shonuid = $data_auth['payload']['id'];
+						$shonuid = $data_auth['payload']['id'] ?? $mobile;
 						
 						// FIREBASE: Get gift code details
 						$gift_ref = $firebase->get('gift_codes/' . $giftCode);
@@ -49,20 +49,42 @@
 							$redeemed_count = isset($gift_ref['redeemed_count']) ? (int)$gift_ref['redeemed_count'] : 0;
 							$min_deposit_req = isset($gift_ref['min_deposit_req']) ? (float)$gift_ref['min_deposit_req'] : 0.0;
 							
+							// Dynamic Country & Currency Detection: BD vs India
+							$is_bdt_user = false;
+							$cf_country = isset($_SERVER["HTTP_CF_IPCOUNTRY"]) ? strtoupper($_SERVER["HTTP_CF_IPCOUNTRY"]) : '';
+							if ($cf_country === 'BD') {
+								$is_bdt_user = true;
+							}
+							if (!$is_bdt_user && isset($language) && ($language === 'bdt' || $language === '"bdt"')) {
+								$is_bdt_user = true;
+							}
+							if (!$is_bdt_user && (strpos($mobile, '880') === 0 || strpos($mobile, '+880') === 0)) {
+								$is_bdt_user = true;
+							}
+							if (!$is_bdt_user && (isset($user['country_code']) && strtoupper($user['country_code']) === 'BD')) {
+								$is_bdt_user = true;
+							}
+							
+							$curr_sym = $is_bdt_user ? '৳' : '₹';
+							
 							// Check minimum deposit requirement if configured
 							if ($min_deposit_req > 0) {
 								$deposits = $firebase->get('deposits');
 								$userTotalDeposit = 0.0;
 								if ($deposits) {
 									foreach ($deposits as $dep) {
-										$is_user_dep = isset($dep['userId']) && (
-											$dep['userId'] == $mobile || 
-											$dep['userId'] == '91' . $mobile || 
-											$dep['userId'] == '880' . $mobile ||
-											$dep['userId'] == '+91' . $mobile || 
-											$dep['userId'] == '+880' . $mobile
+										$depUser = isset($dep['userId']) ? (string)$dep['userId'] : '';
+										$is_user_dep = (
+											$depUser === (string)$mobile || 
+											$depUser === ('91' . $mobile) || 
+											$depUser === ('880' . $mobile) ||
+											$depUser === ('+91' . $mobile) || 
+											$depUser === ('+880' . $mobile) ||
+											$depUser === (string)$shonuid ||
+											(isset($user['mobile']) && $depUser === (string)$user['mobile'])
 										);
-										$is_success = isset($dep['status']) && ($dep['status'] === 'success' || $dep['status'] === 'request success' || strtolower($dep['status']) === 'approved');
+										$statusLower = isset($dep['status']) ? strtolower(trim((string)$dep['status'])) : '';
+										$is_success = ($statusLower === 'success' || $statusLower === 'request success' || $statusLower === 'approved');
 										
 										if ($is_user_dep && $is_success) {
 											$userTotalDeposit += (float)($dep['amount'] ?? 0.0);
@@ -71,8 +93,6 @@
 								}
 								
 								if ($userTotalDeposit < $min_deposit_req) {
-									$is_bdt_user = ($user['country_code'] ?? '') === 'BD' || str_starts_with($mobile, '880') || str_starts_with($mobile, '+880');
-									$curr_sym = $is_bdt_user ? '৳' : '₹';
 									$data = null;
 									$res['data'] = $data;
 									$res['code'] = 1;
