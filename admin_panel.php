@@ -486,7 +486,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           <h3 class="font-bold text-white text-sm flex items-center gap-2">
             <i class="fa-solid fa-circle-plus text-yellow-500"></i> Create New Gift Code
           </h3>
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Code</label>
               <div class="flex gap-2">
@@ -525,6 +525,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                   <th class="px-6 py-4 font-bold">Gift Code</th>
                   <th class="px-6 py-4 font-bold">Reward</th>
                   <th class="px-6 py-4 font-bold">Turnover Req.</th>
+                  <th class="px-6 py-4 font-bold">Min Deposit</th>
                   <th class="px-6 py-4 font-bold">Usage</th>
                   <th class="px-6 py-4 font-bold">Status</th>
                   <th class="px-6 py-4 font-bold text-center">Action</th>
@@ -532,7 +533,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
               </thead>
               <tbody id="gift-codes-table-body" class="divide-y divide-slate-800 text-sm">
                 <tr>
-                  <td colspan="6" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td>
+                  <td colspan="7" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td>
                 </tr>
               </tbody>
             </table>
@@ -2001,7 +2002,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const list = Object.entries(giftCodesData).map(([code, g]) => ({ code, ...g }));
       
       if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td></tr>`;
         return;
       }
 
@@ -2021,6 +2022,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
             <td class="px-6 py-4 font-bold text-white select-all">${g.code}</td>
             <td class="px-6 py-4 font-semibold text-white">৳${parseFloat(g.amount || 0).toFixed(2)}</td>
             <td class="px-6 py-4 text-slate-400">৳${parseFloat(g.turnover_req || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-amber-400 font-semibold">৳${parseFloat(g.min_deposit_req || 0).toFixed(2)}</td>
             <td class="px-6 py-4 text-slate-400">${g.redeemed_count || 0} / ${g.max_users || 0}</td>
             <td class="px-6 py-4">${statusBadge}</td>
             <td class="px-6 py-4 text-center space-x-2">
@@ -2068,6 +2070,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       const code = document.getElementById('giftCodeInput').value.trim().toUpperCase();
       const amount = parseFloat(document.getElementById('giftAmountInput').value);
       const turnover_req = parseFloat(document.getElementById('giftTurnoverInput').value) || 0;
+      const min_deposit_req = parseFloat(document.getElementById('giftMinDepositInput').value) || 0;
       const maxUsers = parseInt(document.getElementById('giftMaxUsersInput').value);
 
       if (!code) return alert('Please enter or generate a Gift Code!');
@@ -2080,6 +2083,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         code: code,
         amount: amount,
         turnover_req: turnover_req,
+        min_deposit_req: min_deposit_req,
         max_users: maxUsers,
         redeemed_count: 0,
         status: 1,
@@ -2092,6 +2096,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           document.getElementById('giftCodeInput').value = '';
           document.getElementById('giftAmountInput').value = '';
           document.getElementById('giftTurnoverInput').value = '';
+          document.getElementById('giftMinDepositInput').value = '';
           document.getElementById('giftMaxUsersInput').value = '';
         })
         .catch(err => alert('Failed to create gift code: ' + err.message));

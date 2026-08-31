@@ -47,6 +47,42 @@
 						if ($gift_ref !== null && isset($gift_ref['status']) && $gift_ref['status'] == 1) {
 							$max_users = isset($gift_ref['max_users']) ? (int)$gift_ref['max_users'] : 0;
 							$redeemed_count = isset($gift_ref['redeemed_count']) ? (int)$gift_ref['redeemed_count'] : 0;
+							$min_deposit_req = isset($gift_ref['min_deposit_req']) ? (float)$gift_ref['min_deposit_req'] : 0.0;
+							
+							// Check minimum deposit requirement if configured
+							if ($min_deposit_req > 0) {
+								$deposits = $firebase->get('deposits');
+								$userTotalDeposit = 0.0;
+								if ($deposits) {
+									foreach ($deposits as $dep) {
+										$is_user_dep = isset($dep['userId']) && (
+											$dep['userId'] == $mobile || 
+											$dep['userId'] == '91' . $mobile || 
+											$dep['userId'] == '880' . $mobile ||
+											$dep['userId'] == '+91' . $mobile || 
+											$dep['userId'] == '+880' . $mobile
+										);
+										$is_success = isset($dep['status']) && ($dep['status'] === 'success' || $dep['status'] === 'request success' || strtolower($dep['status']) === 'approved');
+										
+										if ($is_user_dep && $is_success) {
+											$userTotalDeposit += (float)($dep['amount'] ?? 0.0);
+										}
+									}
+								}
+								
+								if ($userTotalDeposit < $min_deposit_req) {
+									$is_bdt_user = ($user['country_code'] ?? '') === 'BD' || str_starts_with($mobile, '880') || str_starts_with($mobile, '+880');
+									$curr_sym = $is_bdt_user ? '৳' : '₹';
+									$data = null;
+									$res['data'] = $data;
+									$res['code'] = 1;
+									$res['msg'] = 'minimum deposit require for this code ' . $curr_sym . $min_deposit_req;
+									$res['msgCode'] = 233;
+									http_response_code(200);
+									echo json_encode($res);
+									exit;
+								}
+							}
 							
 							if ($redeemed_count < $max_users) {
 								// FIREBASE: Check if this user has already redeemed this code
