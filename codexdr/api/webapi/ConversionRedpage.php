@@ -24,7 +24,7 @@
 	
 	if ($_SERVER['REQUEST_METHOD'] != 'GET') {
 		if (isset($shonupost['giftCode']) && isset($shonupost['language']) && isset($shonupost['random']) && isset($shonupost['signature']) && isset($shonupost['timestamp'])) {
-			$giftCode = $shonupost['giftCode'];	
+			$giftCode = trim($shonupost['giftCode']);	
 			$language = $shonupost['language'];		
 			$random = $shonupost['random'];
 			$signature = $shonupost['signature'];			
@@ -41,31 +41,47 @@
 					if($user != null){
 						$shonuid = $data_auth['payload']['id'];
 						
-						$checkcode = mysqli_query($conn,"SELECT `identite`, `utilisateurmax`, `prix`, `nombredutilisateurs` FROM `hodike_nirvahaka` WHERE `enserie`='".$giftCode."' AND `shonu`='1'");
-						$checkcoderow = mysqli_num_rows($checkcode);
+						// FIREBASE: Get gift code details
+						$gift_ref = $firebase->get('gift_codes/' . $giftCode);
 						
-						$checkuser = mysqli_query($conn,"SELECT `kani` from `hodike_balakedara` where `serial`='".$giftCode."' AND `userkani`='".$shonuid."'");
-						$checkuserrow = mysqli_num_rows($checkuser);
-						
-						if($checkcoderow>0){
-							$checkcodearray = mysqli_fetch_array($checkcode);
-							$utilisateurmax = $checkcodearray['utilisateurmax'];
-							$nombredutilisateurs = $checkcodearray['nombredutilisateurs'];
-							if($nombredutilisateurs < $utilisateurmax){
-								if($checkuserrow == 0){
-									$prix = $checkcodearray['prix'];
-									$nombredutilisateurs = $nombredutilisateurs + 1;
-									$sql2= mysqli_query($conn,"UPDATE `hodike_nirvahaka` SET `nombredutilisateurs` = '".$nombredutilisateurs."' WHERE `enserie` = '".$giftCode."'");
-									$crdt = date("Y-m-d H:i:m");
-									$sql= mysqli_query($conn,"INSERT INTO `hodike_balakedara` (`userkani`, `serial`, `price`,`shonu`) VALUES ('".$shonuid."','".$giftCode."','".$prix."','".$crdt."')");
+						if ($gift_ref !== null && isset($gift_ref['status']) && $gift_ref['status'] == 1) {
+							$max_users = isset($gift_ref['max_users']) ? (int)$gift_ref['max_users'] : 0;
+							$redeemed_count = isset($gift_ref['redeemed_count']) ? (int)$gift_ref['redeemed_count'] : 0;
+							
+							if ($redeemed_count < $max_users) {
+								// FIREBASE: Check if this user has already redeemed this code
+								$has_redeemed = $firebase->get('gift_redemptions/' . $giftCode . '/' . $mobile);
+								
+								if ($has_redeemed === null) {
+									$prix = (float)$gift_ref['amount'];
+									$turnover_req = isset($gift_ref['turnover_req']) ? (float)$gift_ref['turnover_req'] : 0.0;
 									
-									// Update user balance in Firebase
+									// Increment redeemed count in Firebase
+									$new_redeemed_count = $redeemed_count + 1;
+									$firebase->update('gift_codes/' . $giftCode, [
+										'redeemed_count' => $new_redeemed_count
+									]);
+									
+									// Save redemption log in Firebase
+									$crdt = date("Y-m-d H:i:s");
+									$firebase->set('gift_redemptions/' . $giftCode . '/' . $mobile, [
+										'userId' => $mobile,
+										'amount' => $prix,
+										'redeemed_at' => $crdt
+									]);
+									
+									// Update user balance and required turnover in Firebase
 									$userMotta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
 									$newMotta = round($userMotta + $prix, 2);
-									$firebase->update('users/' . $mobile, ['motta' => $newMotta]);
 									
-									// Add wagering turnover requirement on gift code reward
-									add_turnover($mobile, $prix);
+									$userTurnover = isset($user['required_turnover']) ? (float)$user['required_turnover'] : 0.0;
+									$newTurnover = round($userTurnover + $turnover_req, 2);
+									
+									$firebase->update('users/' . $mobile, [
+										'motta' => $newMotta,
+										'required_turnover' => $newTurnover
+									]);
+									
 									$data = null;
 									$res['data'] = $data;
 									$res['code'] = 0;
@@ -74,27 +90,27 @@
 									http_response_code(200);
 									echo json_encode($res);
 								}
-								else{
+								else {
 									$data = null;
 									$res['data'] = $data;
 									$res['code'] = 1;
-									$res['msg'] = 'Redemption code error';
-									$res['msgCode'] = 230;
+									$res['msg'] = 'You have already redeemed this code';
+									$res['msgCode'] = 231;
 									http_response_code(200);
 									echo json_encode($res);
 								}								
 							}
-							else{
+							else {
 								$data = null;
 								$res['data'] = $data;
 								$res['code'] = 1;
-								$res['msg'] = 'Redemption code error';
-								$res['msgCode'] = 230;
+								$res['msg'] = 'Redemption limit reached';
+								$res['msgCode'] = 232;
 								http_response_code(200);
 								echo json_encode($res);
 							}							
 						}
-						else{
+						else {
 							$data = null;
 							$res['data'] = $data;
 							$res['code'] = 1;

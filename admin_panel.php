@@ -198,6 +198,13 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
           <i class="fa-solid fa-angle-right text-xs"></i>
         </button>
 
+        <button onclick="switchTab('tab-gifts')" id="btn-tab-gifts" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
+          <span class="flex items-center gap-3">
+            <i class="fa-solid fa-gift text-lg"></i> Gift Codes
+          </span>
+          <i class="fa-solid fa-angle-right text-xs"></i>
+        </button>
+
         <button onclick="switchTab('tab-games')" id="btn-tab-games" class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold text-slate-400 hover:text-slate-200 hover:bg-slate-900/40 transition-all border border-transparent">
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-gamepad text-lg"></i> Game Controller
@@ -456,6 +463,76 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
                 <!-- Dynamically populated -->
                 <tr>
                   <td colspan="9" class="px-6 py-8 text-center text-slate-500">No users found. Wait for sync.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: Gift Codes -->
+      <section id="tab-gifts" class="tab-panel space-y-6 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-gift text-yellow-500"></i> Gift Codes Management
+            </h2>
+            <p class="text-xs text-slate-500">Generate, view, and disable gift codes. Players can claim these codes in the game for direct balance credit.</p>
+          </div>
+        </div>
+
+        <!-- Generate Gift Code Form -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
+          <h3 class="font-bold text-white text-sm flex items-center gap-2">
+            <i class="fa-solid fa-circle-plus text-yellow-500"></i> Create New Gift Code
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Code</label>
+              <div class="flex gap-2">
+                <input type="text" id="giftCodeInput" placeholder="e.g. GIFT89CLUB" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
+                <button onclick="generateRandomGiftCode()" class="bg-slate-800 hover:bg-slate-755 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Reward Amount</label>
+              <input type="number" id="giftAmountInput" placeholder="e.g. 500" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Wagering Requirement (Turnover)</label>
+              <input type="number" id="giftTurnoverInput" placeholder="e.g. 500 (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-650 focus:outline-none focus:border-yellow-500 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Usage Limit (Max Users)</label>
+              <input type="number" id="giftMaxUsersInput" placeholder="e.g. 100" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
+            </div>
+          </div>
+          <div class="flex justify-end pt-2">
+            <button onclick="createGiftCode()" class="bg-yellow-500 hover:bg-yellow-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-yellow-500/10">
+              Generate & Save Code
+            </button>
+          </div>
+        </div>
+
+        <!-- Gift Codes Table -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                  <th class="px-6 py-4 font-bold">Gift Code</th>
+                  <th class="px-6 py-4 font-bold">Reward</th>
+                  <th class="px-6 py-4 font-bold">Turnover Req.</th>
+                  <th class="px-6 py-4 font-bold">Usage</th>
+                  <th class="px-6 py-4 font-bold">Status</th>
+                  <th class="px-6 py-4 font-bold text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="gift-codes-table-body" class="divide-y divide-slate-800 text-sm">
+                <tr>
+                  <td colspan="6" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td>
                 </tr>
               </tbody>
             </table>
@@ -805,6 +882,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
       tempInputs[key] = value;
     }
 
+    let giftCodesData = {};
     let gcActiveGameType = 'wingo';
     let gcActiveGameTypeId = 1;
     let gcActiveGameTitle = 'WinGo 1 Min';
@@ -897,6 +975,11 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         updateRecentPendingList();
       });
 
+      db.ref('gift_codes').on('value', snap => {
+        giftCodesData = snap.val() || {};
+        updateGiftCodesTable();
+      });
+
       // Sync Game Controller overrides
       syncGcOverrides();
       selectControllerGame('wingo', 1, 'WinGo 1 Min');
@@ -912,6 +995,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         { id: 'btn-tab-deposits', tab: 'tab-deposits', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
         { id: 'btn-tab-withdrawals', tab: 'tab-withdrawals', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
         { id: 'btn-tab-users', tab: 'tab-users', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
+        { id: 'btn-tab-gifts', tab: 'tab-gifts', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
         { id: 'btn-tab-games', tab: 'tab-games', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' },
         { id: 'btn-tab-settings', tab: 'tab-settings', activeColor: 'text-amber-500 bg-amber-500 bg-opacity-5 border-amber-500/25' }
       ];
@@ -1906,6 +1990,111 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
         premium: input,
         active: true
       });
+    }
+
+    // Populate Gift Codes Table
+    function updateGiftCodesTable() {
+      const tbody = document.getElementById('gift-codes-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const list = Object.entries(giftCodesData).map(([code, g]) => ({ code, ...g }));
+      
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No gift codes found. Generate one above!</td></tr>`;
+        return;
+      }
+
+      list.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
+      list.forEach(g => {
+        const statusBadge = (g.status == 1) 
+          ? `<span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Active</span>` 
+          : `<span class="bg-red-500/10 text-red-400 text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wider text-center block">Disabled</span>`;
+
+        const actionBtn = (g.status == 1)
+          ? `<button onclick="toggleGiftCodeStatus('${g.code}', 0)" class="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-3 py-1 rounded-lg transition-colors">Disable</button>`
+          : `<button onclick="toggleGiftCodeStatus('${g.code}', 1)" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-3 py-1 rounded-lg transition-colors">Enable</button>`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-900/40 transition-colors">
+            <td class="px-6 py-4 font-bold text-white select-all">${g.code}</td>
+            <td class="px-6 py-4 font-semibold text-white">৳${parseFloat(g.amount || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-slate-400">৳${parseFloat(g.turnover_req || 0).toFixed(2)}</td>
+            <td class="px-6 py-4 text-slate-400">${g.redeemed_count || 0} / ${g.max_users || 0}</td>
+            <td class="px-6 py-4">${statusBadge}</td>
+            <td class="px-6 py-4 text-center space-x-2">
+              ${actionBtn}
+              <button onclick="deleteGiftCode('&lt;span style="color:inherit"&gt;${g.code}&lt;/span&gt;')" class="bg-slate-800 hover:bg-red-500 text-slate-400 hover:text-white font-bold text-xs px-3 py-1 rounded-lg transition-all"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Toggle status
+    function toggleGiftCodeStatus(code, newStatus) {
+      db.ref('gift_codes/' + code).update({ status: newStatus })
+        .then(() => showToast('Gift code status updated successfully!'))
+        .catch(err => alert('Failed: ' + err.message));
+    }
+
+    // Delete gift code
+    function deleteGiftCode(code) {
+      // Decode HTML entities if code is passed wrapped in span or similar
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = code;
+      const cleanCode = tempDiv.textContent || tempDiv.innerText || code;
+      
+      if (confirm('Are you sure you want to delete gift code: ' + cleanCode + '?')) {
+        db.ref('gift_codes/' + cleanCode).remove()
+          .then(() => showToast('Gift code deleted successfully!'))
+          .catch(err => alert('Failed: ' + err.message));
+      }
+    }
+
+    // Generate random code helper
+    function generateRandomGiftCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = 'GIFT-';
+      for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      document.getElementById('giftCodeInput').value = result;
+    }
+
+    // Create New Gift Code
+    function createGiftCode() {
+      const code = document.getElementById('giftCodeInput').value.trim().toUpperCase();
+      const amount = parseFloat(document.getElementById('giftAmountInput').value);
+      const turnover_req = parseFloat(document.getElementById('giftTurnoverInput').value) || 0;
+      const maxUsers = parseInt(document.getElementById('giftMaxUsersInput').value);
+
+      if (!code) return alert('Please enter or generate a Gift Code!');
+      if (isNaN(amount) || amount <= 0) return alert('Please enter a valid reward amount!');
+      if (isNaN(maxUsers) || maxUsers <= 0) return alert('Please enter a valid usage limit!');
+
+      const dateStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+      const newGift = {
+        code: code,
+        amount: amount,
+        turnover_req: turnover_req,
+        max_users: maxUsers,
+        redeemed_count: 0,
+        status: 1,
+        created_at: dateStr
+      };
+
+      db.ref('gift_codes/' + code).set(newGift)
+        .then(() => {
+          showToast('Gift code ' + code + ' generated successfully!');
+          document.getElementById('giftCodeInput').value = '';
+          document.getElementById('giftAmountInput').value = '';
+          document.getElementById('giftTurnoverInput').value = '';
+          document.getElementById('giftMaxUsersInput').value = '';
+        })
+        .catch(err => alert('Failed to create gift code: ' + err.message));
     }
 
     function cancelActiveOverride() {
