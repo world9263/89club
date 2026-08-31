@@ -491,7 +491,7 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Code</label>
               <div class="flex gap-2">
                 <input type="text" id="giftCodeInput" placeholder="e.g. GIFT89CLUB" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
-                <button onclick="generateRandomGiftCode()" class="bg-slate-800 hover:bg-slate-755 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center">
+                <button onclick="generateRandomGiftCode()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center">
                   <i class="fa-solid fa-arrows-rotate"></i>
                 </button>
               </div>
@@ -502,7 +502,11 @@ $isLoggedIn = isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Wagering Requirement (Turnover)</label>
-              <input type="number" id="giftTurnoverInput" placeholder="e.g. 500 (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-650 focus:outline-none focus:border-yellow-500 text-sm">
+              <input type="number" id="giftTurnoverInput" placeholder="e.g. 500 (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Deposit Requirement</label>
+              <input type="number" id="giftMinDepositInput" placeholder="e.g. 500 (Optional)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white placeholder-slate-600 focus:outline-none focus:border-yellow-500 text-sm">
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Usage Limit (Max Users)</label>
