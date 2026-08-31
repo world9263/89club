@@ -106,6 +106,20 @@ class FirebaseClient {
         return json_decode($res, true);
     }
 
+    // POST — Push a new child document with auto-generated ID
+    public function push($path, $data) {
+        $ch = curl_init($this->dbUrl . '/' . $path . '.json');
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        $res = curl_exec($ch);
+        curl_close($ch);
+        return json_decode($res, true);
+    }
+
     // DELETE — Remove a document
     public function delete($path) {
         $ch = curl_init($this->dbUrl . '/' . $path . '.json');

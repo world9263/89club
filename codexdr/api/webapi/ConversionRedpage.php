@@ -111,29 +111,9 @@
 								if ($has_redeemed === null) {
 									$prix = (float)$gift_ref['amount'];
 									$turnover_req = isset($gift_ref['turnover_req']) ? (float)$gift_ref['turnover_req'] : 0.0;
-									
-									// Increment redeemed count in Firebase
-									$new_redeemed_count = $redeemed_count + 1;
-									$firebase->update('gift_codes/' . $giftCode, [
-										'redeemed_count' => $new_redeemed_count
-									]);
-									
-									// Save redemption log in Firebase (per code duplicate checker)
 									$crdt = date("Y-m-d H:i:s");
-									$firebase->set('gift_redemptions/' . $giftCode . '/' . $mobile, [
-										'userId' => $mobile,
-										'amount' => $prix,
-										'redeemed_at' => $crdt
-									]);
 									
-									// Save redemption in user's personal log (for fast history queries!)
-									$firebase->push('user_redemptions/' . $mobile, [
-										'code' => $giftCode,
-										'amount' => $prix,
-										'redeemed_at' => $crdt
-									]);
-									
-									// Update user balance and required turnover in Firebase
+									// 1. Update user balance and required turnover in Firebase FIRST
 									$userMotta = isset($user['motta']) ? (float)$user['motta'] : 0.0;
 									$newMotta = round($userMotta + $prix, 2);
 									
@@ -143,6 +123,27 @@
 									$firebase->update('users/' . $mobile, [
 										'motta' => $newMotta,
 										'required_turnover' => $newTurnover
+									]);
+									
+									// 2. Increment redeemed count in Firebase
+									$new_redeemed_count = $redeemed_count + 1;
+									$firebase->update('gift_codes/' . $giftCode, [
+										'redeemed_count' => $new_redeemed_count
+									]);
+									
+									// 3. Save redemption log in Firebase (per code duplicate checker)
+									$firebase->set('gift_redemptions/' . $giftCode . '/' . $mobile, [
+										'userId' => $mobile,
+										'amount' => $prix,
+										'redeemed_at' => $crdt
+									]);
+									
+									// 4. Save redemption in user's personal log (for fast history queries!)
+									$redKey = 'red_' . time() . '_' . rand(100, 999);
+									$firebase->set('user_redemptions/' . $mobile . '/' . $redKey, [
+										'code' => $giftCode,
+										'amount' => $prix,
+										'redeemed_at' => $crdt
 									]);
 									
 									$data = null;
